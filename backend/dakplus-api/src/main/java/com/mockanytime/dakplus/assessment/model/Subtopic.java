@@ -16,4 +16,5 @@ public class Subtopic {
     private String name; // Represents specific "Exam" (e.g., Paper 1, Paper 2)
     private String description;
     private String topicId; // Links to Exam Category
+
 }

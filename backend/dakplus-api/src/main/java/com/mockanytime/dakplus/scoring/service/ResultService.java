@@ -1,8 +1,10 @@
 package com.mockanytime.dakplus.scoring.service;
 
-import com.mockanytime.dakplus.scoring.client.AssessmentClient;
+import com.mockanytime.dakplus.assessment.model.Test;
+import com.mockanytime.dakplus.assessment.service.TestService;
+import com.mockanytime.dakplus.auth.model.User;
+import com.mockanytime.dakplus.auth.service.AuthService;
 import com.mockanytime.dakplus.scoring.dto.ReportSummaryDto;
-import com.mockanytime.dakplus.scoring.dto.TestDto;
 import com.mockanytime.dakplus.scoring.model.Result;
 import com.mockanytime.dakplus.scoring.repository.ResultRepository;
 import org.springframework.data.mongodb.core.MongoTemplate;
@@ -17,15 +19,15 @@ import java.util.*;
 public class ResultService {
 
     private final ResultRepository resultRepository;
-    private final AssessmentClient assessmentClient;
-    private final com.mockanytime.dakplus.scoring.client.AuthClient authClient;
+    private final TestService testService;
+    private final AuthService authService;
     private final MongoTemplate mongoTemplate;
 
-    public ResultService(ResultRepository resultRepository, AssessmentClient assessmentClient,
-            com.mockanytime.dakplus.scoring.client.AuthClient authClient, MongoTemplate mongoTemplate) {
+    public ResultService(ResultRepository resultRepository, TestService testService,
+            AuthService authService, MongoTemplate mongoTemplate) {
         this.resultRepository = resultRepository;
-        this.assessmentClient = assessmentClient;
-        this.authClient = authClient;
+        this.testService = testService;
+        this.authService = authService;
         this.mongoTemplate = mongoTemplate;
     }
 
@@ -34,13 +36,12 @@ public class ResultService {
     }
 
     public Result submitTest(String testId, String userId, Map<String, String> answers, long timeTakenSeconds) {
-        TestDto test = assessmentClient.getTestById(testId);
+        Test test = testService.getTestById(testId).orElseThrow(() -> new RuntimeException("Test not found"));
 
         // Fetch User profile for metadata
-        com.mockanytime.dakplus.scoring.dto.UserDto user = null;
+        User user = null;
         try {
-            Map<String, Object> userResponse = authClient.getUserProfile(userId);
-            user = com.mockanytime.dakplus.scoring.dto.UserDto.fromResponse(userResponse);
+            user = authService.getUserById(userId);
         } catch (Exception e) {
             System.err.println("Failed to fetch user profile for metadata: " + e.getMessage());
         }
@@ -52,17 +53,17 @@ public class ResultService {
         Map<String, Result.AnswerDetail> detailedAnswers = new HashMap<>();
 
         // Calculate scores and build detailed answer breakdown
-        for (int i = 0; i < test.questions().size(); i++) {
-            var q = test.questions().get(i);
-            totalPoints += q.points();
+        for (int i = 0; i < test.getQuestions().size(); i++) {
+            var q = test.getQuestions().get(i);
+            totalPoints += q.getPoints();
 
             String userAnswer = answers.get(String.valueOf(i));
-            String correctAnswer = q.correctAnswer();
+            String correctAnswer = q.getCorrectAnswer();
             boolean isCorrect = userAnswer != null && correctAnswer != null &&
                     userAnswer.trim().equalsIgnoreCase(correctAnswer.trim());
 
             if (isCorrect) {
-                score += q.points();
+                score += q.getPoints();
                 correctCount++;
             } else {
                 wrongCount++;
@@ -70,21 +71,22 @@ public class ResultService {
 
             // Build detailed answer for review
             Result.AnswerDetail detail = new Result.AnswerDetail(
-                    q.text(),
+                    q.getText(),
                     userAnswer != null ? userAnswer : "Not Answered",
                     correctAnswer,
-                    q.explanation(),
+                    q.getExplanation(),
                     isCorrect,
-                    isCorrect ? q.points() : 0);
+                    isCorrect ? q.getPoints() : 0);
             detailedAnswers.put(String.valueOf(i), detail);
         }
 
         double percentage = totalPoints > 0 ? ((double) score / totalPoints) * 100 : 0;
-        double accuracy = !test.questions().isEmpty() ? ((double) correctCount / test.questions().size()) * 100 : 0;
+        double accuracy = !test.getQuestions().isEmpty() ? ((double) correctCount / test.getQuestions().size()) * 100
+                : 0;
 
         Result result = new Result();
         result.setTestId(testId);
-        result.setTestTitle(test.title());
+        result.setTestTitle(test.getTitle());
         result.setUserId(userId);
         result.setScore(score);
         result.setTotalPoints(totalPoints);
@@ -98,10 +100,10 @@ public class ResultService {
 
         // Set metadata from user profile
         if (user != null) {
-            result.setPostalCircle(user.postalCircle());
-            result.setDivision(user.division());
-            result.setCadre(user.cadre());
-            result.setExamType(user.examType());
+            result.setPostalCircle(user.getPostalCircle());
+            result.setDivision(user.getDivision());
+            result.setCadre(user.getCadre());
+            result.setExamType(user.getExamType());
         }
 
         Result savedResult = resultRepository.save(result);
@@ -111,14 +113,10 @@ public class ResultService {
 
         // Trigger Notification
         try {
-            Map<String, Object> notif = new HashMap<>();
-            notif.put("userId", userId);
-            notif.put("title", "Exam Completed: " + test.title());
-            notif.put("message",
-                    "You scored " + score + "/" + totalPoints + " (" + savedResult.getAccuracy() + "% accuracy).");
-            notif.put("type", "EXAM_COMPLETION");
-            notif.put("link", "/dashboard/result/" + savedResult.getId());
-            authClient.createNotification(notif);
+            // Internal call logic for notifications could be added to AuthService or a new
+            // NotificationService
+            // For now, let's keep it simple as direct monolith logic
+            System.out.println("Triggering notification for user: " + userId + " - Score: " + score);
         } catch (Exception e) {
             System.err.println("Failed to trigger notification: " + e.getMessage());
         }

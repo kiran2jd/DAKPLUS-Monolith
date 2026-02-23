@@ -8,7 +8,6 @@ import org.springframework.data.mongodb.core.mapping.Document;
 
 @Data
 @NoArgsConstructor
-@AllArgsConstructor
 @Document(collection = "topics")
 public class Topic {
     @Id
@@ -16,4 +15,5 @@ public class Topic {
     private String name; // Represents "Exam Category" (e.g., Dept Exams, GDS to MTS)
     private String description;
     private String icon; // Icon name for UI
+
 }
