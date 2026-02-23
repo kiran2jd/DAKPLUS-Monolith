@@ -1,0 +1,39 @@
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Dependency directories
+node_modules/
+backend/dakplus-api/target/
+frontend/dist/
+mobile/node_modules/
+mobile/.expo/
+
+# Environment files (SENSITIVE)
+.env
+.env.*
+!.env.example
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Mobile specific
+mobile/android/
+mobile/ios/
+*.jks
+*.p12
+*.key
+*.mobileprovision
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Tesseract temporary files
+ocr_chunk_*

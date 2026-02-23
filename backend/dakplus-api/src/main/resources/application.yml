@@ -1,0 +1,91 @@
+server:
+  port: 8080
+
+spring:
+  application:
+    name: dakplus-api
+  data:
+    mongodb:
+      uri: ${SPRING_DATA_MONGODB_URI:mongodb://localhost:27017/mockanytime}
+      database: mockanytime
+      auto-index-creation: true
+  mail:
+    host: ${SPRING_MAIL_HOST:smtp.gmail.com}
+    port: ${SPRING_MAIL_PORT:587}
+    username: ${SPRING_MAIL_USERNAME}
+    password: ${SPRING_MAIL_PASSWORD}
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+          connectiontimeout: 5000
+          timeout: 5000
+          writetimeout: 5000
+      debug: true
+  ai:
+    openai:
+      base-url: ${GROQ_BASE_URL:https://api.groq.com/openai}
+      api-key: ${GROQ_API_KEY}
+      chat:
+        options:
+          model: llama-3.3-70b-versatile
+  servlet:
+    multipart:
+      max-file-size: 100MB
+      max-request-size: 100MB
+
+# OTP Configuration
+otp:
+  delivery:
+    mode: ${OTP_DELIVERY_MODE:sms}
+
+msg91:
+  auth:
+    key: ${MSG91_AUTH_KEY:}
+  template:
+    id: ${MSG91_TEMPLATE_ID:}
+
+twilio:
+  account:
+    sid: ${TWILIO_ACCOUNT_SID:}
+  auth:
+    token: ${TWILIO_AUTH_TOKEN:}
+  from:
+    number: ${TWILIO_FROM_NUMBER:}
+
+# Resend API
+resend:
+  api:
+    key: ${RESEND_API_KEY:}
+
+# JWT Configuration
+jwt:
+  secret: ${JWT_SECRET:5367566B59703373367639792F423F4528482B4D6251655468576D5A71347437}
+  expiration: 5184000000 # 60 days
+
+# Razorpay Configuration
+razorpay:
+  mode: ${RAZORPAY_MODE:live}
+  key:
+    id: ${RAZORPAY_KEY_ID:}
+    secret: ${RAZORPAY_KEY_SECRET:}
+
+# Stripe Configuration
+stripe:
+  key: ${STRIPE_SECRET_KEY:sk_test_placeholder}
+
+# Management & Health
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health
+  endpoint:
+    health:
+      show-details: always
+
+# Custom properties for navigation
+app:
+  frontend-url: ${FRONTEND_URL:http://localhost:3000}

@@ -1,0 +1,45 @@
+services:
+  dakplus-api:
+    build:
+      context: ./backend/dakplus-api
+      dockerfile: Dockerfile
+    container_name: dakplus-api
+    ports:
+      - "8080:8080"
+    environment:
+      SPRING_DATA_MONGODB_URI: ${SPRING_DATA_MONGODB_URI}
+      MSG91_AUTH_KEY: ${MSG91_AUTH_KEY}
+      MSG91_TEMPLATE_ID: ${MSG91_TEMPLATE_ID}
+      OTP_DELIVERY_MODE: ${OTP_DELIVERY_MODE}
+      SPRING_MAIL_HOST: ${SPRING_MAIL_HOST}
+      SPRING_MAIL_PORT: ${SPRING_MAIL_PORT}
+      SPRING_MAIL_USERNAME: ${SPRING_MAIL_USERNAME}
+      SPRING_MAIL_PASSWORD: ${SPRING_MAIL_PASSWORD}
+      RESEND_API_KEY: ${RESEND_API_KEY}
+      GROQ_API_KEY: ${GROQ_API_KEY}
+      GROQ_BASE_URL: ${GROQ_BASE_URL}
+      RAZORPAY_KEY_ID: ${RAZORPAY_KEY_ID}
+      RAZORPAY_KEY_SECRET: ${RAZORPAY_KEY_SECRET}
+      RAZORPAY_MODE: ${RAZORPAY_MODE}
+      JWT_SECRET: ${JWT_SECRET}
+      FRONTEND_URL: ${FRONTEND_URL}
+    networks:
+      - dakplus-network
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+      args:
+        VITE_API_BASE_URL: ${VITE_API_BASE_URL}
+    container_name: dakplus-frontend
+    ports:
+      - "3000:80"
+    depends_on:
+      - dakplus-api
+    networks:
+      - dakplus-network
+
+networks:
+  dakplus-network:
+    driver: bridge

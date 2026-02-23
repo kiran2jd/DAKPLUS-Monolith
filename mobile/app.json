@@ -1,0 +1,38 @@
+{
+  "expo": {
+    "name": "Dak Plus",
+    "slug": "DAKPlus",
+    "scheme": "dakplus",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/logo.jpg",
+    "userInterfaceStyle": "light",
+    "newArchEnabled": false,
+    "splash": {
+      "image": "./assets/logo.jpg",
+      "resizeMode": "contain",
+      "backgroundColor": "#ffffff"
+    },
+    "ios": {
+      "supportsTablet": true
+    },
+    "android": {
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/logo.jpg",
+        "backgroundColor": "#ffffff"
+      },
+      "package": "com.kiran2jd.dakplus"
+    },
+    "web": {
+      "favicon": "./assets/logo.jpg"
+    },
+    "extra": {
+      "eas": {
+        "projectId": "5731bb79-2d75-4c6f-8e7c-01e9274f6cf1"
+      }
+    },
+    "plugins": [
+      "expo-web-browser"
+    ]
+  }
+}
