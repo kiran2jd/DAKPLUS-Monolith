@@ -1,6 +1,5 @@
 package com.mockanytime.dakplus.assessment.model;
 
-import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.springframework.data.annotation.Id;
@@ -16,4 +15,10 @@ public class Topic {
     private String description;
     private String icon; // Icon name for UI
 
+    public Topic(String id, String name, String description, String icon) {
+        this.id = id;
+        this.name = name;
+        this.description = description;
+        this.icon = icon;
+    }
 }

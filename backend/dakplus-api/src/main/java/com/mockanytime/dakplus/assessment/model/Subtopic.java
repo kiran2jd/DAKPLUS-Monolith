@@ -1,6 +1,5 @@
 package com.mockanytime.dakplus.assessment.model;
 
-import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.springframework.data.annotation.Id;
@@ -8,7 +7,6 @@ import org.springframework.data.mongodb.core.mapping.Document;
 
 @Data
 @NoArgsConstructor
-@AllArgsConstructor
 @Document(collection = "subtopics")
 public class Subtopic {
     @Id
@@ -17,4 +15,10 @@ public class Subtopic {
     private String description;
     private String topicId; // Links to Exam Category
 
+    public Subtopic(String id, String name, String description, String topicId) {
+        this.id = id;
+        this.name = name;
+        this.description = description;
+        this.topicId = topicId;
+    }
 }
