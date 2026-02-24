@@ -9,7 +9,7 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 
 import java.util.Optional;
 
-@Configuration
+@Configuration("authDataInitializer")
 public class DataInitializer {
 
     @Bean

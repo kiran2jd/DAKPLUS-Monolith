@@ -13,7 +13,7 @@ import org.springframework.context.annotation.Configuration;
 import java.util.ArrayList;
 import java.util.List;
 
-@Configuration
+@Configuration("assessmentDataInitializer")
 @RequiredArgsConstructor
 public class DataInitializer implements CommandLineRunner {
 
