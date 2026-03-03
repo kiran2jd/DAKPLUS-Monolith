@@ -9,7 +9,7 @@ RUN npm run build
 
 FROM nginx:stable-alpine
 COPY --from=build /app/dist /usr/share/nginx/html
-# Custom nginx config to handle SPA routing if needed
-COPY nginx.conf /etc/nginx/conf.d/default.conf
-EXPOSE 80
-CMD sed -i 's/80/'"$PORT"'/g' /etc/nginx/conf.d/default.conf && nginx -g 'daemon off;'
+# Use Nginx templates to inject the Railway $PORT variable
+COPY nginx.conf /etc/nginx/templates/default.conf.template
+ENV PORT=80
+CMD ["nginx", "-g", "daemon off;"]
