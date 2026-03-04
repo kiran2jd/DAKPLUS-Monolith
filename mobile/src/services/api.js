@@ -16,7 +16,7 @@ const getApiUrl = () => {
     } else {
         // Primary custom domain (api.dakplus.in)
         // Fallback to Railway direct URL if custom domain is blocked by DNS/ISP
-        url = 'https://api.dakplus.in/api/';
+        url = 'https://api-v2.dakplus.in/api/';
     }
 
     // Ensure it ends with / for consistent path joining
