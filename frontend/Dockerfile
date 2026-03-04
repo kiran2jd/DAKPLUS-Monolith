@@ -11,5 +11,4 @@ FROM nginx:stable-alpine
 COPY --from=build /app/dist /usr/share/nginx/html
 # Use Nginx templates to inject the Railway $PORT variable
 COPY nginx.conf /etc/nginx/templates/default.conf.template
-ENV PORT=80
 CMD ["nginx", "-g", "daemon off;"]
