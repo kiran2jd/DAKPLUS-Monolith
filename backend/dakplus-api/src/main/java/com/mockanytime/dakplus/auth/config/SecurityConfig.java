@@ -33,23 +33,28 @@ public class SecurityConfig {
         return http.build();
     }
 
-    @Value("${ALLOWED_ORIGINS:*}")
+    @Value("${ALLOWED_ORIGINS:https://www.dakplus.in,https://dakplus.in,http://localhost:5173}")
     private String allowedOrigins;
 
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
 
-        if ("*".equals(allowedOrigins)) {
+        // Handle comma-separated list of origins
+        List<String> originsList = Arrays.asList(allowedOrigins.split(","));
+
+        if (originsList.contains("*")) {
             configuration.setAllowedOriginPatterns(List.of("*"));
         } else {
-            configuration.setAllowedOrigins(Arrays.asList(allowedOrigins.split(",")));
+            configuration.setAllowedOrigins(originsList);
         }
 
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"));
-        configuration.setAllowedHeaders(Arrays.asList("Authorization", "Content-Type", "X-Requested-With", "Accept",
-                "Origin", "Access-Control-Request-Method", "Access-Control-Request-Headers", "X-User-Id",
-                "X-Session-Id"));
+        configuration.setAllowedHeaders(Arrays.asList(
+                "Authorization", "Content-Type", "X-Requested-With", "Accept",
+                "Origin", "Access-Control-Request-Method", "Access-Control-Request-Headers",
+                "X-User-Id", "X-Session-Id", "Cache-Control", "Pragma", "Expires"));
+        configuration.setExposedHeaders(List.of("Authorization"));
         configuration.setAllowCredentials(true);
         configuration.setMaxAge(3600L);
 
