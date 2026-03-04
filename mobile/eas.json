@@ -15,13 +15,13 @@
         "image": "ubuntu-22.04-jdk-17-ndk-r26b"
       },
       "env": {
-        "EXPO_PUBLIC_API_URL": "https://dakplus-api-production.up.railway.app/api/"
+        "EXPO_PUBLIC_API_URL": "https://api-v2.dakplus.in/api/"
       }
     },
     "production": {
       "autoIncrement": true,
       "env": {
-        "EXPO_PUBLIC_API_URL": "https://dakplus-api-production.up.railway.app/api/"
+        "EXPO_PUBLIC_API_URL": "https://api-v2.dakplus.in/api/"
       }
     }
   },
