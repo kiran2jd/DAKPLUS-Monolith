@@ -21,5 +21,5 @@ RUN apt-get update && apt-get install -y \
 ENV TESSDATA_PREFIX=/usr/share/tesseract-ocr/5/tessdata
 
 COPY --from=build /app/target/*.jar app.jar
-EXPOSE 8080
+EXPOSE 1010
 ENTRYPOINT ["java", "-jar", "app.jar"]
