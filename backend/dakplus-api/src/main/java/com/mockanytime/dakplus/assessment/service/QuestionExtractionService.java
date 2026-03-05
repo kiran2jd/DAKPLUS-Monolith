@@ -128,20 +128,43 @@ public class QuestionExtractionService {
             throw e;
         }
 
-        // Basic cleanup of response in case AI adds markdown
+        // Robust cleanup of response
+        response = response.trim();
         if (response.contains("```json")) {
             response = response.substring(response.indexOf("```json") + 7);
-            if (response.contains("```")) {
-                response = response.substring(0, response.indexOf("```"));
-            }
         } else if (response.contains("```")) {
             response = response.substring(response.indexOf("```") + 3);
-            if (response.contains("```")) {
-                response = response.substring(0, response.indexOf("```"));
-            }
         }
 
+        if (response.contains("```")) {
+            response = response.substring(0, response.indexOf("```"));
+        }
         response = response.trim();
+
+        // Handle Truncation: If the response ends abruptly, try to close the JSON
+        // structure
+        if (response.startsWith("{") && !response.endsWith("}")) {
+            System.out.println("AI Response appears truncated. Attempting to repair JSON structure...");
+
+            // If it ends inside the questions array, close the object and array
+            if (response.lastIndexOf("}") < response.lastIndexOf("{")
+                    || response.lastIndexOf("]") < response.lastIndexOf("[")) {
+                // Very basic repair: append enough closing braces to satisfy a simple parser
+                // A better way is to find the last complete question object, but this is a
+                // quick fix
+                if (!response.endsWith("]")) {
+                    if (response.stripTrailing().endsWith(",")) {
+                        response = response.stripTrailing();
+                        response = response.substring(0, response.length() - 1);
+                    }
+                    response += "]}";
+                } else if (!response.endsWith("}")) {
+                    response += "}";
+                }
+            } else {
+                response += "}";
+            }
+        }
 
         try {
             // Using simple structure for the output parser or manual mapping if needed.
