@@ -144,25 +144,28 @@ public class QuestionExtractionService {
         // Handle Truncation: If the response ends abruptly, try to close the JSON
         // structure
         if (response.startsWith("{") && !response.endsWith("}")) {
-            System.out.println("AI Response appears truncated. Attempting to repair JSON structure...");
+            System.out.println("AI Response appears truncated. Length: " + response.length());
 
-            // If it ends inside the questions array, close the object and array
-            if (response.lastIndexOf("}") < response.lastIndexOf("{")
-                    || response.lastIndexOf("]") < response.lastIndexOf("[")) {
-                // Very basic repair: append enough closing braces to satisfy a simple parser
-                // A better way is to find the last complete question object, but this is a
-                // quick fix
-                if (!response.endsWith("]")) {
-                    if (response.stripTrailing().endsWith(",")) {
-                        response = response.stripTrailing();
-                        response = response.substring(0, response.length() - 1);
-                    }
-                    response += "]}";
-                } else if (!response.endsWith("}")) {
-                    response += "}";
-                }
+            // Step 1: Handle partial string values by closing the quote
+            long quoteCount = response.chars().filter(ch -> ch == '"').count();
+            if (quoteCount % 2 != 0) {
+                System.out.println("Detected unclosed string. Closing it now.");
+                response += "\"";
+            }
+
+            // Step 2: Try to find the last complete question object
+            int lastObjectEnd = response.lastIndexOf("},");
+            if (lastObjectEnd != -1) {
+                System.out.println("Found last complete object. Truncating partial data.");
+                response = response.substring(0, lastObjectEnd + 1) + "]}";
             } else {
-                response += "}";
+                // Aggressive fallback
+                if (response.contains("[")) {
+                    if (!response.endsWith("]"))
+                        response += "]";
+                }
+                if (!response.endsWith("}"))
+                    response += "}";
             }
         }
 
