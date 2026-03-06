@@ -48,6 +48,7 @@
   "overrides": {
     "expo-dev-menu-interface": "1.9.3",
     "expo-dev-menu": "6.0.18",
-    "expo-dev-launcher": "5.0.35"
+    "expo-dev-launcher": "5.0.35",
+    "expo-updates-interface": "1.0.18"
   }
 }
