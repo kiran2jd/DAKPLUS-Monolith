@@ -9,10 +9,6 @@ jobs:
 
     runs-on: ubuntu-latest
 
-    defaults:
-      run:
-        working-directory: mobile
-
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
@@ -23,7 +19,9 @@ jobs:
           node-version: 18
 
       - name: Install Dependencies
-        run: npm install
+        run: |
+          cd mobile
+          npm install
 
       - name: Setup Java
         uses: actions/setup-java@v4
@@ -33,7 +31,7 @@ jobs:
 
       - name: Build APK
         run: |
-          cd android
+          cd mobile/android
           chmod +x gradlew
           ./gradlew assembleRelease
 
