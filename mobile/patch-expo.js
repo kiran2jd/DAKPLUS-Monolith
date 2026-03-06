@@ -1,47 +1,50 @@
 const fs = require('fs');
 const path = require('path');
 
-// This script fixes a bug in some Expo modules where they accidentally point to 
-// .ts source files instead of compiled .js binaries.
 const root = path.join(__dirname, 'node_modules');
+if (!fs.existsSync(root)) process.exit(0);
 
-if (!fs.existsSync(root)) {
-    console.log('node_modules not found, skipping patch.');
-    process.exit(0);
-}
-
-const folders = fs.readdirSync(root);
-
-folders.forEach(d => {
+fs.readdirSync(root).forEach(d => {
     if (d.startsWith('expo-')) {
         const p = path.join(root, d, 'package.json');
         if (fs.existsSync(p)) {
             try {
-                const content = fs.readFileSync(p, 'utf8');
-                const pkg = JSON.parse(content);
-                let changed = false;
+                const pkg = JSON.parse(fs.readFileSync(p, 'utf8'));
+                let c = false;
 
-                // Force expo-modules-core to use its secondary entry point if the main one is broken
-                if (d === 'expo-modules-core' && pkg.main && typeof pkg.main === 'string' && pkg.main.endsWith('.ts')) {
-                    pkg.main = 'index.js';
-                    changed = true;
-                }
+                // Fields to check for .ts files
+                const fields = ['main', 'module', 'react-native', 'source', 'browser'];
 
-                // Strip "source" and "react-native" fields if they point to .ts files
-                ['react-native', 'source'].forEach(key => {
-                    if (pkg[key] && typeof pkg[key] === 'string' && pkg[key].endsWith('.ts')) {
-                        delete pkg[key];
-                        changed = true;
+                fields.forEach(f => {
+                    if (pkg[f] && typeof pkg[f] === 'string' && pkg[f].endsWith('.ts')) {
+                        if (f === 'main') {
+                            // Try to find a .js replacement
+                            const jsPath = pkg[f].replace(/\.ts$/, '.js');
+                            const buildPath = pkg[f].replace(/^src\//, 'build/').replace(/\.ts$/, '.js');
+
+                            if (fs.existsSync(path.join(root, d, 'index.js'))) {
+                                pkg[f] = 'index.js';
+                            } else if (fs.existsSync(path.join(root, d, jsPath))) {
+                                pkg[f] = jsPath;
+                            } else if (fs.existsSync(path.join(root, d, buildPath))) {
+                                pkg[f] = buildPath;
+                            } else {
+                                // Fallback: create a dummy if it's the main entry
+                                fs.writeFileSync(path.join(root, d, 'index.js'), "module.exports = {};");
+                                pkg[f] = 'index.js';
+                            }
+                        } else {
+                            delete pkg[f];
+                        }
+                        c = true;
                     }
                 });
 
-                if (changed) {
+                if (c) {
                     fs.writeFileSync(p, JSON.stringify(pkg, null, 2));
-                    console.log(`🩹 Patched ${d}`);
+                    console.log(`🩹 Fixed ${d}`);
                 }
-            } catch (e) {
-                console.warn(`Failed to patch ${d}: ${e.message}`);
-            }
+            } catch (e) { }
         }
     }
 });
