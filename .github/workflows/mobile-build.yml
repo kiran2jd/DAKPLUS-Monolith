@@ -1,6 +1,6 @@
 name: Build Mobile APK
 on:
-  workflow_dispatch: # Allow manual trigger from GitHub Actions tab
+  workflow_dispatch:
 
 jobs:
   build:
@@ -23,16 +23,6 @@ jobs:
       - name: 📦 Install dependencies
         working-directory: mobile
         run: npm install --legacy-peer-deps
-
-      - name: 🩹 Patch expo modules (Force compiled binaries)
-        working-directory: mobile
-        run: |
-          # Patch expo-modules-core
-          sed -i 's/"main": "src\/index.ts"/"main": "index.js"/' node_modules/expo-modules-core/package.json
-          echo "module.exports = require('./build/index');" > node_modules/expo-modules-core/index.js
-          
-          # Remove 'react-native' field which often points to .ts files and confuses the loader
-          find node_modules/expo-* -name "package.json" -exec sed -i '/"react-native":/d' {} +
 
       - name: 🚀 Build APK
         working-directory: mobile
