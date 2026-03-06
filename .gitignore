@@ -21,8 +21,6 @@ mobile/.expo/
 Thumbs.db
 
 # Mobile specific
-mobile/android/
-mobile/ios/
 *.jks
 *.p12
 *.key
