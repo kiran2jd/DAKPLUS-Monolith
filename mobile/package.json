@@ -3,12 +3,13 @@
   "description": "The Blank project template includes the minimum dependencies to run and an empty root component.",
   "license": "0BSD",
   "version": "54.0.43",
-  "main": "index.ts",
+  "main": "index.js",
   "scripts": {
     "start": "expo start --port 9090",
     "android": "expo start --android --port 9090",
     "ios": "expo start --ios --port 9090",
-    "web": "expo start --web --port 9090"
+    "web": "expo start --web --port 9090",
+    "postinstall": "node -e \"const fs = require('fs'); const path = 'node_modules/expo-modules-core/package.json'; if (fs.existsSync(path)) { const pkg = JSON.parse(fs.readFileSync(path, 'utf8')); pkg.main = 'index.js'; delete pkg['react-native']; delete pkg['source']; fs.writeFileSync(path, JSON.stringify(pkg, null, 2)); fs.writeFileSync('node_modules/expo-modules-core/index.js', 'module.exports = require(\\'./build/index\\');'); console.log('🩹 Patched expo-modules-core'); }\""
   },
   "dependencies": {
     "@expo/vector-icons": "~14.0.4",
@@ -22,7 +23,7 @@
     "expo-document-picker": "~13.0.0",
     "expo-file-system": "~18.0.0",
     "expo-linear-gradient": "~14.0.0",
-    "expo-modules-core": "~2.0.3",
+    "expo-modules-core": "~2.1.2",
     "expo-screen-capture": "~7.0.0",
     "expo-secure-store": "~14.0.0",
     "expo-status-bar": "~2.0.0",
