@@ -9,7 +9,7 @@
     "android": "expo start --android --port 9090",
     "ios": "expo start --ios --port 9090",
     "web": "expo start --web --port 9090",
-    "postinstall": "node -e \"const fs = require('fs'); const path = 'node_modules/expo-modules-core/package.json'; if (fs.existsSync(path)) { const pkg = JSON.parse(fs.readFileSync(path, 'utf8')); pkg.main = 'index.js'; delete pkg['react-native']; delete pkg['source']; fs.writeFileSync(path, JSON.stringify(pkg, null, 2)); fs.writeFileSync('node_modules/expo-modules-core/index.js', 'module.exports = require(\\'./build/index\\');'); console.log('🩹 Patched expo-modules-core'); }\""
+    "postinstall": "node -e \"const fs = require('fs'); const root = 'node_modules'; if (!fs.existsSync(root)) return; fs.readdirSync(root).forEach(d => { if (d.startsWith('expo-')) { const p = root + '/' + d + '/package.json'; if (fs.existsSync(p)) { const pkg = JSON.parse(fs.readFileSync(p, 'utf8')); let c = false; if (d === 'expo-modules-core' && pkg.main.includes('.ts')) { pkg.main = 'index.js'; c = true; } if (pkg['react-native'] && pkg['react-native'].includes('.ts')) { delete pkg['react-native']; c = true; } if (pkg['source'] && pkg['source'].includes('.ts')) { delete pkg['source']; c = true; } if (c) { fs.writeFileSync(p, JSON.stringify(pkg, null, 2)); console.log('🩹 Patched ' + d); } } } })\""
   },
   "dependencies": {
     "@expo/vector-icons": "~14.0.4",
