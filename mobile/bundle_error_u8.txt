@@ -1,0 +1,26 @@
+﻿npx : 'expo' is not 
+recognized as an 
+internal or external 
+command,
+At line:1 char:1
++ npx expo export 
+--platform android 
+--no-minify > 
+bundle_error.txt 2>& 
+...
++ ~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~
+~~~~~
+    + CategoryInfo    
+          : NotSpeci  
+  fied: ('expo' is    
+ not r...ternal co    
+mmand,:String) []    
+, RemoteException
+    + FullyQualifiedE 
+   rrorId : NativeCo  
+  mmandError
+ 
+operable program or 
+batch file.
