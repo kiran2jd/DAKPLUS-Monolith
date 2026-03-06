@@ -24,6 +24,14 @@ jobs:
         working-directory: mobile
         run: npm install --legacy-peer-deps
 
+      - name: 🩹 Patch expo-modules-core (Fix .ts error)
+        working-directory: mobile
+        run: |
+          # Force the main entry point to index.js to avoid Node.js .ts errors
+          sed -i 's/"main": "src\/index.ts"/"main": "index.js"/' node_modules/expo-modules-core/package.json
+          # Create a valid index.js if it doesn't exist
+          echo "module.exports = require('./build/index');" > node_modules/expo-modules-core/index.js
+
       - name: 🚀 Build APK
         working-directory: mobile
         run: eas build --platform android --profile preview --non-interactive
