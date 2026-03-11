@@ -20,6 +20,9 @@ import ConfettiCannon from 'react-native-confetti-cannon';
 export default function PaymentScreen({ navigation }) {
     // usePreventScreenCapture(); // Temporarily disabled for client demo
     const [user, setUser] = useState(null);
+    const [loading, setLoading] = useState(false);
+    const [success, setSuccess] = useState(false);
+    const [method, setMethod] = useState('upi'); // 'upi' or 'card'
 
     React.useEffect(() => {
         loadProfile();

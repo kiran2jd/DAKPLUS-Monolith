@@ -18,6 +18,10 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import { authService } from '../services/auth';
 
+const circles = ["Andhra Pradesh", "Telangana", "Karnataka", "Tamil Nadu", "Kerala", "Others"];
+const cadres = ["GDS", "MTS", "Postman", "Mail Guard", "PA/SA", "Others"];
+const exams = ["GDS to MTS", "GDS to Postman", "MTS to Postman", "GDS/MTS/Postman to PA/SA", "IP Exam", "Others"];
+
 export default function RegisterScreen({ navigation, route }) {
     const { phoneNumber, identifier } = route.params || {};
     const [fullName, setFullName] = useState('');
@@ -119,7 +123,7 @@ export default function RegisterScreen({ navigation, route }) {
                 fullName,
                 email,
                 phoneNumber: phone.replace(/[^0-9]/g, ''),
-                role: 'STUDENT',
+                role: 'student',
                 password,
                 notificationsEnabled,
                 postalCircle,

@@ -250,7 +250,7 @@ export default function DashboardScreen({ navigation }) {
         <View style={styles.container}>
             <LinearGradient
                 colors={['#0f172a', '#1e293b', '#0f172a']}
-                style={StyleSheet.absoluteFillObject}
+                style={[StyleSheet.absoluteFillObject, { zIndex: -1 }]}
             />
             <SafeAreaView style={{ flex: 1 }}>
                 <ScrollView
@@ -417,7 +417,7 @@ export default function DashboardScreen({ navigation }) {
 
                             <TouchableOpacity
                                 style={styles.gridItem}
-                                onPress={() => navigation.navigate('Analytics')}
+                                onPress={() => navigation.navigate('Performance')}
                             >
                                 <LinearGradient colors={['rgba(22, 101, 52, 0.2)', 'rgba(34, 197, 94, 0.2)']} style={styles.gridIconBg}>
                                     <Ionicons name="stats-chart" size={28} color="#22c55e" />
