@@ -42,12 +42,24 @@ jobs:
           name: dakplus-stable-apk
           path: mobile/android/app/build/outputs/apk/release/app-release.apk
 
-      - name: 🔗 Generate Public Share Link (14-day expiry)
+      - name: 🔗 Generate Public Share Link
         run: |
           APK_PATH=$(find mobile/android/app/build/outputs/apk/release/ -name "*.apk" | head -n 1)
-          echo "Uploading $APK_PATH to transfer.sh..."
-          curl --upload-file "$APK_PATH" https://transfer.sh/dakplus-app.apk > download_link.txt
-          echo "DOWNLOAD_URL=$(cat download_link.txt)" >> $GITHUB_ENV
-          echo "----------------------------------------------------------------"
-          echo "PUBLIC DOWNLOAD LINK: $(cat download_link.txt)"
-          echo "----------------------------------------------------------------"
+          echo "Uploading $APK_PATH..."
+          
+          # Try file.io (very reliable)
+          RESPONSE=$(curl -s -F "file=@$APK_PATH" https://file.io)
+          DOWNLOAD_URL=$(echo $RESPONSE | jq -r '.link')
+          
+          if [ "$DOWNLOAD_URL" != "null" ] && [ -n "$DOWNLOAD_URL" ]; then
+            echo "----------------------------------------------------------------"
+            echo "PUBLIC DOWNLOAD LINK: $DOWNLOAD_URL"
+            echo "Note: This link works for ONE download only for security."
+            echo "----------------------------------------------------------------"
+          else
+            echo "file.io failed, trying bashupload..."
+            BASH_URL=$(curl -s -T "$APK_PATH" https://bashupload.com/dakplus-app.apk)
+            echo "----------------------------------------------------------------"
+            echo "PUBLIC DOWNLOAD LINK (Fallback): $BASH_URL"
+            echo "----------------------------------------------------------------"
+          fi
