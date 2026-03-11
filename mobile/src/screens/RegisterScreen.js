@@ -171,6 +171,11 @@ export default function RegisterScreen({ navigation, route }) {
     const SelectionModal = () => (
         <Modal visible={modalVisible} animationType="slide" transparent={true}>
             <View style={styles.modalOverlay}>
+                <View style={styles.modalContent}>
+                    <View style={styles.modalHeader}>
+                        <Text style={styles.modalTitle}>Select {currentField === 'circle' ? 'Postal Circle' : currentField === 'cadre' ? 'Cadre' : 'Target Exam'}</Text>
+                        <TouchableOpacity onPress={() => setModalVisible(false)}>
+                            <Ionicons name="close" size={28} color="#1e293b" />
                         </TouchableOpacity>
                     </View>
 

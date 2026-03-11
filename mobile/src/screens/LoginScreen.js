@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+﻿import React, { useState } from 'react';
 import {
     StyleSheet,
     View,
@@ -191,7 +191,17 @@ export default function LoginScreen({ navigation }) {
                         <Text style={styles.title}>DAK Plus</Text>
                         <Text style={styles.subtitle}>Advanced Learning & Assessment</Text>
                     </View>
-
+                    <View style={styles.card}>
+                        {step === 'input' && (
+                            <View style={styles.tabContainer}>
+                                <TouchableOpacity
+                                    style={[styles.tab, loginMethod === 'password' ? styles.activeTab : null]}
+                                    onPress={() => setLoginMethod('password')}
+                                >
+                            <View style={styles.tabContainer}>
+                                <TouchableOpacity
+                                    style={[styles.tab, loginMethod === 'password' ? styles.activeTab : null]}
+                                    onPress={() => setLoginMethod('password')}
                                 >
                                     <Text style={[styles.tabText, loginMethod === 'password' ? styles.activeTabText : null]}>Password</Text>
                                 </TouchableOpacity>
@@ -239,7 +249,7 @@ export default function LoginScreen({ navigation }) {
                                         onPress={() => setPersistent(!persistent)}
                                     >
                                         <View style={[styles.checkbox, persistent && styles.checkboxChecked]}>
-                                            {persistent && <Text style={styles.checkmark}>✓</Text>}
+                                            {persistent && <Text style={styles.checkmark}>âœ“</Text>}
                                         </View>
                                         <Text style={styles.checkboxLabel}>Keep me signed in</Text>
                                     </TouchableOpacity>
@@ -283,7 +293,7 @@ export default function LoginScreen({ navigation }) {
                                     onPress={() => setPersistent(!persistent)}
                                 >
                                     <View style={[styles.checkbox, persistent && styles.checkboxChecked]}>
-                                        {persistent && <Text style={styles.checkmark}>✓</Text>}
+                                        {persistent && <Text style={styles.checkmark}>âœ“</Text>}
                                     </View>
                                     <Text style={styles.checkboxLabel}>Keep me signed in</Text>
                                 </TouchableOpacity>
