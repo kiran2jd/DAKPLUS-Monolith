@@ -132,7 +132,7 @@ export default function ResultScreen({ navigation, route }) {
                         <Text style={styles.homeButtonText}>Back to Dashboard</Text>
                     </TouchableOpacity>
 
-                    {user?.role === 'STUDENT' && user?.subscriptionTier !== 'PREMIUM' && (
+                    {user?.role?.toLowerCase() === 'student' && user?.subscriptionTier !== 'PREMIUM' && (
                         <TouchableOpacity
                             style={styles.proCard}
                             onPress={() => navigation.navigate('Payment')}

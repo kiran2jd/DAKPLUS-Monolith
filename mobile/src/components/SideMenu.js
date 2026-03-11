@@ -92,7 +92,7 @@ const SideMenu = (props) => {
                     <View style={styles.onlineStatus} />
                 </View>
                 <Text style={styles.userName}>{user?.fullName || 'Dak Plus Aspirant'}</Text>
-                <Text style={styles.userRole}>{user?.role === 'STUDENT' ? 'PRIME ASPIRANT' : user?.role || 'Aspirant'}</Text>
+                <Text style={styles.userRole}>{user?.role?.toLowerCase() === 'student' ? 'PRIME ASPIRANT' : user?.role || 'Aspirant'}</Text>
             </View>
 
             <ScrollView style={styles.menuList}>

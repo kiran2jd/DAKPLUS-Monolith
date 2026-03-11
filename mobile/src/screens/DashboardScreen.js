@@ -65,7 +65,8 @@ export default function DashboardScreen({ navigation }) {
             setUser(userData);
 
             // 2. Load Dashboard Data (Resilient)
-            if (userData.role === 'STUDENT') {
+            const role = userData.role?.toLowerCase();
+            if (role === 'student') {
                 const userId = userData.id || userData._id;
 
                 // Helper to safely get data or return default
@@ -175,8 +176,10 @@ export default function DashboardScreen({ navigation }) {
         loadData(true);
     };
 
-    const isPro = user?.subscriptionTier === 'PREMIUM' || user?.role === 'ADMIN' || user?.role === 'TEACHER';
-    const isStaff = user?.role === 'ADMIN' || user?.role === 'TEACHER';
+    const role = user?.role?.toLowerCase();
+    const isPro = user?.subscriptionTier === 'PREMIUM' || role === 'admin' || role === 'teacher';
+    const isStaff = role === 'admin' || role === 'teacher';
+    const isStudent = role === 'student';
 
     if (loading) {
         return (
@@ -247,15 +250,16 @@ export default function DashboardScreen({ navigation }) {
     );
 
     return (
-        <View style={styles.container}>
-            <LinearGradient
-                colors={['#0f172a', '#1e293b', '#0f172a']}
-                style={[StyleSheet.absoluteFillObject, { zIndex: -1 }]}
-            />
+        <LinearGradient
+            colors={['#0f172a', '#1e293b', '#0f172a']}
+            style={styles.container}
+        >
             <SafeAreaView style={{ flex: 1 }}>
                 <ScrollView
                     refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#dc2626" />}
                     showsVerticalScrollIndicator={false}
+                    contentContainerStyle={{ flexGrow: 1 }}
+                    keyboardShouldPersistTaps="handled"
                 >
                     {renderHeader()}
 
@@ -293,7 +297,7 @@ export default function DashboardScreen({ navigation }) {
                             </View>
                         </View>
 
-                        {user?.role === 'STUDENT' && (
+                        {isStudent && (
                             <View style={styles.progressSection}>
                                 <Text style={styles.sectionTitle}>Course Progress</Text>
                                 <View style={styles.progressContainer}>
@@ -314,7 +318,7 @@ export default function DashboardScreen({ navigation }) {
                             </View>
                         )}
 
-                        {user?.role === 'STUDENT' && (
+                        {isStudent && (
                             <View style={styles.statsOverview}>
                                 <View style={styles.statCardSmall}>
                                     <LinearGradient colors={['#3b82f6', '#1e3a8a']} style={styles.statCardGradient}>
@@ -333,7 +337,7 @@ export default function DashboardScreen({ navigation }) {
                             </View>
                         )}
 
-                        {!isPro && !isStaff && user?.role === 'STUDENT' && (
+                        {!isPro && !isStaff && isStudent && (
                             <TouchableOpacity
                                 style={styles.proBanner}
                                 onPress={() => navigation.navigate('Payment')}
@@ -427,7 +431,7 @@ export default function DashboardScreen({ navigation }) {
                             </TouchableOpacity>
                         </View>
 
-                        {user?.role === 'STUDENT' && leaderboard?.length > 0 && (
+                        {isStudent && leaderboard?.length > 0 && (
                             <View style={styles.recentSection}>
                                 <Text style={styles.sectionTitle}>Weekly Top Aspirants</Text>
                                 <View style={styles.leaderboardCard}>
@@ -453,7 +457,7 @@ export default function DashboardScreen({ navigation }) {
                     </View>
                 </ScrollView>
             </SafeAreaView>
-        </View>
+        </LinearGradient>
     );
 }
 

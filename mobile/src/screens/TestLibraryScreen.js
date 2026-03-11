@@ -210,7 +210,7 @@ export default function TestLibraryScreen({ navigation }) {
                     renderItem={renderTestItem}
                     contentContainerStyle={styles.listContent}
                     ListFooterComponent={
-                        !isPro && user?.role === 'STUDENT' ? (
+                        !isPro && user?.role?.toLowerCase() === 'student' ? (
                             <TouchableOpacity
                                 style={styles.libraryProBanner}
                                 onPress={() => navigation.navigate('Payment')}

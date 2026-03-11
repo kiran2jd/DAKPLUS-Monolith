@@ -192,12 +192,6 @@ export default function LoginScreen({ navigation }) {
                         <Text style={styles.subtitle}>Advanced Learning & Assessment</Text>
                     </View>
 
-                    <View style={styles.card}>
-                        {step === 'input' && (
-                            <View style={styles.tabContainer}>
-                                <TouchableOpacity
-                                    style={[styles.tab, loginMethod === 'password' ? styles.activeTab : null]}
-                                    onPress={() => setLoginMethod('password')}
                                 >
                                     <Text style={[styles.tabText, loginMethod === 'password' ? styles.activeTabText : null]}>Password</Text>
                                 </TouchableOpacity>
