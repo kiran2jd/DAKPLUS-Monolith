@@ -1,4 +1,4 @@
-﻿import React, { useState } from 'react';
+import React, { useState } from 'react';
 import {
     StyleSheet,
     View,
@@ -193,11 +193,6 @@ export default function LoginScreen({ navigation }) {
                     </View>
                     <View style={styles.card}>
                         {step === 'input' && (
-                            <View style={styles.tabContainer}>
-                                <TouchableOpacity
-                                    style={[styles.tab, loginMethod === 'password' ? styles.activeTab : null]}
-                                    onPress={() => setLoginMethod('password')}
-                                >
                             <View style={styles.tabContainer}>
                                 <TouchableOpacity
                                     style={[styles.tab, loginMethod === 'password' ? styles.activeTab : null]}
