@@ -31,9 +31,10 @@
     },
     "extra": {
       "eas": {
-        "projectId": "5731bb79-2d75-4c6f-8e7c-01e9274f6cf1"
+        "projectId": "1558a079-b208-4992-80fc-2a30a769f649"
       }
     },
-    "plugins": []
+    "plugins": [],
+    "owner": "kiranchinna_expo"
   }
 }
