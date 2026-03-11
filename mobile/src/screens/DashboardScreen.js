@@ -5,6 +5,7 @@ import {
     Text,
     FlatList,
     TouchableOpacity,
+    Pressable,
     ActivityIndicator,
     SafeAreaView,
     ScrollView,
@@ -192,18 +193,27 @@ export default function DashboardScreen({ navigation }) {
     const renderHeader = () => (
         <View style={styles.headerWrapper}>
             <View style={styles.topBar}>
-                <TouchableOpacity
-                    style={styles.headerIconButton}
+                <Pressable
+                    style={({ pressed }) => [
+                        styles.headerIconButton,
+                        pressed && { opacity: 0.7, backgroundColor: 'rgba(255,255,255,0.1)' }
+                    ]}
                     onPress={() => navigation.openDrawer()}
                 >
                     <Ionicons name="menu-outline" size={28} color="#fff" />
-                </TouchableOpacity>
+                </Pressable>
                 <View style={[styles.logoContainer, { flex: 1, alignItems: 'center', justifyContent: 'center' }]}>
                     <Image source={logo} style={styles.logoMini} resizeMode="contain" />
                 </View>
-                <TouchableOpacity style={styles.headerIconButton} onPress={() => navigation.navigate('Notifications')}>
+                <Pressable 
+                    style={({ pressed }) => [
+                        styles.headerIconButton,
+                        pressed && { opacity: 0.7, backgroundColor: 'rgba(255,255,255,0.1)' }
+                    ]} 
+                    onPress={() => navigation.navigate('Notifications')}
+                >
                     <Ionicons name="notifications-outline" size={24} color="#fff" />
-                </TouchableOpacity>
+                </Pressable>
             </View>
 
             <View style={styles.welcomeTextSection}>
@@ -250,18 +260,16 @@ export default function DashboardScreen({ navigation }) {
     );
 
     return (
-        <View style={styles.container}>
-            <LinearGradient
-                colors={['#0f172a', '#1e293b', '#0f172a']}
-                style={[StyleSheet.absoluteFill, { zIndex: -1 }]}
-                pointerEvents="none"
-            />
-            <SafeAreaView style={{ flex: 1, zIndex: 1 }}>
+        <LinearGradient
+            colors={['#0f172a', '#1e293b', '#0f172a']}
+            style={styles.container}
+        >
+            <SafeAreaView style={{ flex: 1 }}>
                 <ScrollView
                     refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#dc2626" />}
                     showsVerticalScrollIndicator={false}
                     contentContainerStyle={styles.scrollContainer}
-                    keyboardShouldPersistTaps="handled"
+                    keyboardShouldPersistTaps="always"
                 >
                     {renderHeader()}
 
@@ -362,28 +370,33 @@ export default function DashboardScreen({ navigation }) {
                         <Text style={styles.sectionTitle}>Main Menu</Text>
 
                         <View style={styles.gridContainer}>
-                            <TouchableOpacity
-                                style={styles.gridItem}
-                                onPress={() => navigation.navigate('Tests')}
+                            <Pressable
+                                style={({ pressed }) => [
+                                    styles.gridItem,
+                                    pressed && { backgroundColor: 'rgba(255,255,255,0.08)', transform: [{ scale: 0.98 }] }
+                                ]}
+                                onPress={() => {
+                                    console.log('Navigating to Tests');
+                                    navigation.navigate('Tests');
+                                }}
                             >
-                                <LinearGradient 
-                                    colors={['rgba(220, 38, 38, 0.2)', 'rgba(249, 115, 22, 0.2)']} 
-                                    style={styles.gridIconBg}
-                                    pointerEvents="none"
-                                >
+                                <LinearGradient colors={['rgba(220, 38, 38, 0.2)', 'rgba(249, 115, 22, 0.2)']} style={styles.gridIconBg} pointerEvents="none">
                                     <Ionicons name="document-text" size={28} color="#dc2626" />
                                 </LinearGradient>
                                 <Text style={styles.gridLabel}>Mock Tests</Text>
                                 <Text style={styles.gridSub}>Topic-wise exams</Text>
-                            </TouchableOpacity>
+                            </Pressable>
 
                             {isStaff && (
-                                <TouchableOpacity
-                                    style={styles.gridItem}
+                                <Pressable
+                                    style={({ pressed }) => [
+                                        styles.gridItem,
+                                        pressed && { backgroundColor: 'rgba(255,255,255,0.08)', transform: [{ scale: 0.98 }] }
+                                    ]}
                                     onPress={() => navigation.navigate('CreateTest')}
                                 >
-                                    <LinearGradient 
-                                        colors={['rgba(124, 58, 237, 0.2)', 'rgba(139, 92, 246, 0.2)']} 
+                                    <LinearGradient
+                                        colors={['rgba(124, 58, 237, 0.2)', 'rgba(139, 92, 246, 0.2)']}
                                         style={styles.gridIconBg}
                                         pointerEvents="none"
                                     >
@@ -391,16 +404,19 @@ export default function DashboardScreen({ navigation }) {
                                     </LinearGradient>
                                     <Text style={styles.gridLabel}>Create Test</Text>
                                     <Text style={styles.gridSub}>Add new content</Text>
-                                </TouchableOpacity>
+                                </Pressable>
                             )}
 
                             {!isStaff && (
-                                <TouchableOpacity
-                                    style={styles.gridItem}
+                                <Pressable
+                                    style={({ pressed }) => [
+                                        styles.gridItem,
+                                        pressed && { backgroundColor: 'rgba(255,255,255,0.08)', transform: [{ scale: 0.98 }] }
+                                    ]}
                                     onPress={() => Alert.alert("Coming Soon", "Mobile Syllabus tracking is in development!")}
                                 >
-                                    <LinearGradient 
-                                        colors={['rgba(30, 58, 138, 0.2)', 'rgba(59, 130, 246, 0.2)']} 
+                                    <LinearGradient
+                                        colors={['rgba(30, 58, 138, 0.2)', 'rgba(59, 130, 246, 0.2)']}
                                         style={styles.gridIconBg}
                                         pointerEvents="none"
                                     >
@@ -408,14 +424,17 @@ export default function DashboardScreen({ navigation }) {
                                     </LinearGradient>
                                     <Text style={styles.gridLabel}>Syllabus</Text>
                                     <Text style={styles.gridSub}>Track progress</Text>
-                                </TouchableOpacity>
+                                </Pressable>
                             )}
 
-                            <TouchableOpacity
-                                style={styles.gridItem}
+                            <Pressable
+                                style={({ pressed }) => [
+                                    styles.gridItem,
+                                    pressed && { backgroundColor: 'rgba(255,255,255,0.08)', transform: [{ scale: 0.98 }] }
+                                ]}
                                 onPress={() => isStaff ? navigation.navigate('ManageTests') : Alert.alert("Coming Soon", "Live classes are starting soon!")}>
-                                <LinearGradient 
-                                    colors={['rgba(217, 119, 6, 0.2)', 'rgba(245, 158, 11, 0.2)']} 
+                                <LinearGradient
+                                    colors={['rgba(217, 119, 6, 0.2)', 'rgba(245, 158, 11, 0.2)']}
                                     style={styles.gridIconBg}
                                     pointerEvents="none"
                                 >
@@ -423,14 +442,17 @@ export default function DashboardScreen({ navigation }) {
                                 </LinearGradient>
                                 <Text style={styles.gridLabel}>{isStaff ? "My Tests" : "Classes"}</Text>
                                 <Text style={styles.gridSub}>{isStaff ? "Manage learning" : "Live learning"}</Text>
-                            </TouchableOpacity>
+                            </Pressable>
 
                             {isStaff && (
-                                <TouchableOpacity
-                                    style={styles.gridItem}
+                                <Pressable
+                                    style={({ pressed }) => [
+                                        styles.gridItem,
+                                        pressed && { backgroundColor: 'rgba(255,255,255,0.08)', transform: [{ scale: 0.98 }] }
+                                    ]}
                                     onPress={() => navigation.navigate('TopicManagement')}>
-                                    <LinearGradient 
-                                        colors={['rgba(5, 150, 105, 0.2)', 'rgba(16, 185, 129, 0.2)']} 
+                                    <LinearGradient
+                                        colors={['rgba(5, 150, 105, 0.2)', 'rgba(16, 185, 129, 0.2)']}
                                         style={styles.gridIconBg}
                                         pointerEvents="none"
                                     >
@@ -438,23 +460,22 @@ export default function DashboardScreen({ navigation }) {
                                     </LinearGradient>
                                     <Text style={styles.gridLabel}>Topics</Text>
                                     <Text style={styles.gridSub}>Organize content</Text>
-                                </TouchableOpacity>
+                                </Pressable>
                             )}
 
-                            <TouchableOpacity
-                                style={styles.gridItem}
+                            <Pressable
+                                style={({ pressed }) => [
+                                    styles.gridItem,
+                                    pressed && { backgroundColor: 'rgba(255,255,255,0.08)', transform: [{ scale: 0.98 }] }
+                                ]}
                                 onPress={() => navigation.navigate('Performance')}
                             >
-                                <LinearGradient 
-                                    colors={['rgba(22, 101, 52, 0.2)', 'rgba(34, 197, 94, 0.2)']} 
-                                    style={styles.gridIconBg}
-                                    pointerEvents="none"
-                                >
+                                <LinearGradient colors={['rgba(22, 101, 52, 0.2)', 'rgba(34, 197, 94, 0.2)']} style={styles.gridIconBg} pointerEvents="none">
                                     <Ionicons name="stats-chart" size={28} color="#22c55e" />
                                 </LinearGradient>
                                 <Text style={styles.gridLabel}>Analytics</Text>
                                 <Text style={styles.gridSub}>Performance</Text>
-                            </TouchableOpacity>
+                            </Pressable>
                         </View>
 
                         {isStudent && leaderboard?.length > 0 && (
@@ -483,7 +504,7 @@ export default function DashboardScreen({ navigation }) {
                     </View>
                 </ScrollView>
             </SafeAreaView>
-        </View>
+        </LinearGradient>
     );
 }
 
@@ -576,6 +597,8 @@ const styles = StyleSheet.create({
     carouselContainer: {
         borderRadius: 28,
         marginBottom: 24,
+        height: 160,
+        overflow: 'hidden',
     },
     bannerSlide: {
         width: Dimensions.get('window').width - 40,
