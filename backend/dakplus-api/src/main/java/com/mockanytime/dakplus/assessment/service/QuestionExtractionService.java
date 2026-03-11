@@ -74,33 +74,33 @@ public class QuestionExtractionService {
                 The text may contain OCR noise or fragments labeled "[Image Text Content]:".
                 Synthesize coherent questions from these fragments if they appear to belong together.
 
-                EXTRACT BOTH ENGLISH AND TELUGU TRANSLATIONS:
+                EXTRACT BOTH ENGLISH AND HINDI TRANSLATIONS:
                 - Question text in English ("text")
-                - Question text in Telugu ("textTe")
+                - Question text in Hindi ("textHi")
                 - Options in English (exactly four: a, b, c, d in "options")
-                - Options in Telugu (exactly four corresponding to English in "optionsTe")
+                - Options in Hindi (exactly four corresponding to English in "optionsHi")
                 - Correct Answer (one of the original option strings in "correctAnswer")
                 - Explanation in English ("explanation")
-                - Explanation in Telugu ("explanationTe")
+                - Explanation in Hindi ("explanationHi")
 
                 RULES:
                 1. JSON ONLY. No explanation text outside the JSON.
                 2. "correctAnswer" must match one of the "options" exactly.
                 3. Clean OCR noise (random symbols, broken words).
                 4. If a question is incomplete, skip it rather than guessing.
-                5. Use professional Telugu terminology relevant to Indian postal exams.
+                5. Use professional Hindi terminology relevant to Indian postal exams.
 
                 FORMAT:
                 {
                   "questions": [
                     {
                       "text": "...",
-                      "textTe": "...",
+                      "textHi": "...",
                       "options": ["...", "...", "...", "..."],
-                      "optionsTe": ["...", "...", "...", "..."],
+                      "optionsHi": ["...", "...", "...", "..."],
                       "correctAnswer": "...",
                       "explanation": "...",
-                      "explanationTe": "...",
+                      "explanationHi": "...",
                       "type": "mcq",
                       "points": 1
                     }

@@ -17,7 +17,7 @@ export default function TakeTestPage() {
     const [loading, setLoading] = useState(true);
     const [timeLeft, setTimeLeft] = useState(0);
     const [isSubmitting, setIsSubmitting] = useState(false);
-    const [language, setLanguage] = useState('en'); // 'en' or 'te'
+    const [language, setLanguage] = useState('en'); // 'en' or 'hi'
     const [alreadySubmitted, setAlreadySubmitted] = useState(false);
 
     useEffect(() => {
@@ -198,10 +198,10 @@ export default function TakeTestPage() {
                                 EN
                             </button>
                             <button
-                                onClick={() => setLanguage('te')}
-                                className={`px-3 py-1 rounded text-xs font-bold transition ${language === 'te' ? 'bg-white text-blue-900' : 'text-white hover:bg-white/10'}`}
+                                onClick={() => setLanguage('hi')}
+                                className={`px-3 py-1 rounded text-xs font-bold transition ${language === 'hi' ? 'bg-white text-blue-900' : 'text-white hover:bg-white/10'}`}
                             >
-                                తెలుగు
+                                हिन्दी
                             </button>
                         </div>
                         <div className="bg-white/20 backdrop-blur-sm px-4 py-2 rounded-full border border-white/30">
@@ -249,7 +249,7 @@ export default function TakeTestPage() {
 
                     <div className="flex-1">
                         <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-8 leading-tight">
-                            {language === 'te' && question.textTe ? question.textTe : question.text}
+                            {language === 'hi' && question.textHi ? question.textHi : question.text}
                         </h2>
 
                         {question.imageUrl && (
@@ -264,8 +264,8 @@ export default function TakeTestPage() {
 
                         <div className="space-y-4">
                             {(question.type === 'mcq' || !question.type) && question.options.map((option, idx) => {
-                                const optionText = (language === 'te' && question.optionsTe && question.optionsTe[idx])
-                                    ? question.optionsTe[idx]
+                                const optionText = (language === 'hi' && question.optionsHi && question.optionsHi[idx])
+                                    ? question.optionsHi[idx]
                                     : option;
                                 return (
                                     <button

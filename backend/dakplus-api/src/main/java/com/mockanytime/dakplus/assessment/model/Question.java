@@ -6,14 +6,14 @@ import java.util.UUID;
 public class Question {
     private String id;
     private String text;
-    private String textTe; // Telugu translation
+    private String textHi; // Hindi translation
     private String type; // mcq, true_false
     private List<String> options;
-    private List<String> optionsTe; // Telugu translation
+    private List<String> optionsHi; // Hindi translation
     private String correctAnswer;
-    private String correctAnswerTe; // Telugu translation if needed, though usually same as options
+    private String correctAnswerHi; // Hindi translation if needed, though usually same as options
     private String explanation;
-    private String explanationTe; // Telugu translation
+    private String explanationHi; // Hindi translation
     private int points;
     private String topicId;
     private String subtopicId;
@@ -106,36 +106,36 @@ public class Question {
         this.subtopicId = subtopicId;
     }
 
-    public String getTextTe() {
-        return textTe;
+    public String getTextHi() {
+        return textHi;
     }
 
-    public void setTextTe(String textTe) {
-        this.textTe = textTe;
+    public void setTextHi(String textHi) {
+        this.textHi = textHi;
     }
 
-    public List<String> getOptionsTe() {
-        return optionsTe;
+    public List<String> getOptionsHi() {
+        return optionsHi;
     }
 
-    public void setOptionsTe(List<String> optionsTe) {
-        this.optionsTe = optionsTe;
+    public void setOptionsHi(List<String> optionsHi) {
+        this.optionsHi = optionsHi;
     }
 
-    public String getCorrectAnswerTe() {
-        return correctAnswerTe;
+    public String getCorrectAnswerHi() {
+        return correctAnswerHi;
     }
 
-    public void setCorrectAnswerTe(String correctAnswerTe) {
-        this.correctAnswerTe = correctAnswerTe;
+    public void setCorrectAnswerHi(String correctAnswerHi) {
+        this.correctAnswerHi = correctAnswerHi;
     }
 
-    public String getExplanationTe() {
-        return explanationTe;
+    public String getExplanationHi() {
+        return explanationHi;
     }
 
-    public void setExplanationTe(String explanationTe) {
-        this.explanationTe = explanationTe;
+    public void setExplanationHi(String explanationHi) {
+        this.explanationHi = explanationHi;
     }
 
     public String getImageUrl() {
