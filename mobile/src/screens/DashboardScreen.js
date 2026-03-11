@@ -253,9 +253,10 @@ export default function DashboardScreen({ navigation }) {
         <View style={styles.container}>
             <LinearGradient
                 colors={['#0f172a', '#1e293b', '#0f172a']}
-                style={StyleSheet.absoluteFill}
+                style={[StyleSheet.absoluteFill, { zIndex: -1 }]}
+                pointerEvents="none"
             />
-            <SafeAreaView style={{ flex: 1 }}>
+            <SafeAreaView style={{ flex: 1, zIndex: 1 }}>
                 <ScrollView
                     refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#dc2626" />}
                     showsVerticalScrollIndicator={false}
@@ -365,7 +366,11 @@ export default function DashboardScreen({ navigation }) {
                                 style={styles.gridItem}
                                 onPress={() => navigation.navigate('Tests')}
                             >
-                                <LinearGradient colors={['rgba(220, 38, 38, 0.2)', 'rgba(249, 115, 22, 0.2)']} style={styles.gridIconBg}>
+                                <LinearGradient 
+                                    colors={['rgba(220, 38, 38, 0.2)', 'rgba(249, 115, 22, 0.2)']} 
+                                    style={styles.gridIconBg}
+                                    pointerEvents="none"
+                                >
                                     <Ionicons name="document-text" size={28} color="#dc2626" />
                                 </LinearGradient>
                                 <Text style={styles.gridLabel}>Mock Tests</Text>
@@ -377,7 +382,11 @@ export default function DashboardScreen({ navigation }) {
                                     style={styles.gridItem}
                                     onPress={() => navigation.navigate('CreateTest')}
                                 >
-                                    <LinearGradient colors={['rgba(124, 58, 237, 0.2)', 'rgba(139, 92, 246, 0.2)']} style={styles.gridIconBg}>
+                                    <LinearGradient 
+                                        colors={['rgba(124, 58, 237, 0.2)', 'rgba(139, 92, 246, 0.2)']} 
+                                        style={styles.gridIconBg}
+                                        pointerEvents="none"
+                                    >
                                         <Ionicons name="add-circle" size={28} color="#7c3aed" />
                                     </LinearGradient>
                                     <Text style={styles.gridLabel}>Create Test</Text>
@@ -390,7 +399,11 @@ export default function DashboardScreen({ navigation }) {
                                     style={styles.gridItem}
                                     onPress={() => Alert.alert("Coming Soon", "Mobile Syllabus tracking is in development!")}
                                 >
-                                    <LinearGradient colors={['rgba(30, 58, 138, 0.2)', 'rgba(59, 130, 246, 0.2)']} style={styles.gridIconBg}>
+                                    <LinearGradient 
+                                        colors={['rgba(30, 58, 138, 0.2)', 'rgba(59, 130, 246, 0.2)']} 
+                                        style={styles.gridIconBg}
+                                        pointerEvents="none"
+                                    >
                                         <Ionicons name="book" size={28} color="#3b82f6" />
                                     </LinearGradient>
                                     <Text style={styles.gridLabel}>Syllabus</Text>
@@ -401,7 +414,11 @@ export default function DashboardScreen({ navigation }) {
                             <TouchableOpacity
                                 style={styles.gridItem}
                                 onPress={() => isStaff ? navigation.navigate('ManageTests') : Alert.alert("Coming Soon", "Live classes are starting soon!")}>
-                                <LinearGradient colors={['rgba(217, 119, 6, 0.2)', 'rgba(245, 158, 11, 0.2)']} style={styles.gridIconBg}>
+                                <LinearGradient 
+                                    colors={['rgba(217, 119, 6, 0.2)', 'rgba(245, 158, 11, 0.2)']} 
+                                    style={styles.gridIconBg}
+                                    pointerEvents="none"
+                                >
                                     <Ionicons name={isStaff ? "list" : "school"} size={28} color="#f59e0b" />
                                 </LinearGradient>
                                 <Text style={styles.gridLabel}>{isStaff ? "My Tests" : "Classes"}</Text>
@@ -412,7 +429,11 @@ export default function DashboardScreen({ navigation }) {
                                 <TouchableOpacity
                                     style={styles.gridItem}
                                     onPress={() => navigation.navigate('TopicManagement')}>
-                                    <LinearGradient colors={['rgba(5, 150, 105, 0.2)', 'rgba(16, 185, 129, 0.2)']} style={styles.gridIconBg}>
+                                    <LinearGradient 
+                                        colors={['rgba(5, 150, 105, 0.2)', 'rgba(16, 185, 129, 0.2)']} 
+                                        style={styles.gridIconBg}
+                                        pointerEvents="none"
+                                    >
                                         <Ionicons name="folder-open" size={28} color="#10b981" />
                                     </LinearGradient>
                                     <Text style={styles.gridLabel}>Topics</Text>
@@ -424,7 +445,11 @@ export default function DashboardScreen({ navigation }) {
                                 style={styles.gridItem}
                                 onPress={() => navigation.navigate('Performance')}
                             >
-                                <LinearGradient colors={['rgba(22, 101, 52, 0.2)', 'rgba(34, 197, 94, 0.2)']} style={styles.gridIconBg}>
+                                <LinearGradient 
+                                    colors={['rgba(22, 101, 52, 0.2)', 'rgba(34, 197, 94, 0.2)']} 
+                                    style={styles.gridIconBg}
+                                    pointerEvents="none"
+                                >
                                     <Ionicons name="stats-chart" size={28} color="#22c55e" />
                                 </LinearGradient>
                                 <Text style={styles.gridLabel}>Analytics</Text>

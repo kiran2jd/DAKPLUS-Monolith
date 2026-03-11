@@ -21,6 +21,7 @@ export default function WelcomeScreen({ navigation }) {
             <LinearGradient
                 colors={['#dc2626', '#1e3a8a']}
                 style={StyleSheet.absoluteFillObject}
+                pointerEvents="none"
             />
             <View style={styles.content}>
                 <View style={styles.logoContainer}>
