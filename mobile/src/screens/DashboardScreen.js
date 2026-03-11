@@ -184,7 +184,7 @@ export default function DashboardScreen({ navigation }) {
 
     if (loading) {
         return (
-            <View style={[styles.container, styles.center]}>
+            <View style={[styles.container, styles.center, { backgroundColor: '#0f172a' }]}>
                 <ActivityIndicator size="large" color="#dc2626" />
             </View>
         );
@@ -193,27 +193,23 @@ export default function DashboardScreen({ navigation }) {
     const renderHeader = () => (
         <View style={styles.headerWrapper}>
             <View style={styles.topBar}>
-                <Pressable
-                    style={({ pressed }) => [
-                        styles.headerIconButton,
-                        pressed && { opacity: 0.7, backgroundColor: 'rgba(255,255,255,0.1)' }
-                    ]}
+                <TouchableOpacity
+                    style={styles.headerIconButton}
                     onPress={() => navigation.openDrawer()}
+                    activeOpacity={0.7}
                 >
                     <Ionicons name="menu-outline" size={28} color="#fff" />
-                </Pressable>
-                <View style={[styles.logoContainer, { flex: 1, alignItems: 'center', justifyContent: 'center' }]}>
+                </TouchableOpacity>
+                <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
                     <Image source={logo} style={styles.logoMini} resizeMode="contain" />
                 </View>
-                <Pressable 
-                    style={({ pressed }) => [
-                        styles.headerIconButton,
-                        pressed && { opacity: 0.7, backgroundColor: 'rgba(255,255,255,0.1)' }
-                    ]} 
+                <TouchableOpacity 
+                    style={styles.headerIconButton} 
                     onPress={() => navigation.navigate('Notifications')}
+                    activeOpacity={0.7}
                 >
                     <Ionicons name="notifications-outline" size={24} color="#fff" />
-                </Pressable>
+                </TouchableOpacity>
             </View>
 
             <View style={styles.welcomeTextSection}>
@@ -232,26 +228,9 @@ export default function DashboardScreen({ navigation }) {
                     onScrollBeginDrag={onScrollBeginDrag}
                     keyExtractor={(_, index) => index.toString()}
                     renderItem={({ item, index }) => (
-                        <View style={styles.bannerSlide}>
-                            <LinearGradient
-                                colors={item.colors}
-                                start={{ x: 0, y: 0 }}
-                                end={{ x: 1, y: 1 }}
-                                style={styles.bannerCard}
-                            >
-                                <View style={styles.bannerContent}>
-                                    <Text style={styles.bannerSubtitle}>{item.subtitle}</Text>
-                                    <Text style={styles.bannerTitle}>{item.title}</Text>
-                                </View>
-                                <View style={styles.bannerPagination}>
-                                    {banners.map((_, i) => (
-                                        <View
-                                            key={i}
-                                            style={[styles.pagDot, i === currentBannerIndex && styles.pagDotActive]}
-                                        />
-                                    ))}
-                                </View>
-                            </LinearGradient>
+                        <View style={[styles.bannerSlide, { backgroundColor: item.colors[0], borderRadius: 24, padding: 24, justifyContent: 'center' }]}>
+                            <Text style={styles.bannerSubtitle}>{item.subtitle}</Text>
+                            <Text style={styles.bannerTitle}>{item.title}</Text>
                         </View>
                     )}
                 />
@@ -260,251 +239,189 @@ export default function DashboardScreen({ navigation }) {
     );
 
     return (
-        <LinearGradient
-            colors={['#0f172a', '#1e293b', '#0f172a']}
-            style={styles.container}
-        >
-            <SafeAreaView style={{ flex: 1 }}>
-                <ScrollView
-                    refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#dc2626" />}
-                    showsVerticalScrollIndicator={false}
-                    contentContainerStyle={styles.scrollContainer}
-                    keyboardShouldPersistTaps="always"
-                >
-                    {renderHeader()}
-
-                    <View style={styles.content}>
-                        {/* Quick Stats Row */}
-                        <View style={styles.quickStatsRow}>
-                            <View style={styles.quickStatCard}>
-                                <View style={styles.statIconBg}>
-                                    <Ionicons name="trending-up" size={20} color="#22c55e" />
-                                </View>
-                                <View>
-                                    <Text style={styles.statLabel}>Avg Accuracy</Text>
-                                    <Text style={styles.statValue}>
-                                        {results.length > 0
-                                            ? Math.round(results.reduce((acc, curr) => acc + (curr.percentage || 0), 0) / results.length)
-                                            : 0}%
-                                    </Text>
-                                </View>
+        <SafeAreaView style={[styles.container, { backgroundColor: '#0f172a' }]}>
+            <ScrollView
+                refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#dc2626" />}
+                showsVerticalScrollIndicator={false}
+                contentContainerStyle={styles.scrollContainer}
+                keyboardShouldPersistTaps="always"
+            >
+                {renderHeader()}
+                
+                <View style={styles.content}>
+                    {/* Quick Stats Row */}
+                    <View style={styles.quickStatsRow}>
+                        <View style={styles.quickStatCard}>
+                            <View style={styles.statIconBg}>
+                                <Ionicons name="trending-up" size={20} color="#22c55e" />
                             </View>
-                            <View style={styles.quickStatCard}>
-                                <View style={[styles.statIconBg, { backgroundColor: 'rgba(59, 130, 246, 0.1)' }]}>
-                                    <Ionicons name="time-outline" size={20} color="#3b82f6" />
-                                </View>
-                                <View>
-                                    <Text style={styles.statLabel}>Tests This Week</Text>
-                                    <Text style={styles.statValue}>
-                                        {results.filter(r => {
-                                            const date = new Date(r.createdAt);
-                                            const now = new Date();
-                                            const diff = (now.getTime() - date.getTime()) / (1000 * 60 * 60 * 24);
-                                            return diff <= 7;
-                                        }).length}
-                                    </Text>
-                                </View>
+                            <View>
+                                <Text style={styles.statLabel}>Avg Accuracy</Text>
+                                <Text style={styles.statValue}>
+                                    {results.length > 0
+                                        ? Math.round(results.reduce((acc, curr) => acc + (curr.percentage || 0), 0) / results.length)
+                                        : 0}%
+                                </Text>
                             </View>
                         </View>
-
-                        {isStudent && (
-                            <View style={styles.progressSection}>
-                                <Text style={styles.sectionTitle}>Course Progress</Text>
-                                <View style={styles.progressContainer}>
-                                    <View style={styles.progressHeader}>
-                                        <Text style={styles.progressLabel}>Unique Tests Completed</Text>
-                                        <Text style={styles.progressValue}>{new Set(results.map(r => r.testId || r.id)).size}/{tests.length || 10}</Text>
-                                    </View>
-                                    <View style={styles.progressBarBg}>
-                                        <LinearGradient
-                                            colors={['#22c55e', '#16a34a']}
-                                            start={{ x: 0, y: 0 }}
-                                            end={{ x: 1, y: 0 }}
-                                            style={[styles.progressBarFill, { width: `${Math.min(100, (new Set(results.map(r => r.testId || r.id)).size / (tests.length || 10)) * 100)}%` }]}
-                                        />
-                                    </View>
-                                    <Text style={styles.progressGoal}>Goal: {tests.length || 10} Tests</Text>
-                                </View>
+                        <View style={styles.quickStatCard}>
+                            <View style={[styles.statIconBg, { backgroundColor: 'rgba(59, 130, 246, 0.1)' }]}>
+                                <Ionicons name="time-outline" size={20} color="#3b82f6" />
                             </View>
-                        )}
-
-                        {isStudent && (
-                            <View style={styles.statsOverview}>
-                                <View style={styles.statCardSmall}>
-                                    <LinearGradient colors={['#3b82f6', '#1e3a8a']} style={styles.statCardGradient}>
-                                        <Ionicons name="stats-chart" size={24} color="#fff" />
-                                        <Text style={styles.statCardValue}>{Math.round(results.reduce((a, b) => a + (b.accuracy || 0), 0) / (results.length || 1))}%</Text>
-                                        <Text style={styles.statCardLabel}>Accuracy</Text>
-                                    </LinearGradient>
-                                </View>
-                                <View style={styles.statCardSmall}>
-                                    <LinearGradient colors={['#ef4444', '#991b1b']} style={styles.statCardGradient}>
-                                        <Ionicons name="checkmark-circle" size={24} color="#fff" />
-                                        <Text style={styles.statCardValue}>{results.length}</Text>
-                                        <Text style={styles.statCardLabel}>Tests Taken</Text>
-                                    </LinearGradient>
-                                </View>
+                            <View>
+                                <Text style={styles.statLabel}>Tests This Week</Text>
+                                <Text style={styles.statValue}>
+                                    {results.filter(r => {
+                                        const date = new Date(r.createdAt);
+                                        const now = new Date();
+                                        const diff = (now.getTime() - date.getTime()) / (1000 * 60 * 60 * 24);
+                                        return diff <= 7;
+                                    }).length}
+                                </Text>
                             </View>
-                        )}
+                        </View>
+                    </View>
 
-                        {!isPro && !isStaff && isStudent && (
+                    {isStudent && (
+                        <View style={styles.progressSection}>
+                            <Text style={styles.sectionTitle}>Course Progress</Text>
+                            <View style={styles.progressContainer}>
+                                <View style={styles.progressHeader}>
+                                    <Text style={styles.progressLabel}>Unique Tests Completed</Text>
+                                    <Text style={styles.progressValue}>{new Set(results.map(r => r.testId || r.id)).size}/{tests.length || 10}</Text>
+                                </View>
+                                <View style={styles.progressBarBg}>
+                                    <View style={[styles.progressBarFill, { width: `${Math.min(100, (new Set(results.map(r => r.testId || r.id)).size / (tests.length || 10)) * 100)}%`, backgroundColor: '#22c55e' }]} />
+                                </View>
+                                <Text style={styles.progressGoal}>Goal: {tests.length || 10} Tests</Text>
+                            </View>
+                        </View>
+                    )}
+
+                    {!isPro && !isStaff && isStudent && (
+                        <TouchableOpacity
+                            style={styles.proBanner}
+                            onPress={() => navigation.navigate('Payment')}
+                            activeOpacity={0.7}
+                        >
+                            <View style={[styles.proBannerGradient, { backgroundColor: '#f59e0b' }]}>
+                                <View>
+                                    <Text style={styles.proBannerTitle}>Unlock Everything</Text>
+                                    <Text style={styles.proBannerDesc}>Get unlimited tests & pro analytics</Text>
+                                </View>
+                                <Ionicons name="star" size={24} color="#fff" />
+                            </View>
+                        </TouchableOpacity>
+                    )}
+
+                    <Text style={styles.sectionTitle}>Main Menu</Text>
+
+                    <View style={styles.gridContainer}>
+                        <TouchableOpacity
+                            style={styles.gridItem}
+                            onPress={() => navigation.navigate('Tests')}
+                            activeOpacity={0.7}
+                        >
+                            <View style={[styles.gridIconBg, { backgroundColor: 'rgba(220, 38, 38, 0.1)' }]}>
+                                <Ionicons name="document-text" size={28} color="#dc2626" />
+                            </View>
+                            <Text style={styles.gridLabel}>Mock Tests</Text>
+                            <Text style={styles.gridSub}>Topic-wise exams</Text>
+                        </TouchableOpacity>
+
+                        {isStaff && (
                             <TouchableOpacity
-                                style={styles.proBanner}
-                                onPress={() => navigation.navigate('Payment')}
+                                style={styles.gridItem}
+                                onPress={() => navigation.navigate('CreateTest')}
+                                activeOpacity={0.7}
                             >
-                                <LinearGradient
-                                    colors={['#f59e0b', '#dc2626']}
-                                    start={{ x: 0, y: 0 }}
-                                    end={{ x: 1, y: 0 }}
-                                    style={styles.proBannerGradient}
-                                >
-                                    <View>
-                                        <Text style={styles.proBannerTitle}>Unlock Everything</Text>
-                                        <Text style={styles.proBannerDesc}>Get unlimited tests & pro analytics</Text>
-                                    </View>
-                                    <Ionicons name="star" size={24} color="#fff" />
-                                </LinearGradient>
+                                <View style={[styles.gridIconBg, { backgroundColor: 'rgba(124, 58, 237, 0.1)' }]}>
+                                    <Ionicons name="add-circle" size={28} color="#7c3aed" />
+                                </View>
+                                <Text style={styles.gridLabel}>Create Test</Text>
+                                <Text style={styles.gridSub}>Add new content</Text>
                             </TouchableOpacity>
                         )}
 
-                        <Text style={styles.sectionTitle}>Main Menu</Text>
-
-                        <View style={styles.gridContainer}>
-                            <Pressable
-                                style={({ pressed }) => [
-                                    styles.gridItem,
-                                    pressed && { backgroundColor: 'rgba(255,255,255,0.08)', transform: [{ scale: 0.98 }] }
-                                ]}
-                                onPress={() => {
-                                    console.log('Navigating to Tests');
-                                    navigation.navigate('Tests');
-                                }}
+                        {!isStaff && (
+                            <TouchableOpacity
+                                style={styles.gridItem}
+                                onPress={() => Alert.alert("Coming Soon", "Mobile Syllabus tracking is in development!")}
+                                activeOpacity={0.7}
                             >
-                                <LinearGradient colors={['rgba(220, 38, 38, 0.2)', 'rgba(249, 115, 22, 0.2)']} style={styles.gridIconBg} pointerEvents="none">
-                                    <Ionicons name="document-text" size={28} color="#dc2626" />
-                                </LinearGradient>
-                                <Text style={styles.gridLabel}>Mock Tests</Text>
-                                <Text style={styles.gridSub}>Topic-wise exams</Text>
-                            </Pressable>
-
-                            {isStaff && (
-                                <Pressable
-                                    style={({ pressed }) => [
-                                        styles.gridItem,
-                                        pressed && { backgroundColor: 'rgba(255,255,255,0.08)', transform: [{ scale: 0.98 }] }
-                                    ]}
-                                    onPress={() => navigation.navigate('CreateTest')}
-                                >
-                                    <LinearGradient
-                                        colors={['rgba(124, 58, 237, 0.2)', 'rgba(139, 92, 246, 0.2)']}
-                                        style={styles.gridIconBg}
-                                        pointerEvents="none"
-                                    >
-                                        <Ionicons name="add-circle" size={28} color="#7c3aed" />
-                                    </LinearGradient>
-                                    <Text style={styles.gridLabel}>Create Test</Text>
-                                    <Text style={styles.gridSub}>Add new content</Text>
-                                </Pressable>
-                            )}
-
-                            {!isStaff && (
-                                <Pressable
-                                    style={({ pressed }) => [
-                                        styles.gridItem,
-                                        pressed && { backgroundColor: 'rgba(255,255,255,0.08)', transform: [{ scale: 0.98 }] }
-                                    ]}
-                                    onPress={() => Alert.alert("Coming Soon", "Mobile Syllabus tracking is in development!")}
-                                >
-                                    <LinearGradient
-                                        colors={['rgba(30, 58, 138, 0.2)', 'rgba(59, 130, 246, 0.2)']}
-                                        style={styles.gridIconBg}
-                                        pointerEvents="none"
-                                    >
-                                        <Ionicons name="book" size={28} color="#3b82f6" />
-                                    </LinearGradient>
-                                    <Text style={styles.gridLabel}>Syllabus</Text>
-                                    <Text style={styles.gridSub}>Track progress</Text>
-                                </Pressable>
-                            )}
-
-                            <Pressable
-                                style={({ pressed }) => [
-                                    styles.gridItem,
-                                    pressed && { backgroundColor: 'rgba(255,255,255,0.08)', transform: [{ scale: 0.98 }] }
-                                ]}
-                                onPress={() => isStaff ? navigation.navigate('ManageTests') : Alert.alert("Coming Soon", "Live classes are starting soon!")}>
-                                <LinearGradient
-                                    colors={['rgba(217, 119, 6, 0.2)', 'rgba(245, 158, 11, 0.2)']}
-                                    style={styles.gridIconBg}
-                                    pointerEvents="none"
-                                >
-                                    <Ionicons name={isStaff ? "list" : "school"} size={28} color="#f59e0b" />
-                                </LinearGradient>
-                                <Text style={styles.gridLabel}>{isStaff ? "My Tests" : "Classes"}</Text>
-                                <Text style={styles.gridSub}>{isStaff ? "Manage learning" : "Live learning"}</Text>
-                            </Pressable>
-
-                            {isStaff && (
-                                <Pressable
-                                    style={({ pressed }) => [
-                                        styles.gridItem,
-                                        pressed && { backgroundColor: 'rgba(255,255,255,0.08)', transform: [{ scale: 0.98 }] }
-                                    ]}
-                                    onPress={() => navigation.navigate('TopicManagement')}>
-                                    <LinearGradient
-                                        colors={['rgba(5, 150, 105, 0.2)', 'rgba(16, 185, 129, 0.2)']}
-                                        style={styles.gridIconBg}
-                                        pointerEvents="none"
-                                    >
-                                        <Ionicons name="folder-open" size={28} color="#10b981" />
-                                    </LinearGradient>
-                                    <Text style={styles.gridLabel}>Topics</Text>
-                                    <Text style={styles.gridSub}>Organize content</Text>
-                                </Pressable>
-                            )}
-
-                            <Pressable
-                                style={({ pressed }) => [
-                                    styles.gridItem,
-                                    pressed && { backgroundColor: 'rgba(255,255,255,0.08)', transform: [{ scale: 0.98 }] }
-                                ]}
-                                onPress={() => navigation.navigate('Performance')}
-                            >
-                                <LinearGradient colors={['rgba(22, 101, 52, 0.2)', 'rgba(34, 197, 94, 0.2)']} style={styles.gridIconBg} pointerEvents="none">
-                                    <Ionicons name="stats-chart" size={28} color="#22c55e" />
-                                </LinearGradient>
-                                <Text style={styles.gridLabel}>Analytics</Text>
-                                <Text style={styles.gridSub}>Performance</Text>
-                            </Pressable>
-                        </View>
-
-                        {isStudent && leaderboard?.length > 0 && (
-                            <View style={styles.recentSection}>
-                                <Text style={styles.sectionTitle}>Weekly Top Aspirants</Text>
-                                <View style={styles.leaderboardCard}>
-                                    {leaderboard.slice(0, 3).map((item, index) => (
-                                        <View key={item.userId} style={styles.leaderboardRow}>
-                                            <View style={styles.rankBadge}>
-                                                <Text style={styles.rankText}>{index + 1}</Text>
-                                            </View>
-                                            <View style={styles.leaderboardInfo}>
-                                                <Text style={styles.leaderboardName}>{item.name}</Text>
-                                                <Text style={styles.leaderboardScore}>{item.totalScore} pts</Text>
-                                            </View>
-                                            {item.userId === (user?.id || user?._id) && (
-                                                <View style={styles.youBadge}>
-                                                    <Text style={styles.youText}>YOU</Text>
-                                                </View>
-                                            )}
-                                        </View>
-                                    ))}
+                                <View style={[styles.gridIconBg, { backgroundColor: 'rgba(30, 58, 138, 0.1)' }]}>
+                                    <Ionicons name="book" size={28} color="#3b82f6" />
                                 </View>
-                            </View>
+                                <Text style={styles.gridLabel}>Syllabus</Text>
+                                <Text style={styles.gridSub}>Track progress</Text>
+                            </TouchableOpacity>
                         )}
+
+                        <TouchableOpacity
+                            style={styles.gridItem}
+                            onPress={() => isStaff ? navigation.navigate('ManageTests') : Alert.alert("Coming Soon", "Live classes are starting soon!")}
+                            activeOpacity={0.7}
+                        >
+                            <View style={[styles.gridIconBg, { backgroundColor: 'rgba(217, 119, 6, 0.1)' }]}>
+                                <Ionicons name={isStaff ? "list" : "school"} size={28} color="#f59e0b" />
+                            </View>
+                            <Text style={styles.gridLabel}>{isStaff ? "My Tests" : "Classes"}</Text>
+                            <Text style={styles.gridSub}>{isStaff ? "Manage learning" : "Live learning"}</Text>
+                        </TouchableOpacity>
+
+                        {isStaff && (
+                            <TouchableOpacity
+                                style={styles.gridItem}
+                                onPress={() => navigation.navigate('TopicManagement')}
+                                activeOpacity={0.7}
+                            >
+                                <View style={[styles.gridIconBg, { backgroundColor: 'rgba(5, 150, 105, 0.1)' }]}>
+                                    <Ionicons name="folder-open" size={28} color="#10b981" />
+                                </View>
+                                <Text style={styles.gridLabel}>Topics</Text>
+                                <Text style={styles.gridSub}>Organize content</Text>
+                            </TouchableOpacity>
+                        )}
+
+                        <TouchableOpacity
+                            style={styles.gridItem}
+                            onPress={() => navigation.navigate('Performance')}
+                            activeOpacity={0.7}
+                        >
+                            <View style={[styles.gridIconBg, { backgroundColor: 'rgba(34, 197, 94, 0.1)' }]}>
+                                <Ionicons name="stats-chart" size={28} color="#22c55e" />
+                            </View>
+                            <Text style={styles.gridLabel}>Analytics</Text>
+                            <Text style={styles.gridSub}>Performance</Text>
+                        </TouchableOpacity>
                     </View>
-                </ScrollView>
-            </SafeAreaView>
-        </LinearGradient>
+
+                    {isStudent && leaderboard?.length > 0 && (
+                        <View style={styles.recentSection}>
+                            <Text style={styles.sectionTitle}>Weekly Top Aspirants</Text>
+                            <View style={styles.leaderboardCard}>
+                                {leaderboard.slice(0, 3).map((item, index) => (
+                                    <View key={item.userId} style={styles.leaderboardRow}>
+                                        <View style={styles.rankBadge}>
+                                            <Text style={styles.rankText}>{index + 1}</Text>
+                                        </View>
+                                        <View style={styles.leaderboardInfo}>
+                                            <Text style={styles.leaderboardName}>{item.name}</Text>
+                                            <Text style={styles.leaderboardScore}>{item.totalScore} pts</Text>
+                                        </View>
+                                        {item.userId === (user?.id || user?._id) && (
+                                            <View style={styles.youBadge}>
+                                                <Text style={styles.youText}>YOU</Text>
+                                            </View>
+                                        )}
+                                    </View>
+                                ))}
+                            </View>
+                        </View>
+                    )}
+                </View>
+            </ScrollView>
+        </SafeAreaView>
     );
 }
 
@@ -749,21 +666,24 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         flexWrap: 'wrap',
         justifyContent: 'space-between',
-        gap: 12,
+        paddingHorizontal: 2,
     },
     gridItem: {
         width: '48%',
-        backgroundColor: 'rgba(255,255,255,0.03)',
+        backgroundColor: 'rgba(255,255,255,0.05)',
         padding: 20,
         borderRadius: 24,
         alignItems: 'center',
         borderWidth: 1,
         borderColor: 'rgba(255,255,255,0.08)',
-        elevation: 2,
+        marginVertical: 6,
+        marginHorizontal: '1%',
+        zIndex: 100,
+        elevation: 10,
         shadowColor: '#000',
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.1,
-        shadowRadius: 4,
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.2,
+        shadowRadius: 8,
     },
     gridIconBg: {
         width: 48,
@@ -814,6 +734,18 @@ const styles = StyleSheet.create({
         fontWeight: '900',
         color: '#ef4444',
         fontSize: 11,
+    },
+    headerIconButton: {
+        width: 44,
+        height: 44,
+        borderRadius: 12,
+        backgroundColor: 'rgba(255,255,255,0.08)',
+        justifyContent: 'center',
+        alignItems: 'center',
+        borderWidth: 1,
+        borderColor: 'rgba(255,255,255,0.1)',
+        zIndex: 200,
+        elevation: 15,
     },
     leaderboardInfo: {
         flex: 1,
