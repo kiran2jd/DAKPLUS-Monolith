@@ -11,6 +11,7 @@ import {
     ScrollView,
     Image,
     Keyboard,
+    KeyboardAvoidingView,
     TouchableWithoutFeedback,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';

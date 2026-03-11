@@ -42,10 +42,7 @@ export default function WelcomeScreen({ navigation }) {
                             style={styles.button}
                             onPress={() => {
                                 console.log('Get Started pressed');
-                                // Prevent double-taps or race conditions
-                                requestAnimationFrame(() => {
-                                    navigation.navigate('Login');
-                                });
+                                navigation.navigate('Login');
                             }}
                         >
                             <Text style={styles.buttonText}>Get Started</Text>
