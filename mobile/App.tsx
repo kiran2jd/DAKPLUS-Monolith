@@ -1,18 +1,50 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { StatusBar } from 'expo-status-bar';
-import { AppState, View, PanResponder, Alert } from 'react-native';
+import { AppState, View, Alert, ActivityIndicator } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import * as ScreenCapture from 'expo-screen-capture';
+import * as SplashScreen from 'expo-splash-screen';
 import AppNavigator from './src/navigation/AppNavigator';
 import { authService } from './src/services/auth';
 
+// Keep the splash screen visible while we fetch resources
+SplashScreen.preventAutoHideAsync().catch(() => {
+  /* reloading the app might cause some issues with this, ignore */
+});
+
 export default function App() {
   const appState = useRef(AppState.currentState);
-  const [appStateVisible, setAppStateVisible] = useState(appState.current);
-  const inactivityTimer = useRef<NodeJS.Timeout | null>(null);
-  const INACTIVITY_LIMIT = 15 * 60 * 1000; // 15 minutes
+  const [, setAppStateVisible] = useState(appState.current);
+  const [appIsReady, setAppIsReady] = useState(false);
+  const [error, setError] = useState<Error | null>(null);
 
-  // 1. Prevent Screen Capture
+  // 1. Initial Setup & Resource Loading
+  useEffect(() => {
+    async function prepare() {
+      try {
+        // Pre-load fonts, make any API calls you need to do here
+        await authService.isAuthenticated();
+        // Artificially delay for a bit to show off splash
+        await new Promise(resolve => setTimeout(resolve, 1000));
+      } catch (e) {
+        console.warn(e);
+        setError(e as Error);
+      } finally {
+        setAppIsReady(true);
+      }
+    }
+
+    prepare();
+  }, []);
+
+  // 2. Hide Splash Screen when Ready
+  useEffect(() => {
+    if (appIsReady) {
+      SplashScreen.hideAsync().catch((err: any) => console.log('Splash hide error:', err));
+    }
+  }, [appIsReady]);
+
+  // 3. Prevent Screen Capture
   useEffect(() => {
     const enableProtection = async () => {
       try {
@@ -23,7 +55,6 @@ export default function App() {
     };
     enableProtection();
 
-    // Cleanup not strictly necessary for root app, but good practice
     return () => {
       try {
         ScreenCapture.allowScreenCaptureAsync();
@@ -33,14 +64,13 @@ export default function App() {
     };
   }, []);
 
-  // 2. Validate Session on Resume
+  // 4. Validate Session on Resume
   useEffect(() => {
     const subscription = AppState.addEventListener('change', nextAppState => {
       if (
         appState.current.match(/inactive|background/) &&
         nextAppState === 'active'
       ) {
-        // App has come to the foreground!
         checkSession();
       }
       appState.current = nextAppState;
@@ -55,53 +85,27 @@ export default function App() {
   const checkSession = async () => {
     try {
       const isValid = await authService.validateSession();
-      // If isValid is false (and we are logged in), we should logout
-      // For now, if validateSession returns false, it means either not logged in OR invalid.
-      // We should only force logout if we WERE logged in.
       const isAuthenticated = await authService.isAuthenticated();
       if (isAuthenticated && isValid === false) {
         Alert.alert('Session Expired', 'You have been logged out because you logged in on another device.');
         await authService.logout();
-        // Navigation reset is tricky from here without a ref, but subsequent API calls will fail 401
-        // Ideally we use a navigation ref to reset to Login
       }
     } catch (err) {
       console.log('Session check validation failed:', err);
-      // Do not crash the app for background session check failures
     }
   };
 
-  // 3. Inactivity Timer (Removed to maintain long-term session as per user request)
-  /*
-  const resetInactivityTimer = () => {
-    if (inactivityTimer.current) clearTimeout(inactivityTimer.current);
-    inactivityTimer.current = setTimeout(async () => {
-      const isAuthenticated = await authService.isAuthenticated();
-      if (isAuthenticated) {
-        Alert.alert('Session Expired', 'Logged out due to inactivity.');
-        await authService.logout();
-      }
-    }, INACTIVITY_LIMIT);
-  };
+  if (error) {
+    return (
+      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#fff' }}>
+        <ActivityIndicator size="large" color="#dc2626" />
+      </View>
+    );
+  }
 
-  useEffect(() => {
-    resetInactivityTimer();
-    return () => {
-      if (inactivityTimer.current) clearTimeout(inactivityTimer.current);
-    };
-  }, []);
-  */
-
-  /*
-  const panResponder = useRef(
-    PanResponder.create({
-      onStartShouldSetPanResponder: () => {
-        // resetInactivityTimer();
-        return false;
-      },
-    })
-  ).current;
-  */
+  if (!appIsReady) {
+    return null; // Return null to let Splash Screen show
+  }
 
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>

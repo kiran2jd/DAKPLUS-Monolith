@@ -22,6 +22,7 @@ export default function ResultScreen({ navigation, route }) {
     const [user, setUser] = useState(null);
     const [result, setResult] = useState(null);
     const [loading, setLoading] = useState(true);
+    const [language, setLanguage] = useState('en'); // 'en' or 'hi'
 
     useEffect(() => {
         const loadUser = async () => {
@@ -86,6 +87,21 @@ export default function ResultScreen({ navigation, route }) {
                         <Text style={styles.scoreText}>{result.score}/{result.totalPoints}</Text>
                     </View>
                     <Text style={styles.testTitle}>{result.testTitle}</Text>
+                    
+                    <View style={styles.langToggle}>
+                        <TouchableOpacity 
+                            onPress={() => setLanguage('en')}
+                            style={[styles.langBtn, language === 'en' ? styles.activeLangBtn : null]}
+                        >
+                            <Text style={[styles.langText, language === 'en' ? styles.activeLangText : null]}>EN</Text>
+                        </TouchableOpacity>
+                        <TouchableOpacity 
+                            onPress={() => setLanguage('hi')}
+                            style={[styles.langBtn, language === 'hi' ? styles.activeLangBtn : null]}
+                        >
+                            <Text style={[styles.langText, language === 'hi' ? styles.activeLangText : null]}>हिन्दी</Text>
+                        </TouchableOpacity>
+                    </View>
                 </LinearGradient>
 
                 <View style={styles.content}>
@@ -165,7 +181,9 @@ export default function ResultScreen({ navigation, route }) {
 
                     {filteredAnswers.length > 0 ? filteredAnswers.map((detail, idx) => (
                         <View key={idx} style={[styles.reviewCard, { borderColor: detail.correct ? '#059669' : '#dc2626' }]}>
-                            <Text style={styles.reviewQuestion}>{idx + 1}. {detail.questionText}</Text>
+                            <Text style={styles.reviewQuestion}>
+                                {idx + 1}. {language === 'hi' && detail.questionTextHi ? detail.questionTextHi : detail.questionText}
+                            </Text>
                             <View style={styles.answerRow}>
                                 <Text style={[styles.answerText, { color: detail.correct ? '#059669' : '#dc2626' }]}>
                                     Your Answer: {detail.userAnswer}
@@ -180,11 +198,15 @@ export default function ResultScreen({ navigation, route }) {
                                 <Text style={styles.correctAnswerText}>Correct Answer: {detail.correctAnswer}</Text>
                             )}
                             {/* Check multiple possible field names for explanations */}
-                            {(detail.explanation || detail.shortAnswer || detail.comment) && (
+                            {(detail.explanation || detail.shortAnswer || detail.comment || detail.explanationHi) && (
                                 <View style={styles.explanationBox}>
-                                    <Text style={styles.explanationTitle}>Feedback:</Text>
+                                    <Text style={styles.explanationTitle}>
+                                        {language === 'hi' ? 'फीडबैक / व्याख्या:' : 'Feedback / Explanation:'}
+                                    </Text>
                                     <Text style={styles.explanationText}>
-                                        {detail.explanation || detail.shortAnswer || detail.comment}
+                                        {language === 'hi' && detail.explanationHi 
+                                            ? detail.explanationHi 
+                                            : (detail.explanation || detail.shortAnswer || detail.comment)}
                                     </Text>
                                 </View>
                             )}
@@ -484,5 +506,29 @@ const styles = StyleSheet.create({
         color: '#fff',
         fontWeight: 'bold',
         fontSize: 12,
+    },
+    langToggle: {
+        flexDirection: 'row',
+        backgroundColor: '#ffffff20',
+        borderRadius: 8,
+        padding: 2,
+        marginTop: 15,
+        alignSelf: 'center',
+    },
+    langBtn: {
+        paddingHorizontal: 12,
+        paddingVertical: 6,
+        borderRadius: 6,
+    },
+    activeLangBtn: {
+        backgroundColor: '#ffffff',
+    },
+    langText: {
+        color: '#ffffff',
+        fontSize: 12,
+        fontWeight: 'bold',
+    },
+    activeLangText: {
+        color: '#059669',
     },
 });

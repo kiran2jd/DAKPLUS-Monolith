@@ -7,6 +7,16 @@ export const resultService = {
         return response.data;
     },
 
+    checkSubmission: async (userId, testId) => {
+        const response = await api.get(`results/check-submission?userId=${userId}&testId=${testId}`);
+        return response.data;
+    },
+
+    retakeTest: async (userId, testId) => {
+        const response = await api.delete(`results/retake?userId=${userId}&testId=${testId}`);
+        return response.data;
+    },
+
     getResultById: async (resultId) => {
         const response = await api.get(`results/${resultId}`);
         return response.data;

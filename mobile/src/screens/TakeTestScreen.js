@@ -16,6 +16,7 @@ import { usePreventScreenCapture } from 'expo-screen-capture';
 import { Ionicons } from '@expo/vector-icons';
 import { testService } from '../services/test';
 import { resultService } from '../services/result';
+import { authService } from '../services/auth';
 
 export default function TakeTestScreen({ navigation, route }) {
 
@@ -26,16 +27,33 @@ export default function TakeTestScreen({ navigation, route }) {
     const [loading, setLoading] = useState(true);
     const [timeLeft, setTimeLeft] = useState(0);
     const [isSubmitting, setIsSubmitting] = useState(false);
+    const [language, setLanguage] = useState('en'); // 'en' or 'hi'
+    const [alreadySubmitted, setAlreadySubmitted] = useState(false);
     const timerRef = useRef(null);
 
     useEffect(() => {
         const loadTest = async () => {
             try {
+                const user = await authService.getUser();
+                const userId = user?.id || user?._id;
+
+                // 1. Check if already submitted
+                if (userId) {
+                    const submitted = await resultService.checkSubmission(userId, testId);
+                    if (submitted) {
+                        setAlreadySubmitted(true);
+                        setLoading(false);
+                        return;
+                    }
+                }
+
+                // 2. Load Test
                 const data = await testService.takeTest(testId);
                 setTest(data);
                 const minutes = data.durationMinutes || data.duration_minutes || 60;
                 setTimeLeft(minutes * 60);
             } catch (err) {
+                console.error("Failed to load test:", err);
                 Alert.alert('Error', 'Failed to load test');
                 navigation.goBack();
             } finally {
@@ -74,14 +92,11 @@ export default function TakeTestScreen({ navigation, route }) {
         if (isSubmitting) return;
         setIsSubmitting(true);
         try {
-            // Log submission for debugging
             console.log("Submitting test results for testId:", testId);
             const result = await resultService.submitTest({
                 test_id: testId,
                 answers: answers
             });
-            console.log("Submission successful, resultId:", result.id || result._id);
-            // Use result.id or result._id depending on what backend returns
             const finalResultId = result.id || result._id;
             navigation.replace('Result', { resultId: finalResultId });
         } catch (err) {
@@ -89,6 +104,41 @@ export default function TakeTestScreen({ navigation, route }) {
             Alert.alert('Error', 'Failed to submit test. Please check your connection.');
             setIsSubmitting(false);
         }
+    };
+
+    const handleRetake = () => {
+        Alert.alert(
+            "Retake Test",
+            "Are you sure? Your previous result will be permanently deleted.",
+            [
+                { text: "Cancel", style: "cancel" },
+                {
+                    text: "Retake",
+                    style: "destructive",
+                    onPress: async () => {
+                        setLoading(true);
+                        try {
+                            const user = await authService.getUser();
+                            const userId = user?.id || user?._id;
+                            await resultService.retakeTest(userId, testId);
+                            setAlreadySubmitted(false);
+                            // Refresh test
+                            const data = await testService.takeTest(testId);
+                            setTest(data);
+                            const minutes = data.durationMinutes || data.duration_minutes || 60;
+                            setTimeLeft(minutes * 60);
+                            setAnswers({});
+                            setCurrentQuestion(0);
+                        } catch (err) {
+                            console.error("Retake failed:", err);
+                            Alert.alert("Error", "Failed to reset test.");
+                        } finally {
+                            setLoading(false);
+                        }
+                    }
+                }
+            ]
+        );
     };
 
     const formatTime = (seconds) => {
@@ -102,6 +152,45 @@ export default function TakeTestScreen({ navigation, route }) {
             <View style={styles.center}>
                 <ActivityIndicator size="large" color="#dc2626" />
             </View>
+        );
+    }
+
+    if (alreadySubmitted) {
+        return (
+            <SafeAreaView style={styles.container}>
+                <LinearGradient colors={['#dc2626', '#1e3a8a']} style={styles.header}>
+                    <TouchableOpacity onPress={() => navigation.goBack()}>
+                        <Text style={styles.exitText}>Back</Text>
+                    </TouchableOpacity>
+                </LinearGradient>
+                <View style={[styles.center, { padding: 30 }]}>
+                    <View style={styles.alreadyCard}>
+                        <View style={styles.alreadyIcon}>
+                            <Ionicons name="checkmark-circle" size={50} color="#d97706" />
+                        </View>
+                        <Text style={styles.alreadyTitle}>Exam Already Completed</Text>
+                        <Text style={styles.alreadySub}>
+                            Our records show you have already submitted this exam. You can view your performance in the results section.
+                        </Text>
+                        <View style={styles.noteBox}>
+                            <Text style={styles.noteText}>
+                                NOTE: Retaking the test will permanently delete your previous result and score.
+                            </Text>
+                        </View>
+                        
+                        <TouchableOpacity style={styles.retakeBtn} onPress={handleRetake}>
+                            <Text style={styles.retakeBtnText}>Retake Test</Text>
+                        </TouchableOpacity>
+
+                        <TouchableOpacity 
+                            style={styles.dashboardBtn} 
+                            onPress={() => navigation.reset({ index: 0, routes: [{ name: 'Main' }] })}
+                        >
+                            <Text style={styles.dashboardBtnText}>Back to Dashboard</Text>
+                        </TouchableOpacity>
+                    </View>
+                </View>
+            </SafeAreaView>
         );
     }
 
@@ -134,6 +223,22 @@ export default function TakeTestScreen({ navigation, route }) {
                     <TouchableOpacity onPress={() => Alert.alert('Exit Test', 'Are you sure?', [{ text: 'Cancel' }, { text: 'Exit', onPress: () => navigation.goBack() }])}>
                         <Text style={styles.exitText}>Exit</Text>
                     </TouchableOpacity>
+                    
+                    <View style={styles.langToggle}>
+                        <TouchableOpacity 
+                            onPress={() => setLanguage('en')}
+                            style={[styles.langBtn, language === 'en' ? styles.activeLangBtn : null]}
+                        >
+                            <Text style={[styles.langText, language === 'en' ? styles.activeLangText : null]}>EN</Text>
+                        </TouchableOpacity>
+                        <TouchableOpacity 
+                            onPress={() => setLanguage('hi')}
+                            style={[styles.langBtn, language === 'hi' ? styles.activeLangBtn : null]}
+                        >
+                            <Text style={[styles.langText, language === 'hi' ? styles.activeLangText : null]}>हिन्दी</Text>
+                        </TouchableOpacity>
+                    </View>
+
                     <View style={styles.timerContainer}>
                         <Text style={styles.timerText}>{formatTime(timeLeft)}</Text>
                     </View>
@@ -152,7 +257,9 @@ export default function TakeTestScreen({ navigation, route }) {
             </View>
 
             <ScrollView contentContainerStyle={styles.questionContainer}>
-                <Text style={styles.questionText}>{question.text}</Text>
+                <Text style={styles.questionText}>
+                    {language === 'hi' && question.textHi ? question.textHi : question.text}
+                </Text>
 
                 {question.imageUrl && (
                     <Image
@@ -180,7 +287,9 @@ export default function TakeTestScreen({ navigation, route }) {
                                 styles.optionText,
                                 answers[currentQuestion] === option ? styles.selectedOptionText : null
                             ]}>
-                                {option}
+                                {(language === 'hi' && question.optionsHi && question.optionsHi[index])
+                                    ? question.optionsHi[index]
+                                    : option}
                             </Text>
                         </TouchableOpacity>
                     ))}
@@ -368,5 +477,102 @@ const styles = StyleSheet.create({
         borderRadius: 12,
         marginBottom: 20,
         backgroundColor: '#f8fafc',
+    },
+    langToggle: {
+        flexDirection: 'row',
+        backgroundColor: '#ffffff20',
+        borderRadius: 8,
+        padding: 2,
+    },
+    langBtn: {
+        paddingHorizontal: 8,
+        paddingVertical: 4,
+        borderRadius: 6,
+    },
+    activeLangBtn: {
+        backgroundColor: '#ffffff',
+    },
+    langText: {
+        color: '#ffffff',
+        fontSize: 10,
+        fontWeight: 'bold',
+    },
+    activeLangText: {
+        color: '#1e3a8a',
+    },
+    alreadyCard: {
+        backgroundColor: '#ffffff',
+        borderRadius: 24,
+        padding: 24,
+        alignItems: 'center',
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 8 },
+        shadowOpacity: 0.1,
+        shadowRadius: 20,
+        elevation: 5,
+        width: '100%',
+    },
+    alreadyIcon: {
+        width: 80,
+        height: 80,
+        borderRadius: 40,
+        backgroundColor: '#fffbeb',
+        justifyContent: 'center',
+        alignItems: 'center',
+        marginBottom: 20,
+    },
+    alreadyTitle: {
+        fontSize: 24,
+        fontWeight: 'bold',
+        color: '#1e293b',
+        textAlign: 'center',
+        marginBottom: 12,
+    },
+    alreadySub: {
+        fontSize: 15,
+        color: '#64748b',
+        textAlign: 'center',
+        lineHeight: 22,
+        marginBottom: 20,
+    },
+    noteBox: {
+        backgroundColor: '#fffbeb',
+        borderLeftWidth: 4,
+        borderLeftColor: '#f59e0b',
+        padding: 12,
+        borderRadius: 8,
+        marginBottom: 24,
+    },
+    noteText: {
+        color: '#92400e',
+        fontSize: 12,
+        fontWeight: '700',
+    },
+    retakeBtn: {
+        width: '100%',
+        backgroundColor: '#ffffff',
+        borderWidth: 2,
+        borderColor: '#e2e8f0',
+        padding: 16,
+        borderRadius: 16,
+        alignItems: 'center',
+        marginBottom: 12,
+    },
+    retakeBtnText: {
+        color: '#1e293b',
+        fontSize: 18,
+        fontWeight: '900',
+    },
+    dashboardBtn: {
+        width: '100%',
+        backgroundColor: '#dc2626',
+        padding: 16,
+        borderRadius: 16,
+        alignItems: 'center',
+    },
+    dashboardBtnText: {
+        color: '#ffffff',
+        fontSize: 18,
+        fontWeight: '900',
     },
 });

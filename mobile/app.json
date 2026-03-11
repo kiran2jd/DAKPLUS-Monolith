@@ -8,6 +8,9 @@
     "icon": "./assets/logo.jpg",
     "userInterfaceStyle": "light",
     "newArchEnabled": false,
+    "runtimeVersion": {
+      "policy": "appVersion"
+    },
     "splash": {
       "image": "./assets/logo.jpg",
       "resizeMode": "contain",

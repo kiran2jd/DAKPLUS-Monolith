@@ -8,8 +8,7 @@
     "start": "expo start --port 9090",
     "android": "expo start --android --port 9090",
     "ios": "expo start --ios --port 9090",
-    "web": "expo start --web --port 9090",
-    "postinstall": "node patch-expo.js"
+    "web": "expo start --web --port 9090"
   },
   "dependencies": {
     "@expo/vector-icons": "~14.0.4",
@@ -27,6 +26,7 @@
     "expo-modules-core": "~2.2.3",
     "expo-screen-capture": "~7.0.0",
     "expo-secure-store": "~14.0.0",
+    "expo-splash-screen": "~0.29.21",
     "expo-status-bar": "~2.0.0",
     "expo-updates": "~0.27.5",
     "expo-web-browser": "~14.0.1",
