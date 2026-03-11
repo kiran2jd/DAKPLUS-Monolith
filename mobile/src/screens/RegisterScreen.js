@@ -136,10 +136,9 @@ export default function RegisterScreen({ navigation, route }) {
         } catch (err) {
             console.error("Registration UI error:", err);
             const errorMsg = err.response?.data?.message || err.message || 'Something went wrong';
-            const diagnosticInfo = `URL: ${err.config?.url || 'Unknown'}\nStatus: ${err.response?.status || 'No Response'}`;
             Alert.alert(
                 'Registration Failed',
-                `${errorMsg}\n\nPlease check your internet connection/mobile data or try a VPN if on restricted networks.\n\nTechnical Details:\n${diagnosticInfo}`
+                `${errorMsg}\n\nPlease check your internet connection or try again later.`
             );
         } finally {
             setLoading(false);

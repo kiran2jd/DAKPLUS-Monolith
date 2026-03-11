@@ -250,15 +250,16 @@ export default function DashboardScreen({ navigation }) {
     );
 
     return (
-        <LinearGradient
-            colors={['#0f172a', '#1e293b', '#0f172a']}
-            style={styles.container}
-        >
+        <View style={styles.container}>
+            <LinearGradient
+                colors={['#0f172a', '#1e293b', '#0f172a']}
+                style={StyleSheet.absoluteFill}
+            />
             <SafeAreaView style={{ flex: 1 }}>
                 <ScrollView
                     refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#dc2626" />}
                     showsVerticalScrollIndicator={false}
-                    contentContainerStyle={{ flexGrow: 1 }}
+                    contentContainerStyle={styles.scrollContainer}
                     keyboardShouldPersistTaps="handled"
                 >
                     {renderHeader()}
@@ -464,7 +465,9 @@ export default function DashboardScreen({ navigation }) {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: '#0f172a',
+    },
+    scrollContainer: {
+        flexGrow: 1,
     },
     center: {
         justifyContent: 'center',

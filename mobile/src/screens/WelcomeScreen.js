@@ -20,37 +20,36 @@ export default function WelcomeScreen({ navigation }) {
             <StatusBar barStyle="light-content" />
             <LinearGradient
                 colors={['#dc2626', '#1e3a8a']}
-                style={styles.background}
-            >
-                <View style={styles.content}>
-                    <View style={styles.logoContainer}>
-                        <Image source={logo} style={styles.logoImage} resizeMode="contain" />
-                        <Text style={styles.logoText}>DAK Plus</Text>
-                        <View style={styles.logoUnderline} />
-                    </View>
-
-                    <View style={styles.textContainer}>
-                        <Text style={styles.title}>Elite Preparation for Postal Exams</Text>
-                        <Text style={styles.description}>
-                            Master your assessments with AI-powered mock tests,
-                            comprehensive syllabus tracking, and real-time performance analytics.
-                        </Text>
-                    </View>
-
-                    <View style={styles.footer}>
-                        <TouchableOpacity
-                            style={styles.button}
-                            onPress={() => {
-                                console.log('Get Started pressed');
-                                navigation.navigate('Login');
-                            }}
-                        >
-                            <Text style={styles.buttonText}>Get Started</Text>
-                        </TouchableOpacity>
-                        <Text style={styles.footerNote}>Trusted by 10,000+ Students</Text>
-                    </View>
+                style={StyleSheet.absoluteFillObject}
+            />
+            <View style={styles.content}>
+                <View style={styles.logoContainer}>
+                    <Image source={logo} style={styles.logoImage} resizeMode="contain" />
+                    <Text style={styles.logoText}>DAK Plus</Text>
+                    <View style={styles.logoUnderline} />
                 </View>
-            </LinearGradient>
+
+                <View style={styles.textContainer}>
+                    <Text style={styles.title}>Elite Preparation for Postal Exams</Text>
+                    <Text style={styles.description}>
+                        Master your assessments with AI-powered mock tests,
+                        comprehensive syllabus tracking, and real-time performance analytics.
+                    </Text>
+                </View>
+
+                <View style={styles.footer}>
+                    <TouchableOpacity
+                        style={styles.button}
+                        onPress={() => {
+                            console.log('Get Started pressed');
+                            navigation.navigate('Login');
+                        }}
+                    >
+                        <Text style={styles.buttonText}>Get Started</Text>
+                    </TouchableOpacity>
+                    <Text style={styles.footerNote}>Trusted by 10,000+ Students</Text>
+                </View>
+            </View>
         </SafeAreaView>
     );
 }

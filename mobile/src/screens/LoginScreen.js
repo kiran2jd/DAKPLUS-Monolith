@@ -108,11 +108,10 @@ export default function LoginScreen({ navigation }) {
             await authService.login(identifier, password, persistent);
             navigation.replace('Main');
         } catch (err) {
-            const errorMsg = err.response?.data?.message || err.message || 'Check your internet connection';
-            const diagnosticInfo = `URL: ${err.config?.url || 'Unknown'}\nStatus: ${err.response?.status || 'No Response'}`;
+            const errorMsg = err.response?.data?.message || err.message || 'Invalid credentials or network issue';
             Alert.alert(
                 'Login Failed',
-                `${errorMsg}\n\nTechnical Details:\n${diagnosticInfo}`
+                errorMsg
             );
         } finally {
             setLoading(false);
@@ -145,11 +144,10 @@ export default function LoginScreen({ navigation }) {
                 setResendTimer(30);
             }
         } catch (err) {
-            const errorMsg = err.message || 'Network Error';
-            const diagnosticInfo = `URL: ${err.config?.url || 'Unknown'}\nStatus: ${err.response?.status || 'No Response'}`;
+            const errorMsg = err.response?.data?.message || err.message || 'Network Error';
             Alert.alert(
                 'Error',
-                `Failed to send OTP. Please check your internet/mobile data or try a VPN if on restricted networks.\n\nTechnical Details:\n${diagnosticInfo}`
+                `Failed to send OTP. ${errorMsg}`
             );
         } finally {
             setLoading(false);
@@ -244,7 +242,7 @@ export default function LoginScreen({ navigation }) {
                                         onPress={() => setPersistent(!persistent)}
                                     >
                                         <View style={[styles.checkbox, persistent && styles.checkboxChecked]}>
-                                            {persistent && <Text style={styles.checkmark}>âœ“</Text>}
+                                            {persistent && <Text style={styles.checkmark}>✓</Text>}
                                         </View>
                                         <Text style={styles.checkboxLabel}>Keep me signed in</Text>
                                     </TouchableOpacity>
@@ -497,5 +495,32 @@ const styles = StyleSheet.create({
     },
     disabledResendText: {
         color: '#94a3b8',
+    },
+    checkboxContainer: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        marginVertical: 10,
+        gap: 10,
+    },
+    checkbox: {
+        width: 20,
+        height: 20,
+        borderRadius: 4,
+        borderWidth: 2,
+        borderColor: '#dc2626',
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+    checkboxChecked: {
+        backgroundColor: '#dc2626',
+    },
+    checkmark: {
+        color: '#fff',
+        fontSize: 12,
+        fontWeight: 'bold',
+    },
+    checkboxLabel: {
+        fontSize: 14,
+        color: '#475569',
     },
 });
