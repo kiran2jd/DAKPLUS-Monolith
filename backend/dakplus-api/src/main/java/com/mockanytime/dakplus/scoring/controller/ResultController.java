@@ -63,6 +63,12 @@ public class ResultController {
         return ResponseEntity.ok(resultService.getLeaderboard(period));
     }
 
+    @DeleteMapping("/retake")
+    public ResponseEntity<Void> retakeTest(@RequestParam String userId, @RequestParam String testId) {
+        resultService.deleteResults(userId, testId);
+        return ResponseEntity.ok().build();
+    }
+
     @GetMapping("/admin/summary")
     public ResponseEntity<com.mockanytime.dakplus.scoring.dto.ReportSummaryDto> getAdminSummary(
             @RequestParam(required = false) String circle,

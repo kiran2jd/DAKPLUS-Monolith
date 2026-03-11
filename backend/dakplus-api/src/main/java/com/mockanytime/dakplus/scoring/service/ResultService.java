@@ -168,6 +168,10 @@ public class ResultService {
         return resultRepository.existsByUserIdAndTestId(userId, testId);
     }
 
+    public void deleteResults(String userId, String testId) {
+        resultRepository.deleteByUserIdAndTestId(userId, testId);
+    }
+
     public record LeaderboardEntry(
             String userId,
             String name,

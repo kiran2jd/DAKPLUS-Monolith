@@ -114,6 +114,35 @@ export default function TakeTestPage() {
         }
     };
 
+    const handleRetake = async () => {
+        if (!window.confirm("Are you sure you want to retake this test? Your previous result will be deleted.")) {
+            return;
+        }
+        setLoading(true);
+        try {
+            const user = JSON.parse(localStorage.getItem('user'));
+            const userId = user?.id || user?._id;
+            await resultService.retakeTest(userId, testId);
+            setAlreadySubmitted(false);
+            // Re-load test data
+            const data = await testService.takeTest(testId);
+            setTest(data);
+            let minutes = data.durationMinutes || data.duration_minutes || 60;
+            if (typeof minutes !== 'number' || isNaN(minutes)) {
+                minutes = 60;
+            }
+            setTimeLeft(minutes * 60);
+            setAnswers({});
+            answersRef.current = {};
+            setCurrentQuestion(0);
+        } catch (err) {
+            console.error("Failed to reset test", err);
+            alert("Failed to reset test. Please try again.");
+        } finally {
+            setLoading(false);
+        }
+    };
+
     const formatTime = (seconds) => {
         const m = Math.floor(seconds / 60);
         const s = seconds % 60;
@@ -136,15 +165,28 @@ export default function TakeTestPage() {
                             <CheckCircle className="text-amber-600 w-10 h-10" />
                         </div>
                         <h2 className="text-3xl font-extrabold text-gray-900 dark:text-white mb-4">Exam Already Completed</h2>
-                        <p className="text-gray-600 dark:text-gray-400 text-lg mb-8">
+                        <p className="text-gray-600 dark:text-gray-400 text-lg mb-4">
                             Our records show you have already submitted this exam. You can view your performance in the results section.
                         </p>
-                        <button
-                            onClick={() => navigate('/dashboard')}
-                            className="w-full py-4 bg-gradient-to-r from-red-600 to-blue-900 text-white rounded-2xl font-black text-xl shadow-lg hover:shadow-2xl transition transform active:scale-95"
-                        >
-                            Return to Dashboard
-                        </button>
+                        <div className="bg-amber-50 dark:bg-amber-900/20 border-l-4 border-amber-500 p-4 mb-8 text-left">
+                            <p className="text-amber-700 dark:text-amber-400 text-sm font-bold">
+                                NOTE: Retaking the test will permanently delete your previous result and score.
+                            </p>
+                        </div>
+                        <div className="flex flex-col gap-4">
+                            <button
+                                onClick={handleRetake}
+                                className="w-full py-4 bg-white dark:bg-gray-700 text-gray-900 dark:text-white border-2 border-gray-200 dark:border-gray-600 rounded-2xl font-black text-xl shadow-md hover:shadow-lg transition transform active:scale-95"
+                            >
+                                Retake Test
+                            </button>
+                            <button
+                                onClick={() => navigate('/dashboard')}
+                                className="w-full py-4 bg-gradient-to-r from-red-600 to-blue-900 text-white rounded-2xl font-black text-xl shadow-lg hover:shadow-2xl transition transform active:scale-95"
+                            >
+                                Return to Dashboard
+                            </button>
+                        </div>
                     </div>
                 </div>
             </div>

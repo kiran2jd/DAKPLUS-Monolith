@@ -17,4 +17,5 @@ public interface ResultRepository extends MongoRepository<Result, String> {
     List<Result> findByCreatedAtAfter(java.util.Date date);
 
     boolean existsByUserIdAndTestId(String userId, String testId);
+    void deleteByUserIdAndTestId(String userId, String testId);
 }
