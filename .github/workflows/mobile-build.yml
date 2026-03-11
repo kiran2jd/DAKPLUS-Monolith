@@ -22,7 +22,9 @@ jobs:
 
       - name: 📦 Install dependencies
         working-directory: mobile
-        run: npm install --legacy-peer-deps
+        run: |
+          npm install --legacy-peer-deps
+          npx expo install --check
 
       - name: 🚀 Build APK
         working-directory: mobile
