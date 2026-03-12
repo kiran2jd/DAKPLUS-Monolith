@@ -3,14 +3,12 @@ import {
     StyleSheet,
     View,
     Text,
-    TouchableOpacity,
-    FlatList,
     ActivityIndicator,
     Alert,
     SafeAreaView,
     RefreshControl,
-    TouchableOpacity as RNTouchableOpacity,
 } from 'react-native';
+import { ScrollView, FlatList, TouchableOpacity } from 'react-native-gesture-handler';
 import { DrawerActions } from '@react-navigation/native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
@@ -79,18 +77,18 @@ export default function ManageTestsScreen({ navigation }) {
                 </View>
             </View>
             <View style={styles.actions}>
-                <RNTouchableOpacity
+                <TouchableOpacity
                     style={[styles.actionBtn, styles.editBtn]}
                     onPress={() => navigation.navigate('EditTest', { testId: item.id })}
                 >
                     <Ionicons name="create-outline" size={20} color="#60a5fa" />
-                </RNTouchableOpacity>
-                <RNTouchableOpacity
+                </TouchableOpacity>
+                <TouchableOpacity
                     style={[styles.actionBtn, styles.deleteBtn]}
                     onPress={() => handleDelete(item.id)}
                 >
                     <Ionicons name="trash-outline" size={20} color="#f87171" />
-                </RNTouchableOpacity>
+                </TouchableOpacity>
             </View>
         </View>
     );
@@ -107,11 +105,11 @@ export default function ManageTestsScreen({ navigation }) {
         <SafeAreaView style={[styles.container, { backgroundColor: '#0f172a' }]}>
             <View style={styles.header}>
                 <View style={styles.headerRow}>
-                    <RNTouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
+                    <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
                         <Ionicons name="chevron-back" size={24} color="#fff" />
-                    </RNTouchableOpacity>
+                    </TouchableOpacity>
                     <Text style={styles.headerTitle}>Content Manager</Text>
-                    <RNTouchableOpacity 
+                    <TouchableOpacity 
                         onPress={() => {
                             try {
                                 navigation.getParent()?.openDrawer();
@@ -122,7 +120,7 @@ export default function ManageTestsScreen({ navigation }) {
                         style={styles.backBtn}
                     >
                         <Ionicons name="menu-outline" size={24} color="#fff" />
-                    </RNTouchableOpacity>
+                    </TouchableOpacity>
                 </View>
             </View>
 

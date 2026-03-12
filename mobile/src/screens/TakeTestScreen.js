@@ -302,15 +302,15 @@ export default function TakeTestScreen({ navigation, route }) {
             </ScrollView>
 
             <View style={styles.footer}>
-                <RNTouchableOpacity
+                <TouchableOpacity
                     style={[styles.navButton, currentQuestion === 0 ? styles.disabledNav : null]}
                     onPress={() => setCurrentQuestion(prev => Math.max(0, prev - 1))}
                     disabled={currentQuestion === 0}
                 >
                     <Text style={styles.navButtonText}>Previous</Text>
-                </RNTouchableOpacity>
+                </TouchableOpacity>
 
-                <RNTouchableOpacity
+                <TouchableOpacity
                     style={[styles.navButton, styles.nextButton]}
                     onPress={() => {
                         if (currentQuestion < test.questions.length - 1) {
@@ -329,7 +329,7 @@ export default function TakeTestScreen({ navigation, route }) {
                     <Text style={[styles.navButtonText, styles.nextButtonText]}>
                         {currentQuestion === test.questions.length - 1 ? 'Finish' : 'Next'}
                     </Text>
-                </RNTouchableOpacity>
+                </TouchableOpacity>
             </View>
         </SafeAreaView>
     );

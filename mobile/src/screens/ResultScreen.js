@@ -69,12 +69,12 @@ export default function ResultScreen({ navigation, route }) {
             <View style={[styles.center, { backgroundColor: '#0f172a' }]}>
                 <Ionicons name="alert-circle" size={64} color="#dc2626" />
                 <Text style={{ color: '#fff', marginTop: 16 }}>Result not found.</Text>
-                <RNTouchableOpacity 
+                <TouchableOpacity 
                     onPress={() => navigation.reset({ index: 0, routes: [{ name: 'Main' }] })}
                     style={{ marginTop: 24, padding: 12, backgroundColor: '#dc2626', borderRadius: 8 }}
                 >
                     <Text style={{ color: '#fff', fontWeight: 'bold' }}>Back to Home</Text>
-                </RNTouchableOpacity>
+                </TouchableOpacity>
             </View>
         );
     }
@@ -118,18 +118,18 @@ export default function ResultScreen({ navigation, route }) {
                     <Text style={styles.testTitle}>{result.testTitle}</Text>
                     
                     <View style={styles.langToggle}>
-                        <RNTouchableOpacity 
+                        <TouchableOpacity 
                             onPress={() => setLanguage('en')}
                             style={[styles.langBtn, language === 'en' ? styles.activeLangBtn : null]}
                         >
                             <Text style={[styles.langText, language === 'en' ? styles.activeLangText : null]}>EN</Text>
-                        </RNTouchableOpacity>
-                        <RNTouchableOpacity 
+                        </TouchableOpacity>
+                        <TouchableOpacity 
                             onPress={() => setLanguage('hi')}
                             style={[styles.langBtn, language === 'hi' ? styles.activeLangBtn : null]}
                         >
                             <Text style={[styles.langText, language === 'hi' ? styles.activeLangText : null]}>हिन्दी</Text>
-                        </RNTouchableOpacity>
+                        </TouchableOpacity>
                     </View>
                 </LinearGradient>
 
@@ -151,7 +151,7 @@ export default function ResultScreen({ navigation, route }) {
                         </View>
                     </View>
 
-                    <RNTouchableOpacity
+                    <TouchableOpacity
                         style={styles.homeButton}
                         onPress={() => navigation.reset({
                             index: 0,
@@ -167,10 +167,10 @@ export default function ResultScreen({ navigation, route }) {
                             <Ionicons name="home-outline" size={20} color="#fff" style={{ marginRight: 8 }} />
                             <Text style={styles.homeButtonText}>Back to Dashboard</Text>
                         </LinearGradient>
-                    </RNTouchableOpacity>
+                    </TouchableOpacity>
 
                     {user?.role?.toLowerCase() === 'student' && user?.subscriptionTier !== 'PREMIUM' && (
-                        <RNTouchableOpacity
+                        <TouchableOpacity
                             style={styles.proCard}
                             onPress={() => navigation.navigate('Payment')}
                         >
@@ -189,7 +189,7 @@ export default function ResultScreen({ navigation, route }) {
                                     <Text style={styles.upgradeBtnText}>Upgrade Now</Text>
                                 </View>
                             </LinearGradient>
-                        </RNTouchableOpacity>
+                        </TouchableOpacity>
                     )}
 
                     <Text style={styles.sectionTitle}>Detailed Review</Text>

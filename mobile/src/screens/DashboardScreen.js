@@ -11,7 +11,6 @@ import {
     Dimensions,
     Platform,
     Image,
-    TouchableOpacity as RNTouchableOpacity,
 } from 'react-native';
 import { ScrollView, TouchableOpacity } from 'react-native-gesture-handler';
 import { useFocusEffect, DrawerActions } from '@react-navigation/native';
@@ -175,7 +174,7 @@ export default function DashboardScreen({ navigation }) {
     const renderHeader = () => (
         <View style={styles.headerWrapper}>
             <View style={styles.topBar}>
-                <RNTouchableOpacity
+                <TouchableOpacity
                     style={styles.headerIconButton}
                     onPress={() => {
                         try {
@@ -187,7 +186,7 @@ export default function DashboardScreen({ navigation }) {
                     activeOpacity={0.7}
                 >
                     <Ionicons name="menu-outline" size={28} color="#fff" />
-                </RNTouchableOpacity>
+                </TouchableOpacity>
                 <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
                     <Image source={logo} style={styles.logoMini} resizeMode="contain" />
                 </View>
@@ -305,7 +304,7 @@ export default function DashboardScreen({ navigation }) {
                     <Text style={styles.sectionTitle}>Main Menu</Text>
 
                     <View style={styles.gridContainer}>
-                        <RNTouchableOpacity
+                        <TouchableOpacity
                             style={styles.gridItem}
                             onPress={() => navigation.navigate('Tests')}
                             activeOpacity={0.7}
@@ -315,10 +314,10 @@ export default function DashboardScreen({ navigation }) {
                             </View>
                             <Text style={styles.gridLabel}>Mock Tests</Text>
                             <Text style={styles.gridSub}>Topic-wise exams</Text>
-                        </RNTouchableOpacity>
+                        </TouchableOpacity>
 
                         {isStaff && (
-                            <RNTouchableOpacity
+                            <TouchableOpacity
                                 style={styles.gridItem}
                                 onPress={() => navigation.navigate('CreateTest')}
                                 activeOpacity={0.7}
@@ -328,11 +327,11 @@ export default function DashboardScreen({ navigation }) {
                                 </View>
                                 <Text style={styles.gridLabel}>Create Test</Text>
                                 <Text style={styles.gridSub}>Add new content</Text>
-                            </RNTouchableOpacity>
+                            </TouchableOpacity>
                         )}
 
                         {!isStaff && (
-                            <RNTouchableOpacity
+                            <TouchableOpacity
                                 style={styles.gridItem}
                                 onPress={() => Alert.alert("Coming Soon", "Mobile Syllabus tracking is in development!")}
                                 activeOpacity={0.7}
@@ -342,10 +341,10 @@ export default function DashboardScreen({ navigation }) {
                                 </View>
                                 <Text style={styles.gridLabel}>Syllabus</Text>
                                 <Text style={styles.gridSub}>Track progress</Text>
-                            </RNTouchableOpacity>
+                            </TouchableOpacity>
                         )}
 
-                        <RNTouchableOpacity
+                        <TouchableOpacity
                             style={styles.gridItem}
                             onPress={() => isStaff ? navigation.navigate('ManageTests') : Alert.alert("Coming Soon", "Live classes are starting soon!")}
                             activeOpacity={0.7}
@@ -355,10 +354,10 @@ export default function DashboardScreen({ navigation }) {
                             </View>
                             <Text style={styles.gridLabel}>{isStaff ? "My Tests" : "Classes"}</Text>
                             <Text style={styles.gridSub}>{isStaff ? "Manage learning" : "Live learning"}</Text>
-                        </RNTouchableOpacity>
+                        </TouchableOpacity>
 
                         {isStaff && (
-                            <RNTouchableOpacity
+                            <TouchableOpacity
                                 style={styles.gridItem}
                                 onPress={() => navigation.navigate('TopicManagement')}
                                 activeOpacity={0.7}
@@ -368,10 +367,10 @@ export default function DashboardScreen({ navigation }) {
                                 </View>
                                 <Text style={styles.gridLabel}>Topics</Text>
                                 <Text style={styles.gridSub}>Organize content</Text>
-                            </RNTouchableOpacity>
+                            </TouchableOpacity>
                         )}
 
-                        <RNTouchableOpacity
+                        <TouchableOpacity
                             style={styles.gridItem}
                             onPress={() => navigation.navigate('Performance')}
                             activeOpacity={0.7}
@@ -381,7 +380,7 @@ export default function DashboardScreen({ navigation }) {
                             </View>
                             <Text style={styles.gridLabel}>Analytics</Text>
                             <Text style={styles.gridSub}>Performance</Text>
-                        </RNTouchableOpacity>
+                        </TouchableOpacity>
                     </View>
 
                     {isStudent && leaderboard?.length > 0 && (

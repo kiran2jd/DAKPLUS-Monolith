@@ -3,7 +3,6 @@ import {
     StyleSheet,
     View,
     Text,
-    TouchableOpacity,
     FlatList,
     ActivityIndicator,
     Alert,
@@ -11,8 +10,8 @@ import {
     TextInput,
     Modal,
     ScrollView,
-    TouchableOpacity as RNTouchableOpacity,
 } from 'react-native';
+import { ScrollView as GHScrollView, FlatList as GHFlatList, TouchableOpacity } from 'react-native-gesture-handler';
 import { DrawerActions } from '@react-navigation/native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
@@ -109,7 +108,7 @@ export default function TopicManagementScreen({ navigation }) {
             <View style={styles.topicHeader}>
                 <Text style={styles.topicName}>{item.name}</Text>
                 <View style={styles.headerActions}>
-                    <RNTouchableOpacity
+                    <TouchableOpacity
                         onPress={() => {
                             setSelectedTopic(item);
                             setSubtopicModalVisible(true);
@@ -117,10 +116,10 @@ export default function TopicManagementScreen({ navigation }) {
                         style={styles.addIcon}
                     >
                         <Ionicons name="add-circle" size={24} color="#10b981" />
-                    </RNTouchableOpacity>
-                    <RNTouchableOpacity onPress={() => handleDeleteTopic(item.id)}>
+                    </TouchableOpacity>
+                    <TouchableOpacity onPress={() => handleDeleteTopic(item.id)}>
                         <Ionicons name="trash-outline" size={20} color="#f87171" />
-                    </RNTouchableOpacity>
+                    </TouchableOpacity>
                 </View>
             </View>
 
@@ -141,11 +140,11 @@ export default function TopicManagementScreen({ navigation }) {
         <SafeAreaView style={[styles.container, { backgroundColor: '#0f172a' }]}>
             <View style={styles.header}>
                 <View style={styles.headerRow}>
-                    <RNTouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
+                    <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
                         <Ionicons name="chevron-back" size={24} color="#fff" />
-                    </RNTouchableOpacity>
+                    </TouchableOpacity>
                     <Text style={styles.headerTitle}>Topic Matrix</Text>
-                    <RNTouchableOpacity 
+                    <TouchableOpacity 
                         onPress={() => {
                             try {
                                 navigation.getParent()?.openDrawer();
@@ -156,7 +155,7 @@ export default function TopicManagementScreen({ navigation }) {
                         style={styles.backBtn}
                     >
                         <Ionicons name="menu-outline" size={24} color="#fff" />
-                    </RNTouchableOpacity>
+                    </TouchableOpacity>
                 </View>
             </View>
 

@@ -6,7 +6,6 @@ import {
     ActivityIndicator,
     SafeAreaView,
     Image,
-    TouchableOpacity as RNTouchableOpacity,
 } from 'react-native';
 import { ScrollView, FlatList, TouchableOpacity } from 'react-native-gesture-handler';
 import { useFocusEffect, DrawerActions } from '@react-navigation/native';
@@ -80,7 +79,7 @@ export default function TestLibraryScreen({ navigation }) {
         const isLocked = isPremium && !isPro;
 
         return (
-            <RNTouchableOpacity
+            <TouchableOpacity
                 style={[styles.testCard, isLocked && styles.lockedCard]}
                 onPress={() => isLocked ? navigation.navigate('Payment') : navigation.navigate('TakeTest', { testId: item.id })}
                 activeOpacity={0.8}
@@ -117,7 +116,7 @@ export default function TestLibraryScreen({ navigation }) {
                         </LinearGradient>
                     </View>
                 </View>
-            </RNTouchableOpacity>
+            </TouchableOpacity>
         );
     };
 
@@ -151,11 +150,11 @@ export default function TestLibraryScreen({ navigation }) {
             />
             <SafeAreaView style={{ flex: 1 }}>
                 <View style={styles.header}>
-                    <RNTouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
+                    <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
                         <Ionicons name="chevron-back" size={24} color="#fff" />
-                    </RNTouchableOpacity>
+                    </TouchableOpacity>
                     <Text style={styles.headerTitle}>Exam Vault</Text>
-                    <RNTouchableOpacity 
+                    <TouchableOpacity 
                         onPress={() => {
                             try {
                                 navigation.getParent()?.openDrawer();
@@ -166,30 +165,30 @@ export default function TestLibraryScreen({ navigation }) {
                         style={styles.backBtn}
                     >
                         <Ionicons name="menu-outline" size={24} color="#fff" />
-                    </RNTouchableOpacity>
+                    </TouchableOpacity>
                 </View>
 
                 <View style={styles.tabContainer}>
-                    <RNTouchableOpacity
+                    <TouchableOpacity
                         style={[styles.tabButton, activeTab === 'all' && styles.tabButtonActive]}
                         onPress={() => setActiveTab('all')}
                     >
                         {activeTab === 'all' && <LinearGradient colors={['#dc2626', '#f97316']} style={styles.tabLine} />}
                         <Text style={[styles.tabText, activeTab === 'all' && styles.tabTextActive]}>All Exams</Text>
-                    </RNTouchableOpacity>
-                    <RNTouchableOpacity
+                    </TouchableOpacity>
+                    <TouchableOpacity
                         style={[styles.tabButton, activeTab === 'purchased' && styles.tabButtonActive]}
                         onPress={() => setActiveTab('purchased')}
                     >
                         {activeTab === 'purchased' && <LinearGradient colors={['#dc2626', '#f97316']} style={styles.tabLine} />}
                         <Text style={[styles.tabText, activeTab === 'purchased' && styles.tabTextActive]}>My Library</Text>
-                    </RNTouchableOpacity>
+                    </TouchableOpacity>
                 </View>
 
                 <View style={styles.filterSection}>
                     <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.topicScroll}>
                         {topics.map(topic => (
-                            <RNTouchableOpacity
+                            <TouchableOpacity
                                 key={topic.id}
                                 style={[styles.topicChip, selectedTopic === topic.id && styles.topicChipActive]}
                                 onPress={() => handleTopicSelect(topic.id)}
@@ -198,14 +197,14 @@ export default function TestLibraryScreen({ navigation }) {
                                 <Text style={[styles.topicChipText, selectedTopic === topic.id && styles.topicChipTextActive]}>
                                     {topic.name}
                                 </Text>
-                            </RNTouchableOpacity>
+                            </TouchableOpacity>
                         ))}
                     </ScrollView>
 
                     {selectedTopic && subtopics.length > 0 && (
                         <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.subtopicScroll}>
                             {subtopics.map(sub => (
-                                <RNTouchableOpacity
+                                <TouchableOpacity
                                     key={sub.id}
                                     style={[styles.subChip, selectedSubtopic === sub.id && styles.subChipActive]}
                                     onPress={() => setSelectedSubtopic(selectedSubtopic === sub.id ? null : sub.id)}
@@ -213,7 +212,7 @@ export default function TestLibraryScreen({ navigation }) {
                                     <Text style={[styles.subChipText, selectedSubtopic === sub.id && styles.subChipTextActive]}>
                                         {sub.name}
                                     </Text>
-                                </RNTouchableOpacity>
+                                </TouchableOpacity>
                             ))}
                         </ScrollView>
                     )}
@@ -226,7 +225,7 @@ export default function TestLibraryScreen({ navigation }) {
                     contentContainerStyle={styles.listContent}
                     ListFooterComponent={
                         !isPro && user?.role?.toLowerCase() === 'student' ? (
-                            <RNTouchableOpacity
+                            <TouchableOpacity
                                 style={styles.libraryProBanner}
                                 onPress={() => navigation.navigate('Payment')}
                                 activeOpacity={0.8}
@@ -246,7 +245,7 @@ export default function TestLibraryScreen({ navigation }) {
                                         <Text style={styles.proBadgeText}>GO PRO</Text>
                                     </View>
                                 </LinearGradient>
-                            </RNTouchableOpacity>
+                            </TouchableOpacity>
                         ) : null
                     }
                     ListEmptyComponent={
