@@ -12,6 +12,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { resultService } from '../services/result';
 
 import { useFocusEffect, DrawerActions } from '@react-navigation/native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useCallback } from 'react';
 
 const { width } = Dimensions.get('window');
