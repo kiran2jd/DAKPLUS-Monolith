@@ -109,18 +109,18 @@ export default function TopicManagementScreen({ navigation }) {
             <View style={styles.topicHeader}>
                 <Text style={styles.topicName}>{item.name}</Text>
                 <View style={styles.headerActions}>
-                    <TouchableOpacity
+                    <RNTouchableOpacity
                         onPress={() => {
                             setSelectedTopic(item);
                             setSubtopicModalVisible(true);
                         }}
                         style={styles.addIcon}
                     >
-                        <Ionicons name="add-circle" size={24} color="#059669" />
-                    </TouchableOpacity>
-                    <TouchableOpacity onPress={() => handleDeleteTopic(item.id)}>
-                        <Ionicons name="trash-outline" size={20} color="#dc2626" />
-                    </TouchableOpacity>
+                        <Ionicons name="add-circle" size={24} color="#10b981" />
+                    </RNTouchableOpacity>
+                    <RNTouchableOpacity onPress={() => handleDeleteTopic(item.id)}>
+                        <Ionicons name="trash-outline" size={20} color="#f87171" />
+                    </RNTouchableOpacity>
                 </View>
             </View>
 
@@ -146,7 +146,13 @@ export default function TopicManagementScreen({ navigation }) {
                     </RNTouchableOpacity>
                     <Text style={styles.headerTitle}>Topic Matrix</Text>
                     <RNTouchableOpacity 
-                        onPress={() => navigation.dispatch(DrawerActions.openDrawer())} 
+                        onPress={() => {
+                            try {
+                                navigation.getParent()?.openDrawer();
+                            } catch (e) {
+                                navigation.dispatch(DrawerActions.openDrawer());
+                            }
+                        }} 
                         style={styles.backBtn}
                     >
                         <Ionicons name="menu-outline" size={24} color="#fff" />
@@ -281,9 +287,9 @@ const styles = StyleSheet.create({
     modalBtn: { flex: 1, padding: 16, borderRadius: 14, alignItems: 'center' },
     cancelBtn: { backgroundColor: '#f1f5f9' },
     cancelBtnText: { color: '#64748b', fontWeight: 'bold' },
-    saveBtn: { backgroundColor: '#059669' },
-    saveBtnText: { color: '#fff', fontWeight: 'bold' },
+    saveBtn: { backgroundColor: '#10b981' },
+    saveBtnText: { color: '#fff', fontWeight: '900', textTransform: 'uppercase' },
     empty: { alignItems: 'center', marginTop: 100 },
-    emptyText: { color: '#94a3b8' },
+    emptyText: { color: '#64748b', fontWeight: 'bold' },
     addIcon: { padding: 4 }
 });

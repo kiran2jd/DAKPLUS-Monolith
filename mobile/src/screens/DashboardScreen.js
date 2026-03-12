@@ -177,7 +177,13 @@ export default function DashboardScreen({ navigation }) {
             <View style={styles.topBar}>
                 <RNTouchableOpacity
                     style={styles.headerIconButton}
-                    onPress={() => navigation.dispatch(DrawerActions.openDrawer())}
+                    onPress={() => {
+                        try {
+                            navigation.getParent()?.openDrawer();
+                        } catch (e) {
+                            navigation.dispatch(DrawerActions.openDrawer());
+                        }
+                    }}
                     activeOpacity={0.7}
                 >
                     <Ionicons name="menu-outline" size={28} color="#fff" />
@@ -299,7 +305,7 @@ export default function DashboardScreen({ navigation }) {
                     <Text style={styles.sectionTitle}>Main Menu</Text>
 
                     <View style={styles.gridContainer}>
-                        <TouchableOpacity
+                        <RNTouchableOpacity
                             style={styles.gridItem}
                             onPress={() => navigation.navigate('Tests')}
                             activeOpacity={0.7}
@@ -309,10 +315,10 @@ export default function DashboardScreen({ navigation }) {
                             </View>
                             <Text style={styles.gridLabel}>Mock Tests</Text>
                             <Text style={styles.gridSub}>Topic-wise exams</Text>
-                        </TouchableOpacity>
+                        </RNTouchableOpacity>
 
                         {isStaff && (
-                            <TouchableOpacity
+                            <RNTouchableOpacity
                                 style={styles.gridItem}
                                 onPress={() => navigation.navigate('CreateTest')}
                                 activeOpacity={0.7}
@@ -322,11 +328,11 @@ export default function DashboardScreen({ navigation }) {
                                 </View>
                                 <Text style={styles.gridLabel}>Create Test</Text>
                                 <Text style={styles.gridSub}>Add new content</Text>
-                            </TouchableOpacity>
+                            </RNTouchableOpacity>
                         )}
 
                         {!isStaff && (
-                            <TouchableOpacity
+                            <RNTouchableOpacity
                                 style={styles.gridItem}
                                 onPress={() => Alert.alert("Coming Soon", "Mobile Syllabus tracking is in development!")}
                                 activeOpacity={0.7}
@@ -336,10 +342,10 @@ export default function DashboardScreen({ navigation }) {
                                 </View>
                                 <Text style={styles.gridLabel}>Syllabus</Text>
                                 <Text style={styles.gridSub}>Track progress</Text>
-                            </TouchableOpacity>
+                            </RNTouchableOpacity>
                         )}
 
-                        <TouchableOpacity
+                        <RNTouchableOpacity
                             style={styles.gridItem}
                             onPress={() => isStaff ? navigation.navigate('ManageTests') : Alert.alert("Coming Soon", "Live classes are starting soon!")}
                             activeOpacity={0.7}
@@ -349,10 +355,10 @@ export default function DashboardScreen({ navigation }) {
                             </View>
                             <Text style={styles.gridLabel}>{isStaff ? "My Tests" : "Classes"}</Text>
                             <Text style={styles.gridSub}>{isStaff ? "Manage learning" : "Live learning"}</Text>
-                        </TouchableOpacity>
+                        </RNTouchableOpacity>
 
                         {isStaff && (
-                            <TouchableOpacity
+                            <RNTouchableOpacity
                                 style={styles.gridItem}
                                 onPress={() => navigation.navigate('TopicManagement')}
                                 activeOpacity={0.7}
@@ -362,10 +368,10 @@ export default function DashboardScreen({ navigation }) {
                                 </View>
                                 <Text style={styles.gridLabel}>Topics</Text>
                                 <Text style={styles.gridSub}>Organize content</Text>
-                            </TouchableOpacity>
+                            </RNTouchableOpacity>
                         )}
 
-                        <TouchableOpacity
+                        <RNTouchableOpacity
                             style={styles.gridItem}
                             onPress={() => navigation.navigate('Performance')}
                             activeOpacity={0.7}
@@ -375,7 +381,7 @@ export default function DashboardScreen({ navigation }) {
                             </View>
                             <Text style={styles.gridLabel}>Analytics</Text>
                             <Text style={styles.gridSub}>Performance</Text>
-                        </TouchableOpacity>
+                        </RNTouchableOpacity>
                     </View>
 
                     {isStudent && leaderboard?.length > 0 && (
@@ -637,20 +643,20 @@ const styles = StyleSheet.create({
     gridContainer: {
         flexDirection: 'row',
         flexWrap: 'wrap',
-        justifyContent: 'space-between',
-        paddingHorizontal: 2,
+        justifyContent: 'space-between', 
+        paddingHorizontal: 20,
     },
     gridItem: {
-        width: '47%',
+        width: (width - 55) / 2, // Precisely calculated for 2 columns with 15px gap
         backgroundColor: 'rgba(255,255,255,0.04)',
         padding: 16,
         borderRadius: 20,
         alignItems: 'center',
         borderWidth: 1,
         borderColor: 'rgba(255,255,255,0.05)',
-        marginVertical: 8,
+        marginVertical: 10,
         justifyContent: 'center',
-        aspectRatio: 1, // Makes items square
+        minHeight: 150, 
         shadowColor: '#000',
         shadowOffset: { width: 0, height: 10 },
         shadowOpacity: 0.3,

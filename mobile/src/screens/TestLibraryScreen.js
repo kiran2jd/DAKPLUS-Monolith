@@ -78,9 +78,10 @@ export default function TestLibraryScreen({ navigation }) {
         const isLocked = isPremium && !isPro;
 
         return (
-            <TouchableOpacity
+            <RNTouchableOpacity
                 style={[styles.testCard, isLocked && styles.lockedCard]}
                 onPress={() => isLocked ? navigation.navigate('Payment') : navigation.navigate('TakeTest', { testId: item.id })}
+                activeOpacity={0.8}
             >
                 <View style={styles.testHeader}>
                     <View style={[styles.badge, { backgroundColor: item.difficulty === 'Hard' ? 'rgba(239, 68, 68, 0.1)' : 'rgba(34, 197, 94, 0.1)' }]}>
@@ -114,7 +115,7 @@ export default function TestLibraryScreen({ navigation }) {
                         </LinearGradient>
                     </View>
                 </View>
-            </TouchableOpacity>
+            </RNTouchableOpacity>
         );
     };
 
@@ -153,7 +154,13 @@ export default function TestLibraryScreen({ navigation }) {
                     </RNTouchableOpacity>
                     <Text style={styles.headerTitle}>Exam Vault</Text>
                     <RNTouchableOpacity 
-                        onPress={() => navigation.dispatch(DrawerActions.openDrawer())} 
+                        onPress={() => {
+                            try {
+                                navigation.getParent()?.openDrawer();
+                            } catch (e) {
+                                navigation.dispatch(DrawerActions.openDrawer());
+                            }
+                        }} 
                         style={styles.backBtn}
                     >
                         <Ionicons name="menu-outline" size={24} color="#fff" />
@@ -161,26 +168,26 @@ export default function TestLibraryScreen({ navigation }) {
                 </View>
 
                 <View style={styles.tabContainer}>
-                    <TouchableOpacity
+                    <RNTouchableOpacity
                         style={[styles.tabButton, activeTab === 'all' && styles.tabButtonActive]}
                         onPress={() => setActiveTab('all')}
                     >
                         {activeTab === 'all' && <LinearGradient colors={['#dc2626', '#f97316']} style={styles.tabLine} />}
                         <Text style={[styles.tabText, activeTab === 'all' && styles.tabTextActive]}>All Exams</Text>
-                    </TouchableOpacity>
-                    <TouchableOpacity
+                    </RNTouchableOpacity>
+                    <RNTouchableOpacity
                         style={[styles.tabButton, activeTab === 'purchased' && styles.tabButtonActive]}
                         onPress={() => setActiveTab('purchased')}
                     >
                         {activeTab === 'purchased' && <LinearGradient colors={['#dc2626', '#f97316']} style={styles.tabLine} />}
                         <Text style={[styles.tabText, activeTab === 'purchased' && styles.tabTextActive]}>My Library</Text>
-                    </TouchableOpacity>
+                    </RNTouchableOpacity>
                 </View>
 
                 <View style={styles.filterSection}>
                     <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.topicScroll}>
                         {topics.map(topic => (
-                            <TouchableOpacity
+                            <RNTouchableOpacity
                                 key={topic.id}
                                 style={[styles.topicChip, selectedTopic === topic.id && styles.topicChipActive]}
                                 onPress={() => handleTopicSelect(topic.id)}
@@ -189,14 +196,14 @@ export default function TestLibraryScreen({ navigation }) {
                                 <Text style={[styles.topicChipText, selectedTopic === topic.id && styles.topicChipTextActive]}>
                                     {topic.name}
                                 </Text>
-                            </TouchableOpacity>
+                            </RNTouchableOpacity>
                         ))}
                     </ScrollView>
 
                     {selectedTopic && subtopics.length > 0 && (
                         <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.subtopicScroll}>
                             {subtopics.map(sub => (
-                                <TouchableOpacity
+                                <RNTouchableOpacity
                                     key={sub.id}
                                     style={[styles.subChip, selectedSubtopic === sub.id && styles.subChipActive]}
                                     onPress={() => setSelectedSubtopic(selectedSubtopic === sub.id ? null : sub.id)}
@@ -204,7 +211,7 @@ export default function TestLibraryScreen({ navigation }) {
                                     <Text style={[styles.subChipText, selectedSubtopic === sub.id && styles.subChipTextActive]}>
                                         {sub.name}
                                     </Text>
-                                </TouchableOpacity>
+                                </RNTouchableOpacity>
                             ))}
                         </ScrollView>
                     )}
@@ -217,9 +224,10 @@ export default function TestLibraryScreen({ navigation }) {
                     contentContainerStyle={styles.listContent}
                     ListFooterComponent={
                         !isPro && user?.role?.toLowerCase() === 'student' ? (
-                            <TouchableOpacity
+                            <RNTouchableOpacity
                                 style={styles.libraryProBanner}
                                 onPress={() => navigation.navigate('Payment')}
+                                activeOpacity={0.8}
                             >
                                 <LinearGradient
                                     colors={['#dc2626', '#f97316']}
@@ -236,7 +244,7 @@ export default function TestLibraryScreen({ navigation }) {
                                         <Text style={styles.proBadgeText}>GO PRO</Text>
                                     </View>
                                 </LinearGradient>
-                            </TouchableOpacity>
+                            </RNTouchableOpacity>
                         ) : null
                     }
                     ListEmptyComponent={

@@ -79,18 +79,18 @@ export default function ManageTestsScreen({ navigation }) {
                 </View>
             </View>
             <View style={styles.actions}>
-                <TouchableOpacity
+                <RNTouchableOpacity
                     style={[styles.actionBtn, styles.editBtn]}
                     onPress={() => navigation.navigate('EditTest', { testId: item.id })}
                 >
-                    <Ionicons name="create-outline" size={20} color="#1e3a8a" />
-                </TouchableOpacity>
-                <TouchableOpacity
+                    <Ionicons name="create-outline" size={20} color="#60a5fa" />
+                </RNTouchableOpacity>
+                <RNTouchableOpacity
                     style={[styles.actionBtn, styles.deleteBtn]}
                     onPress={() => handleDelete(item.id)}
                 >
-                    <Ionicons name="trash-outline" size={20} color="#dc2626" />
-                </TouchableOpacity>
+                    <Ionicons name="trash-outline" size={20} color="#f87171" />
+                </RNTouchableOpacity>
             </View>
         </View>
     );
@@ -112,7 +112,13 @@ export default function ManageTestsScreen({ navigation }) {
                     </RNTouchableOpacity>
                     <Text style={styles.headerTitle}>Content Manager</Text>
                     <RNTouchableOpacity 
-                        onPress={() => navigation.dispatch(DrawerActions.openDrawer())} 
+                        onPress={() => {
+                            try {
+                                navigation.getParent()?.openDrawer();
+                            } catch (e) {
+                                navigation.dispatch(DrawerActions.openDrawer());
+                            }
+                        }} 
                         style={styles.backBtn}
                     >
                         <Ionicons name="menu-outline" size={24} color="#fff" />
@@ -217,19 +223,19 @@ const styles = StyleSheet.create({
         gap: 12,
     },
     tag: {
-        backgroundColor: '#f1f5f9',
+        backgroundColor: 'rgba(255,255,255,0.05)',
         paddingHorizontal: 8,
         paddingVertical: 2,
         borderRadius: 6,
     },
     tagText: {
         fontSize: 11,
-        color: '#475569',
+        color: '#94a3b8',
         fontWeight: '600',
     },
     metaText: {
         fontSize: 12,
-        color: '#94a3b8',
+        color: '#475569',
     },
     actions: {
         flexDirection: 'row',
@@ -244,10 +250,10 @@ const styles = StyleSheet.create({
         alignItems: 'center',
     },
     editBtn: {
-        backgroundColor: '#eff6ff',
+        backgroundColor: 'rgba(96, 165, 250, 0.1)',
     },
     deleteBtn: {
-        backgroundColor: '#fef2f2',
+        backgroundColor: 'rgba(248, 113, 113, 0.1)',
     },
     center: {
         flex: 1,

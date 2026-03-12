@@ -93,18 +93,18 @@ export default function ResultScreen({ navigation, route }) {
                     <Text style={styles.testTitle}>{result.testTitle}</Text>
                     
                     <View style={styles.langToggle}>
-                        <TouchableOpacity 
+                        <RNTouchableOpacity 
                             onPress={() => setLanguage('en')}
                             style={[styles.langBtn, language === 'en' ? styles.activeLangBtn : null]}
                         >
                             <Text style={[styles.langText, language === 'en' ? styles.activeLangText : null]}>EN</Text>
-                        </TouchableOpacity>
-                        <TouchableOpacity 
+                        </RNTouchableOpacity>
+                        <RNTouchableOpacity 
                             onPress={() => setLanguage('hi')}
                             style={[styles.langBtn, language === 'hi' ? styles.activeLangBtn : null]}
                         >
                             <Text style={[styles.langText, language === 'hi' ? styles.activeLangText : null]}>हिन्दी</Text>
-                        </TouchableOpacity>
+                        </RNTouchableOpacity>
                     </View>
                 </LinearGradient>
 
@@ -126,7 +126,7 @@ export default function ResultScreen({ navigation, route }) {
                         </View>
                     </View>
 
-                    <TouchableOpacity
+                    <RNTouchableOpacity
                         style={styles.homeButton}
                         onPress={() => navigation.reset({
                             index: 0,
@@ -142,10 +142,10 @@ export default function ResultScreen({ navigation, route }) {
                             <Ionicons name="home-outline" size={20} color="#fff" style={{ marginRight: 8 }} />
                             <Text style={styles.homeButtonText}>Back to Dashboard</Text>
                         </LinearGradient>
-                    </TouchableOpacity>
+                    </RNTouchableOpacity>
 
                     {user?.role?.toLowerCase() === 'student' && user?.subscriptionTier !== 'PREMIUM' && (
-                        <TouchableOpacity
+                        <RNTouchableOpacity
                             style={styles.proCard}
                             onPress={() => navigation.navigate('Payment')}
                         >
@@ -164,7 +164,7 @@ export default function ResultScreen({ navigation, route }) {
                                     <Text style={styles.upgradeBtnText}>Upgrade Now</Text>
                                 </View>
                             </LinearGradient>
-                        </TouchableOpacity>
+                        </RNTouchableOpacity>
                     )}
 
                     <Text style={styles.sectionTitle}>Detailed Review</Text>
@@ -380,22 +380,22 @@ const styles = StyleSheet.create({
         marginBottom: 8,
     },
     explanationBox: {
-        backgroundColor: '#f8fafc',
+        backgroundColor: 'rgba(255,255,255,0.03)',
         padding: 14,
         borderRadius: 14,
         marginTop: 12,
         borderWidth: 1,
-        borderColor: '#e2e8f0',
+        borderColor: 'rgba(255,255,255,0.05)',
     },
     explanationTitle: {
-        color: '#dc2626',
+        color: '#f97316',
         fontSize: 12,
         fontWeight: 'bold',
         marginBottom: 4,
         textTransform: 'uppercase',
     },
     explanationText: {
-        color: '#475569',
+        color: '#94a3b8',
         fontSize: 14,
         lineHeight: 20,
     },

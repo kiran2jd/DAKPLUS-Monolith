@@ -114,7 +114,13 @@ export default function AnalyticsScreen({ navigation }) {
                     </RNTouchableOpacity>
                     <Text style={styles.headerTitle}>Performance Hub</Text>
                     <RNTouchableOpacity 
-                        onPress={() => navigation.dispatch(DrawerActions.openDrawer())} 
+                        onPress={() => {
+                            try {
+                                navigation.getParent()?.openDrawer();
+                            } catch (e) {
+                                navigation.dispatch(DrawerActions.openDrawer());
+                            }
+                        }} 
                         style={styles.backBtn}
                     >
                         <Ionicons name="menu-outline" size={24} color="#fff" />
