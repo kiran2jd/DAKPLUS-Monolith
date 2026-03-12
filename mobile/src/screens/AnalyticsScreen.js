@@ -107,7 +107,8 @@ export default function AnalyticsScreen({ navigation }) {
                 style={StyleSheet.absoluteFillObject}
             />
             <SafeAreaView style={{ flex: 1 }}>
-                <View style={styles.header}>
+                {/* STICKY HEADER */}
+                <View style={styles.topBarSticky}>
                     <Pressable onPress={() => navigation.goBack()} style={styles.backBtn} hitSlop={{ top: 15, bottom: 15, left: 15, right: 15 }}>
                         <Ionicons name="chevron-back" size={24} color="#fff" />
                     </Pressable>
@@ -115,9 +116,9 @@ export default function AnalyticsScreen({ navigation }) {
                     <Pressable 
                         onPress={() => {
                             try {
-                                navigation.dispatch(DrawerActions.openDrawer());
+                                navigation.openDrawer();
                             } catch (e) {
-                                navigation.getParent()?.openDrawer();
+                                navigation.dispatch(DrawerActions.openDrawer());
                             }
                         }} 
                         style={styles.backBtn}
@@ -222,12 +223,14 @@ const styles = StyleSheet.create({
         justifyContent: 'center',
         alignItems: 'center',
     },
-    header: {
+    topBarSticky: {
         flexDirection: 'row',
         alignItems: 'center',
         justifyContent: 'space-between',
         paddingHorizontal: 20,
         paddingVertical: 15,
+        backgroundColor: 'transparent',
+        zIndex: 1000,
     },
     backBtn: {
         width: 44,

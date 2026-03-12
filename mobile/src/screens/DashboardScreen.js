@@ -173,26 +173,28 @@ export default function DashboardScreen({ navigation }) {
         );
     }
 
-    const renderHeader = () => (
-        <View style={styles.headerWrapper}>
-            <View style={styles.topBar}>
+    return (
+        <SafeAreaView style={[styles.container, { backgroundColor: '#0f172a' }]}>
+            {/* STICKY HEADER - Outside ScrollView for 100% Touch Reliability */}
+            <View style={styles.topBarSticky}>
                 <Pressable
                     style={styles.headerIconButton}
                     onPress={() => {
                         try {
-                            // Try both ways to be sure
-                            navigation.dispatch(DrawerActions.openDrawer());
+                            navigation.openDrawer();
                         } catch (e) {
-                            navigation.getParent()?.openDrawer();
+                            navigation.dispatch(DrawerActions.openDrawer());
                         }
                     }}
                     hitSlop={{ top: 20, bottom: 20, left: 20, right: 20 }}
                 >
                     <Ionicons name="menu-outline" size={32} color="#fff" />
                 </Pressable>
-                <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
+                
+                <View style={styles.logoContainerSticky}>
                     <Image source={logo} style={styles.logoMini} resizeMode="contain" />
                 </View>
+
                 <Pressable 
                     style={styles.headerIconButton} 
                     onPress={() => navigation.navigate('Notifications')}
@@ -202,41 +204,37 @@ export default function DashboardScreen({ navigation }) {
                 </Pressable>
             </View>
 
-            <View style={styles.welcomeTextSection}>
-                <Text style={styles.greetingText}>Welcome back,</Text>
-                <Text style={styles.nameHeader}>{user?.fullName || 'DAK Plus Aspirant'}</Text>
-            </View>
-
-            <View style={styles.carouselContainer}>
-                <FlatList
-                    ref={flatListRef}
-                    data={banners}
-                    horizontal
-                    pagingEnabled
-                    showsHorizontalScrollIndicator={false}
-                    onMomentumScrollEnd={onMomentumScrollEnd}
-                    onScrollBeginDrag={onScrollBeginDrag}
-                    keyExtractor={(_, index) => index.toString()}
-                    renderItem={({ item, index }) => (
-                        <View style={[styles.bannerSlide, { backgroundColor: item.colors[0], borderRadius: 24, padding: 24, justifyContent: 'center' }]}>
-                            <Text style={styles.bannerSubtitle}>{item.subtitle}</Text>
-                            <Text style={styles.bannerTitle}>{item.title}</Text>
-                        </View>
-                    )}
-                />
-            </View>
-        </View>
-    );
-
-    return (
-        <SafeAreaView style={[styles.container, { backgroundColor: '#0f172a' }]}>
             <ScrollView
                 refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#dc2626" />}
                 showsVerticalScrollIndicator={false}
                 contentContainerStyle={styles.scrollContainer}
                 keyboardShouldPersistTaps="always"
             >
-                {renderHeader()}
+                <View style={styles.headerWrapperPadding}>
+                    <View style={styles.welcomeTextSection}>
+                        <Text style={styles.greetingText}>Welcome back,</Text>
+                        <Text style={styles.nameHeader}>{user?.fullName || 'DAK Plus Aspirant'}</Text>
+                    </View>
+
+                    <View style={styles.carouselContainer}>
+                        <FlatList
+                            ref={flatListRef}
+                            data={banners}
+                            horizontal
+                            pagingEnabled
+                            showsHorizontalScrollIndicator={false}
+                            onMomentumScrollEnd={onMomentumScrollEnd}
+                            onScrollBeginDrag={onScrollBeginDrag}
+                            keyExtractor={(_, index) => index.toString()}
+                            renderItem={({ item, index }) => (
+                                <View style={[styles.bannerSlide, { backgroundColor: item.colors[0], borderRadius: 24, padding: 24, justifyContent: 'center' }]}>
+                                    <Text style={styles.bannerSubtitle}>{item.subtitle}</Text>
+                                    <Text style={styles.bannerTitle}>{item.title}</Text>
+                                </View>
+                            )}
+                        />
+                    </View>
+                </View>
                 
                 <View style={styles.content}>
                     {/* Quick Stats Row */}
@@ -310,105 +308,93 @@ export default function DashboardScreen({ navigation }) {
 
                     <View style={styles.gridContainer}>
                         <View style={styles.gridSlot}>
-                            <Pressable
-                                style={({ pressed }) => [
-                                    styles.gridItem,
-                                    { backgroundColor: pressed ? 'rgba(255,255,255,0.08)' : 'rgba(255,255,255,0.04)' }
-                                ]}
+                            <TouchableOpacity
+                                style={styles.gridItem}
                                 onPress={() => navigation.navigate('Tests')}
+                                activeOpacity={0.7}
                             >
                                 <View style={[styles.gridIconBg, { backgroundColor: 'rgba(220, 38, 38, 0.1)' }]}>
                                     <Ionicons name="document-text" size={28} color="#dc2626" />
                                 </View>
                                 <Text style={styles.gridLabel}>Mock Tests</Text>
                                 <Text style={styles.gridSub}>Topic-wise exams</Text>
-                            </Pressable>
+                            </TouchableOpacity>
                         </View>
 
                         {isStaff && (
                             <View style={styles.gridSlot}>
-                                <Pressable
-                                    style={({ pressed }) => [
-                                        styles.gridItem,
-                                        { backgroundColor: pressed ? 'rgba(255,255,255,0.08)' : 'rgba(255,255,255,0.04)' }
-                                    ]}
+                                <TouchableOpacity
+                                    style={styles.gridItem}
                                     onPress={() => navigation.navigate('CreateTest')}
+                                    activeOpacity={0.7}
                                 >
-                                    <View style={[styles.gridIconBg, { backgroundColor: 'rgba(124, 58, 237, 0.1)' }]}>
-                                        <Ionicons name="add-circle" size={28} color="#7c3aed" />
+                                    <View style={[styles.gridIconBg, { backgroundColor: 'rgba(249, 115, 22, 0.1)' }]}>
+                                        <Ionicons name="add-circle" size={28} color="#f97316" />
                                     </View>
                                     <Text style={styles.gridLabel}>Create Test</Text>
                                     <Text style={styles.gridSub}>Add new content</Text>
-                                </Pressable>
+                                </TouchableOpacity>
                             </View>
                         )}
 
                         {!isStaff && (
                             <View style={styles.gridSlot}>
-                                <Pressable
-                                    style={({ pressed }) => [
-                                        styles.gridItem,
-                                        { backgroundColor: pressed ? 'rgba(255,255,255,0.08)' : 'rgba(255,255,255,0.04)' }
-                                    ]}
-                                    onPress={() => Alert.alert("Coming Soon", "Mobile Syllabus tracking is in development!")}
+                                <TouchableOpacity
+                                    style={styles.gridItem}
+                                    onPress={() => Alert.alert("Coming Soon", "Syllabus tracking is coming in the next update!")}
+                                    activeOpacity={0.7}
                                 >
-                                    <View style={[styles.gridIconBg, { backgroundColor: 'rgba(30, 58, 138, 0.1)' }]}>
-                                        <Ionicons name="book" size={28} color="#3b82f6" />
+                                    <View style={[styles.gridIconBg, { backgroundColor: 'rgba(16, 185, 129, 0.1)' }]}>
+                                        <Ionicons name="list" size={28} color="#10b981" />
                                     </View>
                                     <Text style={styles.gridLabel}>Syllabus</Text>
                                     <Text style={styles.gridSub}>Track progress</Text>
-                                </Pressable>
+                                </TouchableOpacity>
                             </View>
                         )}
 
                         <View style={styles.gridSlot}>
-                            <Pressable
-                                style={({ pressed }) => [
-                                    styles.gridItem,
-                                    { backgroundColor: pressed ? 'rgba(255,255,255,0.08)' : 'rgba(255,255,255,0.04)' }
-                                ]}
-                                onPress={() => isStaff ? navigation.navigate('ManageTests') : Alert.alert("Coming Soon", "Live classes are starting soon!")}
+                            <TouchableOpacity
+                                style={styles.gridItem}
+                                onPress={() => navigation.navigate(isStaff ? 'ManageTests' : 'Classes')}
+                                activeOpacity={0.7}
                             >
-                                <View style={[styles.gridIconBg, { backgroundColor: 'rgba(217, 119, 6, 0.1)' }]}>
-                                    <Ionicons name={isStaff ? "list" : "school"} size={28} color="#f59e0b" />
+                                <View style={[styles.gridIconBg, { backgroundColor: 'rgba(59, 130, 246, 0.1)' }]}>
+                                    <Ionicons name={isStaff ? "layers-outline" : "people-outline"} size={28} color="#3b82f6" />
                                 </View>
                                 <Text style={styles.gridLabel}>{isStaff ? "My Tests" : "Classes"}</Text>
                                 <Text style={styles.gridSub}>{isStaff ? "Manage learning" : "Live learning"}</Text>
-                            </Pressable>
+                            </TouchableOpacity>
                         </View>
 
                         {isStaff && (
                             <View style={styles.gridSlot}>
-                                <Pressable
-                                    style={({ pressed }) => [
-                                        styles.gridItem,
-                                        { backgroundColor: pressed ? 'rgba(255,255,255,0.08)' : 'rgba(255,255,255,0.04)' }
-                                    ]}
+                                <TouchableOpacity
+                                    style={styles.gridItem}
                                     onPress={() => navigation.navigate('TopicManagement')}
+                                    activeOpacity={0.7}
                                 >
-                                    <View style={[styles.gridIconBg, { backgroundColor: 'rgba(5, 150, 105, 0.1)' }]}>
-                                        <Ionicons name="folder-open" size={28} color="#10b981" />
+                                    <View style={[styles.gridIconBg, { backgroundColor: 'rgba(139, 92, 246, 0.1)' }]}>
+                                        <Ionicons name="options-outline" size={28} color="#8b5cf6" />
                                     </View>
                                     <Text style={styles.gridLabel}>Topics</Text>
                                     <Text style={styles.gridSub}>Organize content</Text>
-                                </Pressable>
+                                </TouchableOpacity>
                             </View>
                         )}
 
                         <View style={styles.gridSlot}>
-                            <Pressable
-                                style={({ pressed }) => [
-                                    styles.gridItem,
-                                    { backgroundColor: pressed ? 'rgba(255,255,255,0.08)' : 'rgba(255,255,255,0.04)' }
-                                ]}
+                            <TouchableOpacity
+                                style={styles.gridItem}
                                 onPress={() => navigation.navigate('Performance')}
+                                activeOpacity={0.7}
                             >
                                 <View style={[styles.gridIconBg, { backgroundColor: 'rgba(34, 197, 94, 0.1)' }]}>
                                     <Ionicons name="stats-chart" size={28} color="#22c55e" />
                                 </View>
                                 <Text style={styles.gridLabel}>Analytics</Text>
                                 <Text style={styles.gridSub}>Performance</Text>
-                            </Pressable>
+                            </TouchableOpacity>
                         </View>
                     </View>
 
@@ -456,11 +442,24 @@ const styles = StyleSheet.create({
         paddingTop: 45,
         paddingHorizontal: 20,
     },
-    topBar: {
+    topBarSticky: {
         flexDirection: 'row',
         justifyContent: 'space-between',
         alignItems: 'center',
-        marginBottom: 25,
+        paddingHorizontal: 20,
+        paddingBottom: 15,
+        paddingTop: Platform.OS === 'ios' ? 0 : 15,
+        backgroundColor: '#0f172a',
+        zIndex: 1000,
+    },
+    logoContainerSticky: {
+        flex: 1,
+        alignItems: 'center',
+        justifyContent: 'center',
+    },
+    headerWrapperPadding: {
+        paddingHorizontal: 20,
+        paddingTop: 10,
     },
     welcomeTextSection: {
         marginBottom: 24,

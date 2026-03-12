@@ -98,13 +98,14 @@ const SideMenu = (props) => {
             <ScrollView style={styles.menuList}>
                 <Text style={styles.sectionTitle}>NAVIGATION</Text>
                 {menuItems.slice(0, 3).map((item) => (
-                    <Pressable
+                    <TouchableOpacity
                         key={item.label}
                         style={[
                             styles.menuItem,
                             activeRouteName === item.route && styles.activeMenuItem
                         ]}
                         onPress={() => handleNavigation(item.route)}
+                        activeOpacity={0.7}
                     >
                         {activeRouteName === item.route && (
                             <LinearGradient
@@ -126,18 +127,19 @@ const SideMenu = (props) => {
                         ]}>
                             {item.label}
                         </Text>
-                    </Pressable>
+                    </TouchableOpacity>
                 ))}
 
                 <Text style={[styles.sectionTitle, { marginTop: 20 }]}>ACCOUNT</Text>
                 {menuItems.slice(3).map((item) => (
-                    <Pressable
+                    <TouchableOpacity
                         key={item.label}
                         style={[
                             styles.menuItem,
                             activeRouteName === item.route && styles.activeMenuItem
                         ]}
                         onPress={() => handleNavigation(item.route)}
+                        activeOpacity={0.7}
                     >
                         <Ionicons
                             name={item.icon}
@@ -151,7 +153,7 @@ const SideMenu = (props) => {
                         ]}>
                             {item.label}
                         </Text>
-                    </Pressable>
+                    </TouchableOpacity>
                 ))}
             </ScrollView>
 
