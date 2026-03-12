@@ -3,14 +3,13 @@ import {
     StyleSheet,
     View,
     Text,
-    TouchableOpacity,
     ActivityIndicator,
     Alert,
     SafeAreaView,
-    ScrollView,
     Platform,
     Image,
 } from 'react-native';
+import { ScrollView, TouchableOpacity } from 'react-native-gesture-handler';
 import { LinearGradient } from 'expo-linear-gradient';
 import { usePreventScreenCapture } from 'expo-screen-capture';
 import { Ionicons } from '@expo/vector-icons';

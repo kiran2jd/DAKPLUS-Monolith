@@ -4,17 +4,15 @@ import {
     View,
     Text,
     FlatList,
-    TouchableOpacity,
-    Pressable,
     ActivityIndicator,
     SafeAreaView,
-    ScrollView,
     RefreshControl,
     Alert,
     Dimensions,
     Platform,
     Image,
 } from 'react-native';
+import { ScrollView, TouchableOpacity } from 'react-native-gesture-handler';
 import { useFocusEffect } from '@react-navigation/native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { usePreventScreenCapture } from 'expo-screen-capture';
@@ -28,21 +26,13 @@ import logo from '../../assets/logo.jpg';
 
 const { width } = Dimensions.get('window');
 
-export default function DashboardScreen({ navigation }) {
-    // usePreventScreenCapture(); // Temporarily disabled for client demo
-    const [user, setUser] = useState(null);
-    const [results, setResults] = useState([]);
-    const [tests, setTests] = useState([]);
-    const [leaderboard, setLeaderboard] = useState([]);
-    const [loading, setLoading] = useState(true);
-    const [refreshing, setRefreshing] = useState(false);
-    const [currentBannerIndex, setCurrentBannerIndex] = useState(0);
+const banners = [
+    { id: '1', title: 'Postal Assistant Exam 2026', subtitle: 'Targeted mock tests for high success', colors: ['#dc2626', '#991b1b'] },
+    { id: '2', title: 'Postman & Mail Guard', subtitle: 'AI-generated precision assessments', colors: ['#1e3a8a', '#1e40af'] },
+    { id: '3', title: 'MTS & Selection Post', subtitle: 'Master the basics with detailed analytics', colors: ['#1e293b', '#334155'] },
+];
 
-    const banners = [
-        { id: '1', title: 'Postal Assistant Exam 2026', subtitle: 'Targeted mock tests for high success', colors: ['#dc2626', '#991b1b'] },
-        { id: '2', title: 'Postman & Mail Guard', subtitle: 'AI-generated precision assessments', colors: ['#1e3a8a', '#1e40af'] },
-        { id: '3', title: 'MTS & Selection Post', subtitle: 'Master the basics with detailed analytics', colors: ['#1e293b', '#334155'] },
-    ];
+export default function DashboardScreen({ navigation }) {
 
     const loadData = async (force = false) => {
         if (!force && user && results.length > 0) return;
@@ -445,16 +435,6 @@ const styles = StyleSheet.create({
         justifyContent: 'space-between',
         alignItems: 'center',
         marginBottom: 25,
-    },
-    headerIconButton: {
-        width: 44,
-        height: 44,
-        borderRadius: 12,
-        backgroundColor: 'rgba(255,255,255,0.05)',
-        justifyContent: 'center',
-        alignItems: 'center',
-        borderWidth: 1,
-        borderColor: 'rgba(255,255,255,0.1)',
     },
     welcomeTextSection: {
         marginBottom: 24,

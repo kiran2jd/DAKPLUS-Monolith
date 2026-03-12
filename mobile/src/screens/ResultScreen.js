@@ -3,12 +3,11 @@ import {
     StyleSheet,
     View,
     Text,
-    TouchableOpacity,
     ActivityIndicator,
     SafeAreaView,
-    ScrollView,
     Dimensions,
 } from 'react-native';
+import { ScrollView, TouchableOpacity } from 'react-native-gesture-handler';
 import { LinearGradient } from 'expo-linear-gradient';
 import { resultService } from '../services/result';
 import { authService } from '../services/auth';

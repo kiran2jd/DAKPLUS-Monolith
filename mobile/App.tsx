@@ -3,6 +3,7 @@ import { StatusBar } from 'expo-status-bar';
 import { AppState, View, Alert, ActivityIndicator } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import * as ScreenCapture from 'expo-screen-capture';
+// @ts-ignore
 import * as SplashScreen from 'expo-splash-screen';
 import AppNavigator from './src/navigation/AppNavigator';
 import { authService } from './src/services/auth';
