@@ -163,8 +163,9 @@ export default function TestLibraryScreen({ navigation }) {
                             }
                         }} 
                         style={styles.backBtn}
+                        hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
                     >
-                        <Ionicons name="menu-outline" size={24} color="#fff" />
+                        <Ionicons name="menu-outline" size={32} color="#fff" />
                     </TouchableOpacity>
                 </View>
 

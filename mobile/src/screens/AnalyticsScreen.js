@@ -3,19 +3,17 @@ import {
     StyleSheet,
     View,
     Text,
-    ScrollView,
     SafeAreaView,
-    TouchableOpacity,
     Dimensions,
     ActivityIndicator
 } from 'react-native';
+import { ScrollView, TouchableOpacity } from 'react-native-gesture-handler';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import { resultService } from '../services/result';
 
 import { useFocusEffect, DrawerActions } from '@react-navigation/native';
 import { useCallback } from 'react';
-import { TouchableOpacity as RNTouchableOpacity } from 'react-native';
 
 const { width } = Dimensions.get('window');
 
@@ -109,11 +107,11 @@ export default function AnalyticsScreen({ navigation }) {
             />
             <SafeAreaView style={{ flex: 1 }}>
                 <View style={styles.header}>
-                    <RNTouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
+                    <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
                         <Ionicons name="chevron-back" size={24} color="#fff" />
-                    </RNTouchableOpacity>
+                    </TouchableOpacity>
                     <Text style={styles.headerTitle}>Performance Hub</Text>
-                    <RNTouchableOpacity 
+                    <TouchableOpacity 
                         onPress={() => {
                             try {
                                 navigation.getParent()?.openDrawer();
@@ -122,9 +120,10 @@ export default function AnalyticsScreen({ navigation }) {
                             }
                         }} 
                         style={styles.backBtn}
+                        hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
                     >
-                        <Ionicons name="menu-outline" size={24} color="#fff" />
-                    </RNTouchableOpacity>
+                        <Ionicons name="menu-outline" size={32} color="#fff" />
+                    </TouchableOpacity>
                 </View>
 
                 <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>

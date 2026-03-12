@@ -184,8 +184,9 @@ export default function DashboardScreen({ navigation }) {
                         }
                     }}
                     activeOpacity={0.7}
+                    hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
                 >
-                    <Ionicons name="menu-outline" size={28} color="#fff" />
+                    <Ionicons name="menu-outline" size={32} color="#fff" />
                 </TouchableOpacity>
                 <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
                     <Image source={logo} style={styles.logoMini} resizeMode="contain" />
@@ -304,83 +305,95 @@ export default function DashboardScreen({ navigation }) {
                     <Text style={styles.sectionTitle}>Main Menu</Text>
 
                     <View style={styles.gridContainer}>
-                        <TouchableOpacity
-                            style={styles.gridItem}
-                            onPress={() => navigation.navigate('Tests')}
-                            activeOpacity={0.7}
-                        >
-                            <View style={[styles.gridIconBg, { backgroundColor: 'rgba(220, 38, 38, 0.1)' }]}>
-                                <Ionicons name="document-text" size={28} color="#dc2626" />
-                            </View>
-                            <Text style={styles.gridLabel}>Mock Tests</Text>
-                            <Text style={styles.gridSub}>Topic-wise exams</Text>
-                        </TouchableOpacity>
-
-                        {isStaff && (
+                        <View style={styles.gridSlot}>
                             <TouchableOpacity
                                 style={styles.gridItem}
-                                onPress={() => navigation.navigate('CreateTest')}
+                                onPress={() => navigation.navigate('Tests')}
                                 activeOpacity={0.7}
                             >
-                                <View style={[styles.gridIconBg, { backgroundColor: 'rgba(124, 58, 237, 0.1)' }]}>
-                                    <Ionicons name="add-circle" size={28} color="#7c3aed" />
+                                <View style={[styles.gridIconBg, { backgroundColor: 'rgba(220, 38, 38, 0.1)' }]}>
+                                    <Ionicons name="document-text" size={28} color="#dc2626" />
                                 </View>
-                                <Text style={styles.gridLabel}>Create Test</Text>
-                                <Text style={styles.gridSub}>Add new content</Text>
+                                <Text style={styles.gridLabel}>Mock Tests</Text>
+                                <Text style={styles.gridSub}>Topic-wise exams</Text>
                             </TouchableOpacity>
+                        </View>
+
+                        {isStaff && (
+                            <View style={styles.gridSlot}>
+                                <TouchableOpacity
+                                    style={styles.gridItem}
+                                    onPress={() => navigation.navigate('CreateTest')}
+                                    activeOpacity={0.7}
+                                >
+                                    <View style={[styles.gridIconBg, { backgroundColor: 'rgba(124, 58, 237, 0.1)' }]}>
+                                        <Ionicons name="add-circle" size={28} color="#7c3aed" />
+                                    </View>
+                                    <Text style={styles.gridLabel}>Create Test</Text>
+                                    <Text style={styles.gridSub}>Add new content</Text>
+                                </TouchableOpacity>
+                            </View>
                         )}
 
                         {!isStaff && (
-                            <TouchableOpacity
-                                style={styles.gridItem}
-                                onPress={() => Alert.alert("Coming Soon", "Mobile Syllabus tracking is in development!")}
-                                activeOpacity={0.7}
-                            >
-                                <View style={[styles.gridIconBg, { backgroundColor: 'rgba(30, 58, 138, 0.1)' }]}>
-                                    <Ionicons name="book" size={28} color="#3b82f6" />
-                                </View>
-                                <Text style={styles.gridLabel}>Syllabus</Text>
-                                <Text style={styles.gridSub}>Track progress</Text>
-                            </TouchableOpacity>
+                            <View style={styles.gridSlot}>
+                                <TouchableOpacity
+                                    style={styles.gridItem}
+                                    onPress={() => Alert.alert("Coming Soon", "Mobile Syllabus tracking is in development!")}
+                                    activeOpacity={0.7}
+                                >
+                                    <View style={[styles.gridIconBg, { backgroundColor: 'rgba(30, 58, 138, 0.1)' }]}>
+                                        <Ionicons name="book" size={28} color="#3b82f6" />
+                                    </View>
+                                    <Text style={styles.gridLabel}>Syllabus</Text>
+                                    <Text style={styles.gridSub}>Track progress</Text>
+                                </TouchableOpacity>
+                            </View>
                         )}
 
-                        <TouchableOpacity
-                            style={styles.gridItem}
-                            onPress={() => isStaff ? navigation.navigate('ManageTests') : Alert.alert("Coming Soon", "Live classes are starting soon!")}
-                            activeOpacity={0.7}
-                        >
-                            <View style={[styles.gridIconBg, { backgroundColor: 'rgba(217, 119, 6, 0.1)' }]}>
-                                <Ionicons name={isStaff ? "list" : "school"} size={28} color="#f59e0b" />
-                            </View>
-                            <Text style={styles.gridLabel}>{isStaff ? "My Tests" : "Classes"}</Text>
-                            <Text style={styles.gridSub}>{isStaff ? "Manage learning" : "Live learning"}</Text>
-                        </TouchableOpacity>
+                        <View style={styles.gridSlot}>
+                            <TouchableOpacity
+                                style={styles.gridItem}
+                                onPress={() => isStaff ? navigation.navigate('ManageTests') : Alert.alert("Coming Soon", "Live classes are starting soon!")}
+                                activeOpacity={0.7}
+                            >
+                                <View style={[styles.gridIconBg, { backgroundColor: 'rgba(217, 119, 6, 0.1)' }]}>
+                                    <Ionicons name={isStaff ? "list" : "school"} size={28} color="#f59e0b" />
+                                </View>
+                                <Text style={styles.gridLabel}>{isStaff ? "My Tests" : "Classes"}</Text>
+                                <Text style={styles.gridSub}>{isStaff ? "Manage learning" : "Live learning"}</Text>
+                            </TouchableOpacity>
+                        </View>
 
                         {isStaff && (
-                            <TouchableOpacity
-                                style={styles.gridItem}
-                                onPress={() => navigation.navigate('TopicManagement')}
-                                activeOpacity={0.7}
-                            >
-                                <View style={[styles.gridIconBg, { backgroundColor: 'rgba(5, 150, 105, 0.1)' }]}>
-                                    <Ionicons name="folder-open" size={28} color="#10b981" />
-                                </View>
-                                <Text style={styles.gridLabel}>Topics</Text>
-                                <Text style={styles.gridSub}>Organize content</Text>
-                            </TouchableOpacity>
+                            <View style={styles.gridSlot}>
+                                <TouchableOpacity
+                                    style={styles.gridItem}
+                                    onPress={() => navigation.navigate('TopicManagement')}
+                                    activeOpacity={0.7}
+                                >
+                                    <View style={[styles.gridIconBg, { backgroundColor: 'rgba(5, 150, 105, 0.1)' }]}>
+                                        <Ionicons name="folder-open" size={28} color="#10b981" />
+                                    </View>
+                                    <Text style={styles.gridLabel}>Topics</Text>
+                                    <Text style={styles.gridSub}>Organize content</Text>
+                                </TouchableOpacity>
+                            </View>
                         )}
 
-                        <TouchableOpacity
-                            style={styles.gridItem}
-                            onPress={() => navigation.navigate('Performance')}
-                            activeOpacity={0.7}
-                        >
-                            <View style={[styles.gridIconBg, { backgroundColor: 'rgba(34, 197, 94, 0.1)' }]}>
-                                <Ionicons name="stats-chart" size={28} color="#22c55e" />
-                            </View>
-                            <Text style={styles.gridLabel}>Analytics</Text>
-                            <Text style={styles.gridSub}>Performance</Text>
-                        </TouchableOpacity>
+                        <View style={styles.gridSlot}>
+                            <TouchableOpacity
+                                style={styles.gridItem}
+                                onPress={() => navigation.navigate('Performance')}
+                                activeOpacity={0.7}
+                            >
+                                <View style={[styles.gridIconBg, { backgroundColor: 'rgba(34, 197, 94, 0.1)' }]}>
+                                    <Ionicons name="stats-chart" size={28} color="#22c55e" />
+                                </View>
+                                <Text style={styles.gridLabel}>Analytics</Text>
+                                <Text style={styles.gridSub}>Performance</Text>
+                            </TouchableOpacity>
+                        </View>
                     </View>
 
                     {isStudent && leaderboard?.length > 0 && (
@@ -642,22 +655,22 @@ const styles = StyleSheet.create({
     gridContainer: {
         flexDirection: 'row',
         flexWrap: 'wrap',
-        justifyContent: 'center', 
-        paddingHorizontal: 15,
+        paddingHorizontal: 10,
         width: '100%',
     },
+    gridSlot: {
+        width: '50%',
+        padding: 8,
+    },
     gridItem: {
-        width: '46%', // Robust 2-column layout
         backgroundColor: 'rgba(255,255,255,0.04)',
         padding: 16,
         borderRadius: 20,
         alignItems: 'center',
         borderWidth: 1,
         borderColor: 'rgba(255,255,255,0.05)',
-        marginVertical: 8,
-        marginHorizontal: '2%', // Spacing
         justifyContent: 'center',
-        minHeight: 140, 
+        minHeight: 130, 
         shadowColor: '#000',
         shadowOffset: { width: 0, height: 10 },
         shadowOpacity: 0.3,
