@@ -38,8 +38,10 @@ export default function TakeTestScreen({ navigation, route }) {
 
                 // 1. Check if already submitted
                 if (userId) {
-                    const submitted = await resultService.checkSubmission(userId, testId);
-                    if (submitted) {
+                    const submissionStatus = await resultService.checkSubmission(userId, testId);
+                    // Defensive check: handle both boolean and object { submitted: true/false }
+                    const isSubmitted = typeof submissionStatus === 'boolean' ? submissionStatus : submissionStatus?.submitted;
+                    if (isSubmitted) {
                         setAlreadySubmitted(true);
                         setLoading(false);
                         return;
@@ -96,8 +98,12 @@ export default function TakeTestScreen({ navigation, route }) {
                 test_id: testId,
                 answers: answers
             });
-            const finalResultId = result.id || result._id;
-            navigation.replace('Result', { resultId: finalResultId });
+            const finalResultId = result?.id || result?._id;
+            if (finalResultId) {
+                navigation.replace('Result', { resultId: finalResultId });
+            } else {
+                throw new Error("No result ID returned from server");
+            }
         } catch (err) {
             console.error("Submission failed:", err);
             Alert.alert('Error', 'Failed to submit test. Please check your connection.');
@@ -296,15 +302,15 @@ export default function TakeTestScreen({ navigation, route }) {
             </ScrollView>
 
             <View style={styles.footer}>
-                <TouchableOpacity
+                <RNTouchableOpacity
                     style={[styles.navButton, currentQuestion === 0 ? styles.disabledNav : null]}
                     onPress={() => setCurrentQuestion(prev => Math.max(0, prev - 1))}
                     disabled={currentQuestion === 0}
                 >
                     <Text style={styles.navButtonText}>Previous</Text>
-                </TouchableOpacity>
+                </RNTouchableOpacity>
 
-                <TouchableOpacity
+                <RNTouchableOpacity
                     style={[styles.navButton, styles.nextButton]}
                     onPress={() => {
                         if (currentQuestion < test.questions.length - 1) {
@@ -314,10 +320,16 @@ export default function TakeTestScreen({ navigation, route }) {
                         }
                     }}
                 >
+                    <LinearGradient
+                        colors={['#dc2626', '#f97316']}
+                        start={{ x: 0, y: 0 }}
+                        end={{ x: 1, y: 0 }}
+                        style={StyleSheet.absoluteFillObject}
+                    />
                     <Text style={[styles.navButtonText, styles.nextButtonText]}>
                         {currentQuestion === test.questions.length - 1 ? 'Finish' : 'Next'}
                     </Text>
-                </TouchableOpacity>
+                </RNTouchableOpacity>
             </View>
         </SafeAreaView>
     );
@@ -448,7 +460,9 @@ const styles = StyleSheet.create({
         padding: 16,
         borderRadius: 14,
         alignItems: 'center',
+        justifyContent: 'center',
         backgroundColor: '#f1f5f9',
+        overflow: 'hidden',
     },
     nextButton: {
         backgroundColor: '#dc2626',

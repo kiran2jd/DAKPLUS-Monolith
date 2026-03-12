@@ -28,9 +28,11 @@ export default function TestLibraryScreen({ navigation }) {
     const [activeTab, setActiveTab] = useState('all'); // 'all' or 'purchased'
     const [purchases, setPurchases] = useState([]);
 
-    useEffect(() => {
-        loadInitialData();
-    }, []);
+    useFocusEffect(
+        React.useCallback(() => {
+            loadInitialData();
+        }, [])
+    );
 
     const loadInitialData = async () => {
         try {

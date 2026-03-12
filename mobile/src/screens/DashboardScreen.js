@@ -643,20 +643,22 @@ const styles = StyleSheet.create({
     gridContainer: {
         flexDirection: 'row',
         flexWrap: 'wrap',
-        justifyContent: 'space-between', 
-        paddingHorizontal: 20,
+        justifyContent: 'center', 
+        paddingHorizontal: 15,
+        width: '100%',
     },
     gridItem: {
-        width: (width - 55) / 2, // Precisely calculated for 2 columns with 15px gap
+        width: '46%', // Robust 2-column layout
         backgroundColor: 'rgba(255,255,255,0.04)',
         padding: 16,
         borderRadius: 20,
         alignItems: 'center',
         borderWidth: 1,
         borderColor: 'rgba(255,255,255,0.05)',
-        marginVertical: 10,
+        marginVertical: 8,
+        marginHorizontal: '2%', // Spacing
         justifyContent: 'center',
-        minHeight: 150, 
+        minHeight: 140, 
         shadowColor: '#000',
         shadowOffset: { width: 0, height: 10 },
         shadowOpacity: 0.3,

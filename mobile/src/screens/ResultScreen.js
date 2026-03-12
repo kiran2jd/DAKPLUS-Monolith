@@ -25,6 +25,13 @@ export default function ResultScreen({ navigation, route }) {
     const [language, setLanguage] = useState('en'); // 'en' or 'hi'
 
     useEffect(() => {
+        if (!resultId) {
+            setLoading(false);
+            Alert.alert('Error', 'Result ID is missing');
+            navigation.goBack();
+            return;
+        }
+
         const loadUser = async () => {
             const userData = await authService.getUser();
             setUser(userData);
@@ -34,15 +41,18 @@ export default function ResultScreen({ navigation, route }) {
         const fetchResult = async () => {
             try {
                 const data = await resultService.getResultById(resultId);
+                if (!data) throw new Error("Result not found");
                 setResult(data);
             } catch (err) {
                 console.error("Result fetch error:", err);
+                Alert.alert('Error', 'Failed to load result. It might still be processing.');
+                // Don't go back immediately, let the user decide or show empty state
             } finally {
                 setLoading(false);
             }
         };
         fetchResult();
-    }, [resultId]);
+    }, [resultId, navigation]);
 
     const [filter, setFilter] = useState('all'); // all, correct, incorrect
 
@@ -50,6 +60,21 @@ export default function ResultScreen({ navigation, route }) {
         return (
             <View style={[styles.center, { backgroundColor: '#0f172a' }]}>
                 <ActivityIndicator size="large" color="#dc2626" />
+            </View>
+        );
+    }
+
+    if (!result) {
+        return (
+            <View style={[styles.center, { backgroundColor: '#0f172a' }]}>
+                <Ionicons name="alert-circle" size={64} color="#dc2626" />
+                <Text style={{ color: '#fff', marginTop: 16 }}>Result not found.</Text>
+                <RNTouchableOpacity 
+                    onPress={() => navigation.reset({ index: 0, routes: [{ name: 'Main' }] })}
+                    style={{ marginTop: 24, padding: 12, backgroundColor: '#dc2626', borderRadius: 8 }}
+                >
+                    <Text style={{ color: '#fff', fontWeight: 'bold' }}>Back to Home</Text>
+                </RNTouchableOpacity>
             </View>
         );
     }
