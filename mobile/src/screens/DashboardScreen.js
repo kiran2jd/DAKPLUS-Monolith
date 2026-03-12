@@ -33,8 +33,22 @@ const banners = [
 ];
 
 export default function DashboardScreen({ navigation }) {
+    // 1. All Hooks at the very top
+    const [user, setUser] = useState(null);
+    const [results, setResults] = useState([]);
+    const [tests, setTests] = useState([]);
+    const [leaderboard, setLeaderboard] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [refreshing, setRefreshing] = useState(false);
+    const [activeBannerIndex, setActiveBannerIndex] = useState(0); // Renamed for safety
+    const [isManualScrolling, setIsManualScrolling] = useState(false);
+    
+    const flatListRef = React.useRef(null);
+    const scrollInterval = React.useRef(null);
 
-    const loadData = async (force = false) => {
+    // usePreventScreenCapture(); // Temporarily disabled for client demo
+
+    const loadData = useCallback(async (force = false) => {
         if (!force && user && results.length > 0) return;
         setLoading(true);
         try {
@@ -48,7 +62,6 @@ export default function DashboardScreen({ navigation }) {
             }
 
             if (!userData) {
-                // If we still don't have a user, we can't do much.
                 setLoading(false);
                 setRefreshing(false);
                 return;
@@ -60,100 +73,82 @@ export default function DashboardScreen({ navigation }) {
             if (role === 'student') {
                 const userId = userData.id || userData._id;
 
-                // Helper to safely get data or return default
-                const safePromise = (promise, fallback) =>
-                    promise.catch(err => {
-                        console.log("SafePromise caught error:", err.message);
-                        return fallback;
-                    });
+                // Simple fetch with timeout protection
+                const fetchData = async () => {
+                    try {
+                        const [resultsRes, testsRes, lbRes] = await Promise.allSettled([
+                            resultService.getResultsByUser(userId),
+                            testService.getAvailableTests(),
+                            resultService.getLeaderboard('weekly')
+                        ]);
 
-                // Create a timeout promise
-                const timeoutPromise = new Promise((resolve) => {
-                    setTimeout(() => {
-                        console.log("Dashboard data load timed out, returning partial data");
-                        resolve('TIMEOUT');
-                    }, 10000); // 10 second timeout for UX
-                });
+                        if (resultsRes.status === 'fulfilled') setResults(resultsRes.value || []);
+                        if (testsRes.status === 'fulfilled') setTests(testsRes.value || []);
+                        if (lbRes.status === 'fulfilled') setLeaderboard(lbRes.value || []);
+                    } catch (e) {
+                        console.log("Partial data load failed:", e.message);
+                    }
+                };
 
-                // The actual data fetch
-                const fetchDataPromise = Promise.allSettled([
-                    resultService.getResultsByUser(userId),
-                    testService.getAvailableTests(),
-                    resultService.getLeaderboard('weekly')
+                // Add a race against timeout to prevent UI hang
+                await Promise.race([
+                    fetchData(),
+                    new Promise(resolve => setTimeout(resolve, 8000))
                 ]);
-
-                // Race against timeout
-                const result = await Promise.race([fetchDataPromise, timeoutPromise]);
-
-                if (result === 'TIMEOUT') {
-                    // We timed out, but we might still get data later. 
-                    // For now, stop the loading spinner so user can see the UI.
-                    // The requests will complete in background but won't update state here 
-                    // unless we track mounted state or use a more complex effect.
-                    // Simple approach: just let the user interact with what we have (or empty states).
-                    console.log("Dashboard load timed out - showing empty/cached state");
-                } else {
-                    // We got results!
-                    const [resultsResult, testsResult, lbResult] = result;
-
-                    if (resultsResult.status === 'fulfilled') setResults(resultsResult.value);
-                    else console.log("Failed to load results:", resultsResult.reason);
-
-                    if (testsResult.status === 'fulfilled') setTests(testsResult.value);
-                    else console.log("Failed to load tests:", testsResult.reason);
-
-                    if (lbResult.status === 'fulfilled') setLeaderboard(lbResult.value);
-                    else console.log("Failed to load leaderboard:", lbResult.reason);
-                }
             }
         } catch (err) {
-            console.error("Dashboard load critical error:", err);
-            Alert.alert("Connection Issue", "Could not load latest data. Please pull to refresh.");
+            console.error("Dashboard primary load error:", err);
         } finally {
             setLoading(false);
             setRefreshing(false);
         }
-    };
+    }, [user, results.length]);
 
     useFocusEffect(
         useCallback(() => {
             loadData();
-        }, [])
+        }, [loadData])
     );
 
-    const flatListRef = React.useRef(null);
-    const scrollInterval = React.useRef(null);
-    const [isManualScrolling, setIsManualScrolling] = React.useState(false);
+    // Robust Auto-Scroll Logic
+    const stopAutoScroll = useCallback(() => {
+        if (scrollInterval.current) {
+            clearInterval(scrollInterval.current);
+            scrollInterval.current = null;
+        }
+    }, []);
 
-    const startAutoScroll = () => {
+    const startAutoScroll = useCallback(() => {
         stopAutoScroll();
         scrollInterval.current = setInterval(() => {
             if (!isManualScrolling) {
-                const nextIndex = (currentBannerIndex + 1) % banners.length;
-                setCurrentBannerIndex(nextIndex);
-                if (flatListRef.current) {
-                    flatListRef.current.scrollToIndex({ index: nextIndex, animated: true });
-                }
+                setActiveBannerIndex(prev => {
+                    const next = (prev + 1) % (banners.length || 1);
+                    if (flatListRef.current) {
+                        try {
+                            flatListRef.current.scrollToIndex({ index: next, animated: true });
+                        } catch (e) {
+                            console.log("ScrollToIndex failed:", e.message);
+                        }
+                    }
+                    return next;
+                });
             }
-        }, 5000); // 5 seconds delay
-    };
-
-    const stopAutoScroll = () => {
-        if (scrollInterval.current) {
-            clearInterval(scrollInterval.current);
-        }
-    };
+        }, 5000);
+    }, [isManualScrolling, stopAutoScroll]);
 
     useEffect(() => {
         startAutoScroll();
         return () => stopAutoScroll();
-    }, [currentBannerIndex, isManualScrolling]);
+    }, [startAutoScroll, stopAutoScroll]);
 
     const onMomentumScrollEnd = (event) => {
         const contentOffset = event.nativeEvent.contentOffset.x;
         const layoutWidth = event.nativeEvent.layoutMeasurement.width;
-        const index = Math.round(contentOffset / layoutWidth);
-        setCurrentBannerIndex(index);
+        if (layoutWidth > 0) {
+            const index = Math.round(contentOffset / layoutWidth);
+            setActiveBannerIndex(index);
+        }
         setIsManualScrolling(false);
     };
 

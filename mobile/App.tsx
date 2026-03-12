@@ -23,13 +23,16 @@ export default function App() {
   useEffect(() => {
     async function prepare() {
       try {
-        // Pre-load fonts, make any API calls you need to do here
-        await authService.isAuthenticated();
+        // Pre-load fonts, make any API calls you need to do here (with timeout)
+        await Promise.race([
+          authService.isAuthenticated(),
+          new Promise(resolve => setTimeout(resolve, 3000))
+        ]);
         // Artificially delay for a bit to show off splash
         await new Promise(resolve => setTimeout(resolve, 1000));
       } catch (e) {
-        console.warn(e);
-        setError(e as Error);
+        console.warn('Initial prepare failed:', e);
+        // Don't set error here, just proceed to let the app try to load
       } finally {
         setAppIsReady(true);
       }
