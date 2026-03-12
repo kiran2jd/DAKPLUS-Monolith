@@ -11,12 +11,14 @@ import {
     FlatList,
     TouchableOpacity,
 } from 'react-native';
-import { DrawerActions } from '@react-navigation/native';
+import { useFocusEffect, DrawerActions } from '@react-navigation/native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import { testService } from '../services/test';
 
 export default function ManageTestsScreen({ navigation }) {
+    const insets = useSafeAreaInsets();
     const [tests, setTests] = useState([]);
     const [loading, setLoading] = useState(true);
     const [refreshing, setRefreshing] = useState(false);
@@ -106,10 +108,14 @@ export default function ManageTestsScreen({ navigation }) {
     }
 
     return (
-        <SafeAreaView style={[styles.container, { backgroundColor: '#0f172a' }]}>
-            <View style={styles.header}>
+        <View style={[styles.container, { backgroundColor: '#0f172a' }]}>
+            <View style={[styles.header, { paddingTop: Math.max(insets.top, 15) }]}>
                 <View style={styles.headerRow}>
-                    <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
+                    <TouchableOpacity 
+                        onPress={() => navigation.goBack()} 
+                        style={styles.backBtn}
+                        activeOpacity={0.7}
+                    >
                         <Ionicons name="chevron-back" size={24} color="#fff" />
                     </TouchableOpacity>
                     <Text style={styles.headerTitle}>Content Manager</Text>
@@ -122,6 +128,7 @@ export default function ManageTestsScreen({ navigation }) {
                             }
                         }} 
                         style={styles.backBtn}
+                        activeOpacity={0.7}
                     >
                         <Ionicons name="menu-outline" size={24} color="#fff" />
                     </TouchableOpacity>
@@ -150,7 +157,7 @@ export default function ManageTestsScreen({ navigation }) {
                     </View>
                 }
             />
-        </SafeAreaView>
+        </View>
     );
 }
 
@@ -160,7 +167,6 @@ const styles = StyleSheet.create({
         backgroundColor: '#0f172a',
     },
     header: {
-        paddingTop: 45,
         paddingBottom: 20,
         paddingHorizontal: 20,
         backgroundColor: '#0f172a',

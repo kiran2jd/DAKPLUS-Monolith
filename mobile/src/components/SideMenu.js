@@ -4,12 +4,10 @@ import {
     Text,
     StyleSheet,
     Image,
-    ScrollView,
     SafeAreaView,
     Alert,
-    Pressable,
-    TouchableOpacity,
 } from 'react-native';
+import { ScrollView, TouchableOpacity } from 'react-native-gesture-handler';
 import {
     DrawerContentScrollView,
     DrawerItemList,

@@ -11,11 +11,11 @@ import {
     Dimensions,
     Platform,
     Image,
-    TouchableOpacity,
     Pressable,
-    ScrollView,
 } from 'react-native';
+import { ScrollView, FlatList, TouchableOpacity } from 'react-native-gesture-handler';
 import { useFocusEffect, DrawerActions } from '@react-navigation/native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import { usePreventScreenCapture } from 'expo-screen-capture';
 import { authService } from '../services/auth';
@@ -42,8 +42,9 @@ export default function DashboardScreen({ navigation }) {
     const [leaderboard, setLeaderboard] = useState([]);
     const [loading, setLoading] = useState(true);
     const [refreshing, setRefreshing] = useState(false);
-    const [activeBannerIndex, setActiveBannerIndex] = useState(0); // Renamed for safety
+    const [activeBannerIndex, setActiveBannerIndex] = useState(0); 
     const [isManualScrolling, setIsManualScrolling] = useState(false);
+    const insets = useSafeAreaInsets();
     
     const flatListRef = React.useRef(null);
     const scrollInterval = React.useRef(null);
@@ -174,10 +175,10 @@ export default function DashboardScreen({ navigation }) {
     }
 
     return (
-        <SafeAreaView style={[styles.container, { backgroundColor: '#0f172a' }]}>
-            {/* STICKY HEADER - Outside ScrollView for 100% Touch Reliability */}
-            <View style={styles.topBarSticky}>
-                <Pressable
+        <View style={[styles.container, { backgroundColor: '#0f172a' }]}>
+            {/* STICKY HEADER - Precise positioning using safe area insets */}
+            <View style={[styles.topBarSticky, { paddingTop: Math.max(insets.top, 15) }]}>
+                <TouchableOpacity
                     style={styles.headerIconButton}
                     onPress={() => {
                         try {
@@ -187,21 +188,23 @@ export default function DashboardScreen({ navigation }) {
                         }
                     }}
                     hitSlop={{ top: 20, bottom: 20, left: 20, right: 20 }}
+                    activeOpacity={0.7}
                 >
                     <Ionicons name="menu-outline" size={32} color="#fff" />
-                </Pressable>
+                </TouchableOpacity>
                 
                 <View style={styles.logoContainerSticky}>
                     <Image source={logo} style={styles.logoMini} resizeMode="contain" />
                 </View>
 
-                <Pressable 
+                <TouchableOpacity 
                     style={styles.headerIconButton} 
                     onPress={() => navigation.navigate('Notifications')}
                     hitSlop={{ top: 20, bottom: 20, left: 20, right: 20 }}
+                    activeOpacity={0.7}
                 >
                     <Ionicons name="notifications-outline" size={24} color="#fff" />
-                </Pressable>
+                </TouchableOpacity>
             </View>
 
             <ScrollView
@@ -287,12 +290,10 @@ export default function DashboardScreen({ navigation }) {
                     )}
 
                     {!isPro && !isStaff && isStudent && (
-                        <Pressable
-                            style={({ pressed }) => [
-                                styles.proBanner,
-                                { opacity: pressed ? 0.8 : 1 }
-                            ]}
+                        <TouchableOpacity
+                            style={styles.proBanner}
                             onPress={() => navigation.navigate('Payment')}
+                            activeOpacity={0.9}
                         >
                             <View style={[styles.proBannerGradient, { backgroundColor: '#f59e0b' }]}>
                                 <View>
@@ -301,7 +302,7 @@ export default function DashboardScreen({ navigation }) {
                                 </View>
                                 <Ionicons name="star" size={24} color="#fff" />
                             </View>
-                        </Pressable>
+                        </TouchableOpacity>
                     )}
 
                     <Text style={styles.sectionTitle}>Main Menu</Text>
@@ -423,7 +424,7 @@ export default function DashboardScreen({ navigation }) {
                     )}
                 </View>
             </ScrollView>
-        </SafeAreaView>
+        </View>
     );
 }
 
@@ -448,7 +449,6 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         paddingHorizontal: 20,
         paddingBottom: 15,
-        paddingTop: Platform.OS === 'ios' ? 0 : 15,
         backgroundColor: '#0f172a',
         zIndex: 1000,
     },

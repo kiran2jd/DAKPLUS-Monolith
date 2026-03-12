@@ -3,12 +3,10 @@ import {
     StyleSheet,
     View,
     Text,
-    SafeAreaView,
     Dimensions,
     ActivityIndicator,
-    Pressable,
-    ScrollView,
 } from 'react-native';
+import { ScrollView, Pressable, TouchableOpacity } from 'react-native-gesture-handler';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import { resultService } from '../services/result';
@@ -19,6 +17,7 @@ import { useCallback } from 'react';
 const { width } = Dimensions.get('window');
 
 export default function AnalyticsScreen({ navigation }) {
+    const insets = useSafeAreaInsets();
     const [stats, setStats] = useState({
         totalTests: 0,
         averageScore: 0,
@@ -102,18 +101,19 @@ export default function AnalyticsScreen({ navigation }) {
 
     return (
         <View style={styles.container}>
-            <LinearGradient
-                colors={['#0f172a', '#1e293b', '#0f172a']}
-                style={StyleSheet.absoluteFillObject}
-            />
-            <SafeAreaView style={{ flex: 1 }}>
+            <View style={{ flex: 1 }}>
                 {/* STICKY HEADER */}
-                <View style={styles.topBarSticky}>
-                    <Pressable onPress={() => navigation.goBack()} style={styles.backBtn} hitSlop={{ top: 15, bottom: 15, left: 15, right: 15 }}>
+                <View style={[styles.topBarSticky, { paddingTop: Math.max(insets.top, 15) }]}>
+                    <TouchableOpacity 
+                        onPress={() => navigation.goBack()} 
+                        style={styles.backBtn} 
+                        hitSlop={{ top: 15, bottom: 15, left: 15, right: 15 }}
+                        activeOpacity={0.7}
+                    >
                         <Ionicons name="chevron-back" size={24} color="#fff" />
-                    </Pressable>
+                    </TouchableOpacity>
                     <Text style={styles.headerTitle}>Performance Hub</Text>
-                    <Pressable 
+                    <TouchableOpacity 
                         onPress={() => {
                             try {
                                 navigation.openDrawer();
@@ -123,9 +123,10 @@ export default function AnalyticsScreen({ navigation }) {
                         }} 
                         style={styles.backBtn}
                         hitSlop={{ top: 15, bottom: 15, left: 15, right: 15 }}
+                        activeOpacity={0.7}
                     >
                         <Ionicons name="menu-outline" size={32} color="#fff" />
-                    </Pressable>
+                    </TouchableOpacity>
                 </View>
 
                 <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
@@ -209,7 +210,7 @@ export default function AnalyticsScreen({ navigation }) {
                         )}
                     </View>
                 </ScrollView>
-            </SafeAreaView>
+            </View>
         </View>
     );
 }
@@ -228,7 +229,7 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         justifyContent: 'space-between',
         paddingHorizontal: 20,
-        paddingVertical: 15,
+        paddingBottom: 15,
         backgroundColor: 'transparent',
         zIndex: 1000,
     },

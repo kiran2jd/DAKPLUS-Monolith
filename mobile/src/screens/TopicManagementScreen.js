@@ -3,21 +3,19 @@ import {
     StyleSheet,
     View,
     Text,
-    FlatList,
     ActivityIndicator,
     Alert,
-    SafeAreaView,
     TextInput,
     Modal,
-    ScrollView,
 } from 'react-native';
-import { ScrollView as GHScrollView, FlatList as GHFlatList, TouchableOpacity } from 'react-native-gesture-handler';
-import { DrawerActions } from '@react-navigation/native';
-import { LinearGradient } from 'expo-linear-gradient';
+import { ScrollView, FlatList, TouchableOpacity } from 'react-native-gesture-handler';
+import { DrawerActions, useFocusEffect } from '@react-navigation/native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { topicService } from '../services/topic';
 
 export default function TopicManagementScreen({ navigation }) {
+    const insets = useSafeAreaInsets();
     const [topics, setTopics] = useState([]);
     const [loading, setLoading] = useState(true);
     const [modalVisible, setModalVisible] = useState(false);
@@ -35,7 +33,6 @@ export default function TopicManagementScreen({ navigation }) {
         try {
             const data = await topicService.getAllTopics();
             setTopics(data);
-            // Pre-load subtopics for all topics (or we could do it on expand)
             for (const topic of data) {
                 fetchSubtopics(topic.id);
             }
@@ -114,10 +111,14 @@ export default function TopicManagementScreen({ navigation }) {
                             setSubtopicModalVisible(true);
                         }}
                         style={styles.addIcon}
+                        activeOpacity={0.7}
                     >
                         <Ionicons name="add-circle" size={24} color="#10b981" />
                     </TouchableOpacity>
-                    <TouchableOpacity onPress={() => handleDeleteTopic(item.id)}>
+                    <TouchableOpacity 
+                        onPress={() => handleDeleteTopic(item.id)}
+                        activeOpacity={0.7}
+                    >
                         <Ionicons name="trash-outline" size={20} color="#f87171" />
                     </TouchableOpacity>
                 </View>
@@ -137,10 +138,14 @@ export default function TopicManagementScreen({ navigation }) {
     );
 
     return (
-        <SafeAreaView style={[styles.container, { backgroundColor: '#0f172a' }]}>
-            <View style={styles.header}>
+        <View style={[styles.container, { backgroundColor: '#0f172a' }]}>
+            <View style={[styles.header, { paddingTop: Math.max(insets.top, 15) }]}>
                 <View style={styles.headerRow}>
-                    <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
+                    <TouchableOpacity 
+                        onPress={() => navigation.goBack()} 
+                        style={styles.backBtn}
+                        activeOpacity={0.7}
+                    >
                         <Ionicons name="chevron-back" size={24} color="#fff" />
                     </TouchableOpacity>
                     <Text style={styles.headerTitle}>Topic Matrix</Text>
@@ -153,6 +158,7 @@ export default function TopicManagementScreen({ navigation }) {
                             }
                         }} 
                         style={styles.backBtn}
+                        activeOpacity={0.7}
                     >
                         <Ionicons name="menu-outline" size={24} color="#fff" />
                     </TouchableOpacity>
@@ -182,10 +188,10 @@ export default function TopicManagementScreen({ navigation }) {
                         <Text style={styles.modalTitle}>Create New Topic</Text>
                         <TextInput
                             style={styles.input}
-                            placeholder="Topic Name (e.g. Mathematics)"
+                            placeholder="Topic Name"
                             value={newTopicName}
                             onChangeText={setNewTopicName}
-                            autoFocus
+                            placeholderTextColor="#94a3b8"
                         />
                         <View style={styles.modalBtns}>
                             <TouchableOpacity style={[styles.modalBtn, styles.cancelBtn]} onPress={() => setModalVisible(false)}>
@@ -206,10 +212,10 @@ export default function TopicManagementScreen({ navigation }) {
                         <Text style={styles.modalTitle}>Add Subtopic to {selectedTopic?.name}</Text>
                         <TextInput
                             style={styles.input}
-                            placeholder="Subtopic Name (e.g. Algebra)"
+                            placeholder="Subtopic Name"
                             value={newSubtopicName}
                             onChangeText={setNewSubtopicName}
-                            autoFocus
+                            placeholderTextColor="#94a3b8"
                         />
                         <View style={styles.modalBtns}>
                             <TouchableOpacity style={[styles.modalBtn, styles.cancelBtn]} onPress={() => setSubtopicModalVisible(false)}>
@@ -222,14 +228,13 @@ export default function TopicManagementScreen({ navigation }) {
                     </View>
                 </View>
             </Modal>
-        </SafeAreaView>
+        </View>
     );
 }
 
 const styles = StyleSheet.create({
     container: { flex: 1, backgroundColor: '#0f172a' },
     header: {
-        paddingTop: 45,
         paddingBottom: 20,
         paddingHorizontal: 20,
         backgroundColor: '#0f172a',
@@ -279,13 +284,13 @@ const styles = StyleSheet.create({
     subtopicText: { fontSize: 12, color: '#94a3b8' },
     noSubtopics: { fontSize: 12, color: '#475569', fontStyle: 'italic' },
     modalOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'center', padding: 24 },
-    modalContent: { backgroundColor: '#fff', borderRadius: 24, padding: 24 },
-    modalTitle: { fontSize: 20, fontWeight: 'bold', color: '#1e293b', marginBottom: 20 },
-    input: { backgroundColor: '#f8fafc', borderRadius: 12, padding: 16, borderWidth: 1, borderColor: '#e2e8f0', marginBottom: 24 },
+    modalContent: { backgroundColor: '#1e293b', borderRadius: 24, padding: 24, borderWidth: 1, borderColor: 'rgba(255,255,255,0.1)' },
+    modalTitle: { fontSize: 20, fontWeight: 'bold', color: '#fff', marginBottom: 20 },
+    input: { backgroundColor: 'rgba(255,255,255,0.05)', borderRadius: 12, padding: 16, borderWidth: 1, borderColor: 'rgba(255,255,255,0.1)', marginBottom: 24, color: '#fff' },
     modalBtns: { flexDirection: 'row', gap: 12 },
     modalBtn: { flex: 1, padding: 16, borderRadius: 14, alignItems: 'center' },
-    cancelBtn: { backgroundColor: '#f1f5f9' },
-    cancelBtnText: { color: '#64748b', fontWeight: 'bold' },
+    cancelBtn: { backgroundColor: 'rgba(255,255,255,0.05)' },
+    cancelBtnText: { color: '#94a3b8', fontWeight: 'bold' },
     saveBtn: { backgroundColor: '#10b981' },
     saveBtnText: { color: '#fff', fontWeight: '900', textTransform: 'uppercase' },
     empty: { alignItems: 'center', marginTop: 100 },

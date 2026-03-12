@@ -4,14 +4,12 @@ import {
     View,
     Text,
     ActivityIndicator,
-    SafeAreaView,
     Image,
     Pressable,
-    ScrollView,
-    FlatList,
-    TouchableOpacity,
 } from 'react-native';
+import { ScrollView, FlatList, TouchableOpacity } from 'react-native-gesture-handler';
 import { useFocusEffect, DrawerActions } from '@react-navigation/native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import { testService } from '../services/test';
@@ -20,6 +18,7 @@ import { authService } from '../services/auth';
 import api from '../services/api';
 
 export default function TestLibraryScreen({ navigation }) {
+    const insets = useSafeAreaInsets();
     const [user, setUser] = useState(null);
     const [tests, setTests] = useState([]);
     const [topics, setTopics] = useState([]);
@@ -154,14 +153,19 @@ export default function TestLibraryScreen({ navigation }) {
                 colors={['#0f172a', '#1e293b', '#0f172a']}
                 style={StyleSheet.absoluteFillObject}
             />
-            <SafeAreaView style={{ flex: 1 }}>
+            <View style={{ flex: 1 }}>
                 {/* STICKY HEADER */}
-                <View style={styles.topBarSticky}>
-                    <Pressable onPress={() => navigation.goBack()} style={styles.backBtn} hitSlop={{ top: 15, bottom: 15, left: 15, right: 15 }}>
+                <View style={[styles.topBarSticky, { paddingTop: Math.max(insets.top, 15) }]}>
+                    <TouchableOpacity 
+                        onPress={() => navigation.goBack()} 
+                        style={styles.backBtn} 
+                        hitSlop={{ top: 15, bottom: 15, left: 15, right: 15 }}
+                        activeOpacity={0.7}
+                    >
                         <Ionicons name="chevron-back" size={24} color="#fff" />
-                    </Pressable>
+                    </TouchableOpacity>
                     <Text style={styles.headerTitle}>Exam Vault</Text>
-                    <Pressable 
+                    <TouchableOpacity 
                         onPress={() => {
                             try {
                                 navigation.openDrawer();
@@ -171,9 +175,10 @@ export default function TestLibraryScreen({ navigation }) {
                         }} 
                         style={styles.backBtn}
                         hitSlop={{ top: 15, bottom: 15, left: 15, right: 15 }}
+                        activeOpacity={0.7}
                     >
                         <Ionicons name="menu-outline" size={32} color="#fff" />
-                    </Pressable>
+                    </TouchableOpacity>
                 </View>
 
                 <View style={styles.tabContainer}>
@@ -262,7 +267,7 @@ export default function TestLibraryScreen({ navigation }) {
                         </View>
                     }
                 />
-            </SafeAreaView>
+            </View>
         </View>
     );
 }
@@ -281,7 +286,7 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         justifyContent: 'space-between',
         paddingHorizontal: 20,
-        paddingVertical: 15,
+        paddingBottom: 15,
         backgroundColor: 'transparent',
         zIndex: 1000,
     },
