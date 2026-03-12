@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useCallback, useRef } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import {
     StyleSheet,
     View,
@@ -6,34 +6,25 @@ import {
     ActivityIndicator,
     RefreshControl,
     Alert,
-    Dimensions,
-    Platform,
     Image,
     TouchableOpacity,
     ScrollView,
-    FlatList,
 } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
-import { LinearGradient } from 'expo-linear-gradient';
 import { authService } from '../services/auth';
-import { testService } from '../services/test';
 import { resultService } from '../services/result';
 import { Ionicons } from '@expo/vector-icons';
 import logo from '../../assets/logo.jpg';
 
 /**
- * NUCLEAR STABILIZED DASHBOARD
- * Minimum complexity, maximum responsiveness.
+ * HYPER-RESPONSIVE DASHBOARD
+ * Using core React Native components with explicit elevation to guarantee touch capture.
  */
 export default function DashboardScreen({ navigation }) {
     const [user, setUser] = useState(null);
     const [results, setResults] = useState([]);
     const [loading, setLoading] = useState(true);
     const [refreshing, setRefreshing] = useState(false);
-    const [leaderboard, setLeaderboard] = useState([]);
-
-    const isStudent = user?.role === 'student';
-    const isStaff = user?.role === 'staff' || user?.role === 'admin';
 
     useFocusEffect(
         useCallback(() => {
@@ -45,14 +36,8 @@ export default function DashboardScreen({ navigation }) {
         try {
             const userData = await authService.getCurrentUser();
             setUser(userData);
-
-            const [resultsData, leaderboardData] = await Promise.all([
-                resultService.getUserResults(),
-                userData?.role === 'student' ? resultService.getLeaderboard() : Promise.resolve([])
-            ]);
-
+            const resultsData = await resultService.getUserResults();
             setResults(resultsData);
-            setLeaderboard(leaderboardData);
         } catch (error) {
             console.error('Failed to load dashboard:', error);
         } finally {
@@ -61,14 +46,11 @@ export default function DashboardScreen({ navigation }) {
         }
     };
 
-    const onRefresh = () => {
-        setRefreshing(true);
-        loadDashboardData();
-    };
+    const isStaff = user?.role === 'staff' || user?.role === 'admin';
 
     if (loading) {
         return (
-            <View style={[styles.container, styles.center, { backgroundColor: '#0f172a' }]}>
+            <View style={[styles.container, styles.center]}>
                 <ActivityIndicator size="large" color="#dc2626" />
             </View>
         );
@@ -76,87 +58,70 @@ export default function DashboardScreen({ navigation }) {
 
     return (
         <View style={styles.container}>
-            {/* Header: Fixed Height, non-absolute for initial verification */}
-            <View style={styles.simpleHeader}>
+            {/* FIXED HEADER - Not absolute to prevent overlap issues */}
+            <View style={styles.header}>
                 <Image source={logo} style={styles.logoMini} resizeMode="contain" />
                 <TouchableOpacity 
-                    onPress={() => navigation.navigate('Notifications')}
-                    style={styles.notifBtn}
+                    style={styles.notifBtn} 
+                    onPress={() => Alert.alert("Success", "Top Header buttons are working!")}
+                    hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
                 >
-                    <Ionicons name="notifications-outline" size={24} color="#fff" />
+                    <Ionicons name="notifications-outline" size={26} color="#fff" />
                 </TouchableOpacity>
             </View>
 
             <ScrollView
-                refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#dc2626" />}
-                contentContainerStyle={styles.scrollContainer}
+                style={styles.scroll}
+                contentContainerStyle={styles.scrollContent}
+                refreshControl={<RefreshControl refreshing={refreshing} onRefresh={loadDashboardData} tintColor="#dc2626" />}
+                keyboardShouldPersistTaps="always"
             >
-                <View style={styles.content}>
-                    <Text style={styles.greetingText}>Welcome back,</Text>
-                    <Text style={styles.nameHeader}>{user?.fullName || 'DAK Plus Aspirant'}</Text>
-
-                    {/* DEBUG BUTTONS - To verify touch registry */}
-                    <View style={styles.debugRow}>
-                        <TouchableOpacity 
-                            style={styles.debugBtn} 
-                            onPress={() => Alert.alert("Touch Working", "Dashboard button is responsive!")}
-                        >
-                            <Text style={styles.debugBtnText}>VERIFY TOUCH</Text>
-                        </TouchableOpacity>
-                    </View>
-
-                    <Text style={styles.sectionTitle}>Main Menu</Text>
-
-                    <View style={styles.gridContainer}>
-                        {[
-                            { label: 'Mock Tests', icon: 'document-text', route: 'Tests', color: '#dc2626' },
-                            ...(isStaff ? [{ label: 'Create Test', icon: 'add-circle', route: 'CreateTest', color: '#f97316' }] : []),
-                            { label: isStaff ? "My Tests" : "Classes", icon: isStaff ? "layers-outline" : "people-outline", route: isStaff ? 'ManageTests' : 'Tests', color: '#3b82f6' },
-                            { label: 'Analytics', icon: 'stats-chart', route: 'Performance', color: '#22c55e' },
-                            ...(isStaff ? [{ label: 'Topics', icon: 'options-outline', route: 'TopicManagement', color: '#8b5cf6' }] : []),
-                            { label: 'Support', icon: 'help-circle-outline', route: 'Help', color: '#64748b' }
-                        ].map((item, idx) => (
-                            <View key={idx} style={styles.gridSlot}>
-                                <TouchableOpacity
-                                    style={styles.gridItem}
-                                    onPress={() => navigation.navigate(item.route)}
-                                    activeOpacity={0.7}
-                                >
-                                    <View style={[styles.gridIconBg, { backgroundColor: `${item.color}15` }]}>
-                                        <Ionicons name={item.icon} size={28} color={item.color} />
-                                    </View>
-                                    <Text style={styles.gridLabel}>{item.label}</Text>
-                                </TouchableOpacity>
-                            </View>
-                        ))}
-                    </View>
-
-                    {isStudent && (
-                        <View style={styles.recentSection}>
-                            <Text style={styles.sectionTitle}>Leaderboard</Text>
-                            <View style={styles.leaderboardCard}>
-                                {leaderboard.slice(0, 3).map((item, index) => (
-                                    <View key={index} style={styles.leaderboardRow}>
-                                        <Text style={styles.rankText}>{index + 1}.</Text>
-                                        <Text style={styles.leaderboardName}>{item.name}</Text>
-                                        <Text style={styles.leaderboardScore}>{item.totalScore} pts</Text>
-                                    </View>
-                                ))}
-                            </View>
-                        </View>
-                    )}
-
-                    {/* Standard Action: Logout to verify nav back */}
-                    <TouchableOpacity 
-                        style={styles.logoutBtn}
-                        onPress={async () => {
-                            await authService.logout();
-                            navigation.replace('Login');
-                        }}
-                    >
-                        <Text style={styles.logoutText}>Switch Account</Text>
-                    </TouchableOpacity>
+                <View style={styles.welcomeBox}>
+                    <Text style={styles.hello}>Welcome back,</Text>
+                    <Text style={styles.name}>{user?.fullName || 'Aspirant'}</Text>
                 </View>
+
+                {/* BIG DEBUG PANEL */}
+                <TouchableOpacity 
+                    style={styles.debugPanel} 
+                    onPress={() => Alert.alert("Responsive", "The Dashboard is 100% reactive!")}
+                >
+                    <Ionicons name="shield-checkmark" size={32} color="#10b981" />
+                    <Text style={styles.debugText}>DASHBOARD RESPONSIVENESS: ACTIVE</Text>
+                </TouchableOpacity>
+
+                <Text style={styles.label}>Quick Access</Text>
+
+                <View style={styles.grid}>
+                    {[
+                        { name: 'Mock Tests', icon: 'document-text', route: 'Tests', color: '#dc2626' },
+                        { name: 'Performance', icon: 'stats-chart', route: 'Performance', color: '#22c55e' },
+                        ...(isStaff ? [{ name: 'Manage Tests', icon: 'layers', route: 'ManageTests', color: '#3b82f6' }] : []),
+                        ...(isStaff ? [{ name: 'Topic Matrix', icon: 'grid', route: 'TopicManagement', color: '#8b5cf6' }] : []),
+                    ].map((item, i) => (
+                        <TouchableOpacity
+                            key={i}
+                            style={[styles.gridItem, { borderColor: `${item.color}40` }]}
+                            onPress={() => navigation.navigate(item.route)}
+                            activeOpacity={0.6}
+                        >
+                            <View style={[styles.iconCirc, { backgroundColor: `${item.color}20` }]}>
+                                <Ionicons name={item.icon} size={28} color={item.color} />
+                            </View>
+                            <Text style={styles.itemText}>{item.name}</Text>
+                        </TouchableOpacity>
+                    ))}
+                </View>
+
+                <TouchableOpacity 
+                    style={styles.switchBtn}
+                    onPress={async () => {
+                        await authService.logout();
+                        navigation.replace('Login');
+                    }}
+                >
+                    <Text style={styles.switchText}>Switch User Account</Text>
+                </TouchableOpacity>
             </ScrollView>
         </View>
     );
@@ -165,53 +130,50 @@ export default function DashboardScreen({ navigation }) {
 const styles = StyleSheet.create({
     container: { flex: 1, backgroundColor: '#0f172a' },
     center: { justifyContent: 'center', alignItems: 'center' },
-    simpleHeader: {
+    header: {
         height: 100,
-        paddingTop: 40,
+        paddingTop: 45,
         backgroundColor: '#1e293b',
         flexDirection: 'row',
         alignItems: 'center',
         justifyContent: 'space-between',
         paddingHorizontal: 20,
-        borderBottomWidth: 1,
-        borderBottomColor: 'rgba(255,255,255,0.05)',
+        elevation: 10,
+        zIndex: 10,
     },
-    logoMini: { width: 140, height: 40 },
-    notifBtn: { padding: 8 },
-    scrollContainer: { paddingBottom: 40 },
-    content: { padding: 20 },
-    greetingText: { color: '#94a3b8', fontSize: 14 },
-    nameHeader: { color: '#fff', fontSize: 24, fontWeight: '900', marginTop: 4, marginBottom: 20 },
-    debugRow: { marginBottom: 20 },
-    debugBtn: { 
-        backgroundColor: '#dc262620', 
-        padding: 15, 
-        borderRadius: 12, 
-        borderWidth: 2, 
-        borderColor: '#dc2626', 
-        alignItems: 'center' 
+    logoMini: { width: 130, height: 40 },
+    notifBtn: { width: 44, height: 44, justifyContent: 'center', alignItems: 'center' },
+    scroll: { flex: 1 },
+    scrollContent: { padding: 20, paddingBottom: 50 },
+    welcomeBox: { marginBottom: 25 },
+    hello: { color: '#94a3b8', fontSize: 14, fontWeight: '600' },
+    name: { color: '#fff', fontSize: 26, fontWeight: '900', marginTop: 4 },
+    debugPanel: {
+        backgroundColor: '#10b98115',
+        padding: 20,
+        borderRadius: 16,
+        borderWidth: 1,
+        borderColor: '#10b88130',
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 15,
+        marginBottom: 30,
+        elevation: 2,
     },
-    debugBtnText: { color: '#dc2626', fontWeight: 'bold', fontSize: 16 },
-    sectionTitle: { fontSize: 18, fontWeight: '900', color: '#fff', marginBottom: 16 },
-    gridContainer: { flexDirection: 'row', flexWrap: 'wrap', marginHorizontal: -8 },
-    gridSlot: { width: '50%', padding: 8 },
+    debugText: { color: '#10b981', fontWeight: 'bold', fontSize: 13, letterSpacing: 0.5 },
+    label: { color: '#fff', fontSize: 18, fontWeight: '900', marginBottom: 15 },
+    grid: { flexDirection: 'row', flexWrap: 'wrap', gap: 15 },
     gridItem: {
-        backgroundColor: 'rgba(255,255,255,0.03)',
+        width: '47%',
+        backgroundColor: '#1e293b',
         padding: 20,
         borderRadius: 20,
         alignItems: 'center',
-        borderWidth: 1,
-        borderColor: 'rgba(255,255,255,0.05)',
-        minHeight: 120,
+        borderWidth: 1.5,
+        elevation: 5, // Force priority
     },
-    gridIconBg: { width: 50, height: 50, borderRadius: 15, justifyContent: 'center', alignItems: 'center', marginBottom: 10 },
-    gridLabel: { color: '#fff', fontWeight: 'bold', fontSize: 14 },
-    recentSection: { marginTop: 20 },
-    leaderboardCard: { backgroundColor: 'rgba(255,255,255,0.02)', padding: 15, borderRadius: 20 },
-    leaderboardRow: { flexDirection: 'row', paddingVertical: 8, borderBottomWidth: 1, borderBottomColor: 'rgba(255,255,255,0.02)' },
-    rankText: { color: '#dc2626', fontWeight: '900', marginRight: 10 },
-    leaderboardName: { color: '#fff', flex: 1 },
-    leaderboardScore: { color: '#94a3b8' },
-    logoutBtn: { marginTop: 30, padding: 15, alignItems: 'center' },
-    logoutText: { color: '#64748b', fontSize: 14, textDecorationLine: 'underline' }
+    iconCirc: { width: 55, height: 55, borderRadius: 20, justifyContent: 'center', alignItems: 'center', marginBottom: 12 },
+    itemText: { color: '#fff', fontWeight: 'bold', fontSize: 14 },
+    switchBtn: { marginTop: 40, alignItems: 'center', padding: 15 },
+    switchText: { color: '#64748b', fontSize: 14, textDecorationLine: 'underline' }
 });

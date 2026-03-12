@@ -1,6 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { StatusBar } from 'expo-status-bar';
 import { View, ActivityIndicator } from 'react-native';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
+import { SafeAreaProvider } from 'react-native-safe-area-context';
 import * as SplashScreen from 'expo-splash-screen';
 import AppNavigator from './src/navigation/AppNavigator';
 import { authService } from './src/services/auth';
@@ -14,10 +16,13 @@ export default function App() {
   useEffect(() => {
     async function prepare() {
       try {
-        // Minimum viable auth check
-        await authService.isAuthenticated();
+        // Minimum viable auth check to unblock the boot process
+        await Promise.race([
+          authService.isAuthenticated(),
+          new Promise(resolve => setTimeout(resolve, 3000))
+        ]);
       } catch (e) {
-        console.warn(e);
+        console.warn('Boot prepare failed:', e);
       } finally {
         setAppIsReady(true);
         await SplashScreen.hideAsync().catch(() => {});
@@ -35,9 +40,13 @@ export default function App() {
   }
 
   return (
-    <View style={{ flex: 1, backgroundColor: '#0f172a' }}>
-      <StatusBar style="light" />
-      <AppNavigator />
-    </View>
+    <GestureHandlerRootView style={{ flex: 1 }}>
+      <SafeAreaProvider>
+        <View style={{ flex: 1, backgroundColor: '#0f172a' }}>
+          <StatusBar style="light" />
+          <AppNavigator />
+        </View>
+      </SafeAreaProvider>
+    </GestureHandlerRootView>
   );
 }
