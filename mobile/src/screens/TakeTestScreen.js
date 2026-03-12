@@ -8,8 +8,10 @@ import {
     SafeAreaView,
     Platform,
     Image,
+    Dimensions,
+    TouchableOpacity,
 } from 'react-native';
-import { ScrollView, TouchableOpacity } from 'react-native-gesture-handler';
+import { ScrollView } from 'react-native-gesture-handler';
 import { LinearGradient } from 'expo-linear-gradient';
 import { usePreventScreenCapture } from 'expo-screen-capture';
 import { Ionicons } from '@expo/vector-icons';
@@ -164,7 +166,7 @@ export default function TakeTestScreen({ navigation, route }) {
         return (
             <SafeAreaView style={styles.container}>
                 <LinearGradient colors={['#dc2626', '#1e3a8a']} style={styles.header}>
-                    <TouchableOpacity onPress={() => navigation.goBack()}>
+                    <TouchableOpacity onPress={() => navigation.goBack()} activeOpacity={0.7}>
                         <Text style={styles.exitText}>Back</Text>
                     </TouchableOpacity>
                 </LinearGradient>
@@ -183,13 +185,14 @@ export default function TakeTestScreen({ navigation, route }) {
                             </Text>
                         </View>
                         
-                        <TouchableOpacity style={styles.retakeBtn} onPress={handleRetake}>
+                        <TouchableOpacity style={styles.retakeBtn} onPress={handleRetake} activeOpacity={0.7}>
                             <Text style={styles.retakeBtnText}>Retake Test</Text>
                         </TouchableOpacity>
 
                         <TouchableOpacity 
                             style={styles.dashboardBtn} 
                             onPress={() => navigation.reset({ index: 0, routes: [{ name: 'Main' }] })}
+                            activeOpacity={0.7}
                         >
                             <Text style={styles.dashboardBtnText}>Back to Dashboard</Text>
                         </TouchableOpacity>
@@ -204,7 +207,7 @@ export default function TakeTestScreen({ navigation, route }) {
             <View style={styles.center}>
                 <Ionicons name="alert-circle-outline" size={64} color="#dc2626" />
                 <Text style={{ marginTop: 16, fontSize: 18, color: '#1e293b', fontWeight: 'bold' }}>No questions available</Text>
-                <TouchableOpacity onPress={() => navigation.goBack()} style={{ marginTop: 24, padding: 12, backgroundColor: '#dc2626', borderRadius: 8 }}>
+                <TouchableOpacity onPress={() => navigation.goBack()} style={{ marginTop: 24, padding: 12, backgroundColor: '#dc2626', borderRadius: 8 }} activeOpacity={0.7}>
                     <Text style={{ color: '#fff', fontWeight: 'bold' }}>Go Back</Text>
                 </TouchableOpacity>
             </View>
@@ -221,11 +224,19 @@ export default function TakeTestScreen({ navigation, route }) {
         );
     }
 
+    const handlePrevious = () => {
+        setCurrentQuestion(prev => Math.max(0, prev - 1));
+    };
+
+    const handleNext = () => {
+        setCurrentQuestion(prev => prev + 1);
+    };
+
     return (
         <SafeAreaView style={styles.container}>
             <LinearGradient colors={['#dc2626', '#1e3a8a']} style={styles.header}>
                 <View style={styles.headerTop}>
-                    <TouchableOpacity onPress={() => Alert.alert('Exit Test', 'Are you sure?', [{ text: 'Cancel' }, { text: 'Exit', onPress: () => navigation.goBack() }])}>
+                    <TouchableOpacity onPress={() => Alert.alert('Exit Test', 'Are you sure?', [{ text: 'Cancel' }, { text: 'Exit', onPress: () => navigation.goBack() }])} activeOpacity={0.7}>
                         <Text style={styles.exitText}>Exit</Text>
                     </TouchableOpacity>
                     
@@ -233,12 +244,14 @@ export default function TakeTestScreen({ navigation, route }) {
                         <TouchableOpacity 
                             onPress={() => setLanguage('en')}
                             style={[styles.langBtn, language === 'en' ? styles.activeLangBtn : null]}
+                            activeOpacity={0.7}
                         >
                             <Text style={[styles.langText, language === 'en' ? styles.activeLangText : null]}>EN</Text>
                         </TouchableOpacity>
                         <TouchableOpacity 
                             onPress={() => setLanguage('hi')}
                             style={[styles.langBtn, language === 'hi' ? styles.activeLangBtn : null]}
+                            activeOpacity={0.7}
                         >
                             <Text style={[styles.langText, language === 'hi' ? styles.activeLangText : null]}>हिन्दी</Text>
                         </TouchableOpacity>
@@ -247,7 +260,7 @@ export default function TakeTestScreen({ navigation, route }) {
                     <View style={styles.timerContainer}>
                         <Text style={styles.timerText}>{formatTime(timeLeft)}</Text>
                     </View>
-                    <TouchableOpacity onPress={handleSubmit} disabled={isSubmitting}>
+                    <TouchableOpacity onPress={handleSubmit} disabled={isSubmitting} activeOpacity={0.7}>
                         <Text style={styles.submitText}>{isSubmitting ? '...' : 'Submit'}</Text>
                     </TouchableOpacity>
                 </View>
@@ -283,6 +296,7 @@ export default function TakeTestScreen({ navigation, route }) {
                                 answers[currentQuestion] === option ? styles.selectedOption : null
                             ]}
                             onPress={() => handleAnswer(option)}
+                            activeOpacity={0.7}
                         >
                             <View style={[
                                 styles.optionCircle,
@@ -304,21 +318,17 @@ export default function TakeTestScreen({ navigation, route }) {
             <View style={styles.footer}>
                 <TouchableOpacity
                     style={[styles.navButton, currentQuestion === 0 ? styles.disabledNav : null]}
-                    onPress={() => setCurrentQuestion(prev => Math.max(0, prev - 1))}
+                    onPress={handlePrevious}
                     disabled={currentQuestion === 0}
+                    activeOpacity={0.7}
                 >
                     <Text style={styles.navButtonText}>Previous</Text>
                 </TouchableOpacity>
 
                 <TouchableOpacity
                     style={[styles.navButton, styles.nextButton]}
-                    onPress={() => {
-                        if (currentQuestion < test.questions.length - 1) {
-                            setCurrentQuestion(prev => prev + 1);
-                        } else {
-                            handleSubmit();
-                        }
-                    }}
+                    onPress={currentQuestion === test.questions.length - 1 ? handleSubmit : handleNext}
+                    activeOpacity={0.7}
                 >
                     <LinearGradient
                         colors={['#dc2626', '#f97316']}

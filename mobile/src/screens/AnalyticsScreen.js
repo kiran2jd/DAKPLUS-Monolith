@@ -5,9 +5,11 @@ import {
     Text,
     SafeAreaView,
     Dimensions,
-    ActivityIndicator
+    Dimensions,
+    ActivityIndicator,
+    Pressable,
+    ScrollView,
 } from 'react-native';
-import { ScrollView, TouchableOpacity } from 'react-native-gesture-handler';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import { resultService } from '../services/result';
@@ -107,23 +109,23 @@ export default function AnalyticsScreen({ navigation }) {
             />
             <SafeAreaView style={{ flex: 1 }}>
                 <View style={styles.header}>
-                    <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
+                    <Pressable onPress={() => navigation.goBack()} style={styles.backBtn} hitSlop={{ top: 15, bottom: 15, left: 15, right: 15 }}>
                         <Ionicons name="chevron-back" size={24} color="#fff" />
-                    </TouchableOpacity>
+                    </Pressable>
                     <Text style={styles.headerTitle}>Performance Hub</Text>
-                    <TouchableOpacity 
+                    <Pressable 
                         onPress={() => {
                             try {
-                                navigation.getParent()?.openDrawer();
-                            } catch (e) {
                                 navigation.dispatch(DrawerActions.openDrawer());
+                            } catch (e) {
+                                navigation.getParent()?.openDrawer();
                             }
                         }} 
                         style={styles.backBtn}
-                        hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+                        hitSlop={{ top: 15, bottom: 15, left: 15, right: 15 }}
                     >
                         <Ionicons name="menu-outline" size={32} color="#fff" />
-                    </TouchableOpacity>
+                    </Pressable>
                 </View>
 
                 <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>

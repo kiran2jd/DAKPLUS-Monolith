@@ -11,8 +11,10 @@ import {
     Dimensions,
     Platform,
     Image,
+    TouchableOpacity,
+    Pressable,
+    ScrollView,
 } from 'react-native';
-import { ScrollView, TouchableOpacity } from 'react-native-gesture-handler';
 import { useFocusEffect, DrawerActions } from '@react-navigation/native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { usePreventScreenCapture } from 'expo-screen-capture';
@@ -174,30 +176,30 @@ export default function DashboardScreen({ navigation }) {
     const renderHeader = () => (
         <View style={styles.headerWrapper}>
             <View style={styles.topBar}>
-                <TouchableOpacity
+                <Pressable
                     style={styles.headerIconButton}
                     onPress={() => {
                         try {
-                            navigation.getParent()?.openDrawer();
-                        } catch (e) {
+                            // Try both ways to be sure
                             navigation.dispatch(DrawerActions.openDrawer());
+                        } catch (e) {
+                            navigation.getParent()?.openDrawer();
                         }
                     }}
-                    activeOpacity={0.7}
-                    hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+                    hitSlop={{ top: 20, bottom: 20, left: 20, right: 20 }}
                 >
                     <Ionicons name="menu-outline" size={32} color="#fff" />
-                </TouchableOpacity>
+                </Pressable>
                 <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
                     <Image source={logo} style={styles.logoMini} resizeMode="contain" />
                 </View>
-                <TouchableOpacity 
+                <Pressable 
                     style={styles.headerIconButton} 
                     onPress={() => navigation.navigate('Notifications')}
-                    activeOpacity={0.7}
+                    hitSlop={{ top: 20, bottom: 20, left: 20, right: 20 }}
                 >
                     <Ionicons name="notifications-outline" size={24} color="#fff" />
-                </TouchableOpacity>
+                </Pressable>
             </View>
 
             <View style={styles.welcomeTextSection}>
@@ -287,10 +289,12 @@ export default function DashboardScreen({ navigation }) {
                     )}
 
                     {!isPro && !isStaff && isStudent && (
-                        <TouchableOpacity
-                            style={styles.proBanner}
+                        <Pressable
+                            style={({ pressed }) => [
+                                styles.proBanner,
+                                { opacity: pressed ? 0.8 : 1 }
+                            ]}
                             onPress={() => navigation.navigate('Payment')}
-                            activeOpacity={0.7}
                         >
                             <View style={[styles.proBannerGradient, { backgroundColor: '#f59e0b' }]}>
                                 <View>
@@ -299,100 +303,112 @@ export default function DashboardScreen({ navigation }) {
                                 </View>
                                 <Ionicons name="star" size={24} color="#fff" />
                             </View>
-                        </TouchableOpacity>
+                        </Pressable>
                     )}
 
                     <Text style={styles.sectionTitle}>Main Menu</Text>
 
                     <View style={styles.gridContainer}>
                         <View style={styles.gridSlot}>
-                            <TouchableOpacity
-                                style={styles.gridItem}
+                            <Pressable
+                                style={({ pressed }) => [
+                                    styles.gridItem,
+                                    { backgroundColor: pressed ? 'rgba(255,255,255,0.08)' : 'rgba(255,255,255,0.04)' }
+                                ]}
                                 onPress={() => navigation.navigate('Tests')}
-                                activeOpacity={0.7}
                             >
                                 <View style={[styles.gridIconBg, { backgroundColor: 'rgba(220, 38, 38, 0.1)' }]}>
                                     <Ionicons name="document-text" size={28} color="#dc2626" />
                                 </View>
                                 <Text style={styles.gridLabel}>Mock Tests</Text>
                                 <Text style={styles.gridSub}>Topic-wise exams</Text>
-                            </TouchableOpacity>
+                            </Pressable>
                         </View>
 
                         {isStaff && (
                             <View style={styles.gridSlot}>
-                                <TouchableOpacity
-                                    style={styles.gridItem}
+                                <Pressable
+                                    style={({ pressed }) => [
+                                        styles.gridItem,
+                                        { backgroundColor: pressed ? 'rgba(255,255,255,0.08)' : 'rgba(255,255,255,0.04)' }
+                                    ]}
                                     onPress={() => navigation.navigate('CreateTest')}
-                                    activeOpacity={0.7}
                                 >
                                     <View style={[styles.gridIconBg, { backgroundColor: 'rgba(124, 58, 237, 0.1)' }]}>
                                         <Ionicons name="add-circle" size={28} color="#7c3aed" />
                                     </View>
                                     <Text style={styles.gridLabel}>Create Test</Text>
                                     <Text style={styles.gridSub}>Add new content</Text>
-                                </TouchableOpacity>
+                                </Pressable>
                             </View>
                         )}
 
                         {!isStaff && (
                             <View style={styles.gridSlot}>
-                                <TouchableOpacity
-                                    style={styles.gridItem}
+                                <Pressable
+                                    style={({ pressed }) => [
+                                        styles.gridItem,
+                                        { backgroundColor: pressed ? 'rgba(255,255,255,0.08)' : 'rgba(255,255,255,0.04)' }
+                                    ]}
                                     onPress={() => Alert.alert("Coming Soon", "Mobile Syllabus tracking is in development!")}
-                                    activeOpacity={0.7}
                                 >
                                     <View style={[styles.gridIconBg, { backgroundColor: 'rgba(30, 58, 138, 0.1)' }]}>
                                         <Ionicons name="book" size={28} color="#3b82f6" />
                                     </View>
                                     <Text style={styles.gridLabel}>Syllabus</Text>
                                     <Text style={styles.gridSub}>Track progress</Text>
-                                </TouchableOpacity>
+                                </Pressable>
                             </View>
                         )}
 
                         <View style={styles.gridSlot}>
-                            <TouchableOpacity
-                                style={styles.gridItem}
+                            <Pressable
+                                style={({ pressed }) => [
+                                    styles.gridItem,
+                                    { backgroundColor: pressed ? 'rgba(255,255,255,0.08)' : 'rgba(255,255,255,0.04)' }
+                                ]}
                                 onPress={() => isStaff ? navigation.navigate('ManageTests') : Alert.alert("Coming Soon", "Live classes are starting soon!")}
-                                activeOpacity={0.7}
                             >
                                 <View style={[styles.gridIconBg, { backgroundColor: 'rgba(217, 119, 6, 0.1)' }]}>
                                     <Ionicons name={isStaff ? "list" : "school"} size={28} color="#f59e0b" />
                                 </View>
                                 <Text style={styles.gridLabel}>{isStaff ? "My Tests" : "Classes"}</Text>
                                 <Text style={styles.gridSub}>{isStaff ? "Manage learning" : "Live learning"}</Text>
-                            </TouchableOpacity>
+                            </Pressable>
                         </View>
 
                         {isStaff && (
                             <View style={styles.gridSlot}>
-                                <TouchableOpacity
-                                    style={styles.gridItem}
+                                <Pressable
+                                    style={({ pressed }) => [
+                                        styles.gridItem,
+                                        { backgroundColor: pressed ? 'rgba(255,255,255,0.08)' : 'rgba(255,255,255,0.04)' }
+                                    ]}
                                     onPress={() => navigation.navigate('TopicManagement')}
-                                    activeOpacity={0.7}
                                 >
                                     <View style={[styles.gridIconBg, { backgroundColor: 'rgba(5, 150, 105, 0.1)' }]}>
                                         <Ionicons name="folder-open" size={28} color="#10b981" />
                                     </View>
                                     <Text style={styles.gridLabel}>Topics</Text>
                                     <Text style={styles.gridSub}>Organize content</Text>
-                                </TouchableOpacity>
+                                </Pressable>
                             </View>
                         )}
 
                         <View style={styles.gridSlot}>
-                            <TouchableOpacity
-                                style={styles.gridItem}
+                            <Pressable
+                                style={({ pressed }) => [
+                                    styles.gridItem,
+                                    { backgroundColor: pressed ? 'rgba(255,255,255,0.08)' : 'rgba(255,255,255,0.04)' }
+                                ]}
                                 onPress={() => navigation.navigate('Performance')}
-                                activeOpacity={0.7}
                             >
                                 <View style={[styles.gridIconBg, { backgroundColor: 'rgba(34, 197, 94, 0.1)' }]}>
                                     <Ionicons name="stats-chart" size={28} color="#22c55e" />
                                 </View>
                                 <Text style={styles.gridLabel}>Analytics</Text>
                                 <Text style={styles.gridSub}>Performance</Text>
-                            </TouchableOpacity>
+                            </Pressable>
                         </View>
                     </View>
 

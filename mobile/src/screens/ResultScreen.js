@@ -6,8 +6,9 @@ import {
     ActivityIndicator,
     SafeAreaView,
     Dimensions,
+    TouchableOpacity,
 } from 'react-native';
-import { ScrollView, TouchableOpacity } from 'react-native-gesture-handler';
+import { ScrollView } from 'react-native-gesture-handler';
 import { LinearGradient } from 'expo-linear-gradient';
 import { resultService } from '../services/result';
 import { authService } from '../services/auth';

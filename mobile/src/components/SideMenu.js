@@ -3,11 +3,11 @@ import {
     View,
     Text,
     StyleSheet,
-    TouchableOpacity,
     Image,
     ScrollView,
     SafeAreaView,
-    Alert
+    Alert,
+    Pressable,
 } from 'react-native';
 import {
     DrawerContentScrollView,
@@ -98,7 +98,7 @@ const SideMenu = (props) => {
             <ScrollView style={styles.menuList}>
                 <Text style={styles.sectionTitle}>NAVIGATION</Text>
                 {menuItems.slice(0, 3).map((item) => (
-                    <TouchableOpacity
+                    <Pressable
                         key={item.label}
                         style={[
                             styles.menuItem,
@@ -126,12 +126,12 @@ const SideMenu = (props) => {
                         ]}>
                             {item.label}
                         </Text>
-                    </TouchableOpacity>
+                    </Pressable>
                 ))}
 
                 <Text style={[styles.sectionTitle, { marginTop: 20 }]}>ACCOUNT</Text>
                 {menuItems.slice(3).map((item) => (
-                    <TouchableOpacity
+                    <Pressable
                         key={item.label}
                         style={[
                             styles.menuItem,
@@ -151,27 +151,33 @@ const SideMenu = (props) => {
                         ]}>
                             {item.label}
                         </Text>
-                    </TouchableOpacity>
+                    </Pressable>
                 ))}
             </ScrollView>
 
             <View style={styles.footer}>
                 <View style={styles.socialIcons}>
-                    <TouchableOpacity style={styles.socialBtn}>
+                    <Pressable style={styles.socialBtn}>
                         <FontAwesome5 name="facebook-f" size={18} color="#fff" />
-                    </TouchableOpacity>
-                    <TouchableOpacity style={styles.socialBtn}>
+                    </Pressable>
+                    <Pressable style={styles.socialBtn}>
                         <FontAwesome5 name="instagram" size={18} color="#fff" />
-                    </TouchableOpacity>
-                    <TouchableOpacity style={styles.socialBtn}>
+                    </Pressable>
+                    <Pressable style={styles.socialBtn}>
                         <FontAwesome5 name="twitter" size={18} color="#fff" />
-                    </TouchableOpacity>
+                    </Pressable>
                 </View>
 
-                <TouchableOpacity style={styles.logoutBtn} onPress={handleLogout}>
+                <Pressable 
+                    style={({ pressed }) => [
+                        styles.logoutBtn,
+                        { opacity: pressed ? 0.7 : 1 }
+                    ]} 
+                    onPress={handleLogout}
+                >
                     <Ionicons name="log-out-outline" size={20} color="#ef4444" />
                     <Text style={styles.logoutText}>Sign Out</Text>
-                </TouchableOpacity>
+                </Pressable>
 
                 <Text style={styles.versionText}>SYSTEM BUILD v4.0.2</Text>
             </View>
