@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useCallback } from 'react';
+import React, { useEffect, useState, useCallback, useRef } from 'react';
 import {
     StyleSheet,
     View,
@@ -9,9 +9,10 @@ import {
     Dimensions,
     Platform,
     Image,
-    Pressable,
+    TouchableOpacity,
+    ScrollView,
+    FlatList,
 } from 'react-native';
-import { ScrollView, FlatList, TouchableOpacity } from 'react-native-gesture-handler';
 import { useFocusEffect, DrawerActions } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -26,143 +27,100 @@ import logo from '../../assets/logo.jpg';
 
 const { width } = Dimensions.get('window');
 
-const banners = [
-    { id: '1', title: 'Postal Assistant Exam 2026', subtitle: 'Targeted mock tests for high success', colors: ['#dc2626', '#991b1b'] },
-    { id: '2', title: 'Postman & Mail Guard', subtitle: 'AI-generated precision assessments', colors: ['#1e3a8a', '#1e40af'] },
-    { id: '3', title: 'MTS & Selection Post', subtitle: 'Master the basics with detailed analytics', colors: ['#1e293b', '#334155'] },
-];
-
 export default function DashboardScreen({ navigation }) {
-    // 1. All Hooks at the very top
+    usePreventScreenCapture();
+    const insets = useSafeAreaInsets();
     const [user, setUser] = useState(null);
     const [results, setResults] = useState([]);
-    const [tests, setTests] = useState([]);
-    const [leaderboard, setLeaderboard] = useState([]);
     const [loading, setLoading] = useState(true);
     const [refreshing, setRefreshing] = useState(false);
-    const [activeBannerIndex, setActiveBannerIndex] = useState(0); 
-    const [isManualScrolling, setIsManualScrolling] = useState(false);
-    const insets = useSafeAreaInsets();
-    
-    const flatListRef = React.useRef(null);
-    const scrollInterval = React.useRef(null);
+    const [currentSlide, setCurrentSlide] = useState(0);
+    const [leaderboard, setLeaderboard] = useState([]);
+    const flatListRef = useRef(null);
+    const autoPlayTimerRef = useRef(null);
 
-    // usePreventScreenCapture(); // Temporarily disabled for client demo
+    const isStudent = user?.role === 'student';
+    const isStaff = user?.role === 'staff' || user?.role === 'admin';
 
-    const loadData = useCallback(async (force = false) => {
-        setLoading(true);
-        try {
-            // 1. Load User Profile with strict 5s timeout
-            const profilePromise = authService.getProfile().catch(() => authService.getUser());
-            const profileTimeout = new Promise((resolve) => setTimeout(() => resolve(null), 5000));
-            
-            const userData = await Promise.race([profilePromise, profileTimeout]);
-            
-            if (!userData) {
-                console.log("Dashboard: No user data available after timeout");
-                setLoading(false);
-                setRefreshing(false);
-                return;
+    const banners = [
+        {
+            title: "NEET 2024 Prep",
+            subtitle: "DAILY MOCK TESTS",
+            colors: ['#ef4444', '#b91c1c'],
+            icon: 'analytics-outline'
+        },
+        {
+            title: "Concept Mastery",
+            subtitle: "TOPICAL REVISION",
+            colors: ['#3b82f6', '#1d4ed8'],
+            icon: 'bulb-outline'
+        },
+        {
+            title: "All India Rank",
+            subtitle: "LIVE LEADERBOARD",
+            colors: ['#10b981', '#047857'],
+            icon: 'trophy-outline'
+        }
+    ];
+
+    useFocusEffect(
+        useCallback(() => {
+            loadDashboardData();
+            startAutoPlay();
+            return () => stopAutoPlay();
+        }, [])
+    );
+
+    const startAutoPlay = () => {
+        stopAutoPlay();
+        autoPlayTimerRef.current = setInterval(() => {
+            if (flatListRef.current) {
+                const nextSlide = (currentSlide + 1) % banners.length;
+                flatListRef.current.scrollToIndex({ index: nextSlide, animated: true });
+                setCurrentSlide(nextSlide);
             }
+        }, 5000);
+    };
+
+    const stopAutoPlay = () => {
+        if (autoPlayTimerRef.current) {
+            clearInterval(autoPlayTimerRef.current);
+        }
+    };
+
+    const loadDashboardData = async () => {
+        try {
+            const userData = await authService.getCurrentUser();
             setUser(userData);
 
-            // 2. Load Dashboard Data (Student only)
-            const role = userData.role?.toLowerCase();
-            if (role === 'student') {
-                const userId = userData.id || userData._id;
+            const [resultsData, leaderboardData] = await Promise.all([
+                resultService.getUserResults(),
+                isStudent ? resultService.getLeaderboard() : Promise.resolve([])
+            ]);
 
-                const fetchData = async () => {
-                    try {
-                        const [resultsRes, testsRes, lbRes] = await Promise.allSettled([
-                            resultService.getResultsByUser(userId),
-                            testService.getAvailableTests(),
-                            resultService.getLeaderboard('weekly')
-                        ]);
-
-                        if (resultsRes.status === 'fulfilled') setResults(resultsRes.value || []);
-                        if (testsRes.status === 'fulfilled') setTests(testsRes.value || []);
-                        if (lbRes.status === 'fulfilled') setLeaderboard(lbRes.value || []);
-                    } catch (e) {
-                        console.log("Dashboard data partial failure:", e.message);
-                    }
-                };
-
-                // Strict 10s timeout for all other data
-                await Promise.race([
-                    fetchData(),
-                    new Promise(resolve => setTimeout(resolve, 10000))
-                ]);
-            }
-        } catch (err) {
-            console.log("Dashboard fetch error:", err.message);
+            setResults(resultsData);
+            setLeaderboard(leaderboardData);
+        } catch (error) {
+            console.error('Failed to load dashboard:', error);
         } finally {
             setLoading(false);
             setRefreshing(false);
         }
-    }, []);
-
-    useFocusEffect(
-        useCallback(() => {
-            loadData();
-        }, [loadData])
-    );
-
-    // Robust Auto-Scroll Logic
-    const stopAutoScroll = useCallback(() => {
-        if (scrollInterval.current) {
-            clearInterval(scrollInterval.current);
-            scrollInterval.current = null;
-        }
-    }, []);
-
-    const startAutoScroll = useCallback(() => {
-        stopAutoScroll();
-        scrollInterval.current = setInterval(() => {
-            if (!isManualScrolling) {
-                setActiveBannerIndex(prev => {
-                    const next = (prev + 1) % (banners.length || 1);
-                    if (flatListRef.current) {
-                        try {
-                            flatListRef.current.scrollToIndex({ index: next, animated: true });
-                        } catch (e) {
-                            console.log("ScrollToIndex failed:", e.message);
-                        }
-                    }
-                    return next;
-                });
-            }
-        }, 5000);
-    }, [isManualScrolling, stopAutoScroll]);
-
-    useEffect(() => {
-        startAutoScroll();
-        return () => stopAutoScroll();
-    }, [startAutoScroll, stopAutoScroll]);
-
-    const onMomentumScrollEnd = (event) => {
-        const contentOffset = event.nativeEvent.contentOffset.x;
-        const layoutWidth = event.nativeEvent.layoutMeasurement.width;
-        if (layoutWidth > 0) {
-            const index = Math.round(contentOffset / layoutWidth);
-            setActiveBannerIndex(index);
-        }
-        setIsManualScrolling(false);
-    };
-
-    const onScrollBeginDrag = () => {
-        setIsManualScrolling(true);
-        stopAutoScroll();
     };
 
     const onRefresh = () => {
         setRefreshing(true);
-        loadData(true);
+        loadDashboardData();
     };
 
-    const role = user?.role?.toLowerCase();
-    const isPro = user?.subscriptionTier === 'PREMIUM' || role === 'admin' || role === 'teacher';
-    const isStaff = role === 'admin' || role === 'teacher';
-    const isStudent = role === 'student';
+    const onMomentumScrollEnd = (event) => {
+        const slideSize = event.nativeEvent.layoutMeasurement.width;
+        const index = Math.round(event.nativeEvent.contentOffset.x / slideSize);
+        setCurrentSlide(index);
+        startAutoPlay();
+    };
+
+    const onScrollBeginDrag = () => stopAutoPlay();
 
     if (loading) {
         return (
@@ -174,41 +132,14 @@ export default function DashboardScreen({ navigation }) {
 
     return (
         <View style={[styles.container, { backgroundColor: '#0f172a' }]}>
-            {/* STICKY HEADER - Precise positioning using safe area insets */}
-            <View style={[styles.topBarSticky, { paddingTop: Math.max(insets.top, 15) }]}>
-                <TouchableOpacity
-                    style={styles.headerIconButton}
-                    onPress={() => {
-                        try {
-                            navigation.openDrawer();
-                        } catch (e) {
-                            navigation.dispatch(DrawerActions.openDrawer());
-                        }
-                    }}
-                    hitSlop={{ top: 20, bottom: 20, left: 20, right: 20 }}
-                    activeOpacity={0.7}
-                >
-                    <Ionicons name="menu-outline" size={32} color="#fff" />
-                </TouchableOpacity>
-                
-                <View style={styles.logoContainerSticky}>
-                    <Image source={logo} style={styles.logoMini} resizeMode="contain" />
-                </View>
-
-                <TouchableOpacity 
-                    style={styles.headerIconButton} 
-                    onPress={() => navigation.navigate('Notifications')}
-                    hitSlop={{ top: 20, bottom: 20, left: 20, right: 20 }}
-                    activeOpacity={0.7}
-                >
-                    <Ionicons name="notifications-outline" size={24} color="#fff" />
-                </TouchableOpacity>
-            </View>
-
+            {/* 1. SCROLLABLE CONTENT (Rendered first) */}
             <ScrollView
                 refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#dc2626" />}
                 showsVerticalScrollIndicator={false}
-                contentContainerStyle={styles.scrollContainer}
+                contentContainerStyle={[
+                    styles.scrollContainer, 
+                    { paddingTop: 75 + insets.top } // Space for the absolute header
+                ]}
                 keyboardShouldPersistTaps="always"
             >
                 <View style={styles.headerWrapperPadding}>
@@ -227,7 +158,7 @@ export default function DashboardScreen({ navigation }) {
                             onMomentumScrollEnd={onMomentumScrollEnd}
                             onScrollBeginDrag={onScrollBeginDrag}
                             keyExtractor={(_, index) => index.toString()}
-                            renderItem={({ item, index }) => (
+                            renderItem={({ item }) => (
                                 <View style={[styles.bannerSlide, { backgroundColor: item.colors[0], borderRadius: 24, padding: 24, justifyContent: 'center' }]}>
                                     <Text style={styles.bannerSubtitle}>{item.subtitle}</Text>
                                     <Text style={styles.bannerTitle}>{item.title}</Text>
@@ -248,60 +179,21 @@ export default function DashboardScreen({ navigation }) {
                                 <Text style={styles.statLabel}>Avg Accuracy</Text>
                                 <Text style={styles.statValue}>
                                     {results.length > 0
-                                        ? Math.round(results.reduce((acc, curr) => acc + (curr.percentage || 0), 0) / results.length)
+                                        ? Math.round(results.reduce((acc, r) => acc + (r.score / r.totalQuestions) * 100, 0) / results.length)
                                         : 0}%
                                 </Text>
                             </View>
                         </View>
-                        <View style={styles.quickStatCard}>
+                        <View style={[styles.quickStatCard, { backgroundColor: 'rgba(59, 130, 246, 0.05)' }]}>
                             <View style={[styles.statIconBg, { backgroundColor: 'rgba(59, 130, 246, 0.1)' }]}>
                                 <Ionicons name="time-outline" size={20} color="#3b82f6" />
                             </View>
                             <View>
-                                <Text style={styles.statLabel}>Tests This Week</Text>
-                                <Text style={styles.statValue}>
-                                    {results.filter(r => {
-                                        const date = new Date(r.createdAt);
-                                        const now = new Date();
-                                        const diff = (now.getTime() - date.getTime()) / (1000 * 60 * 60 * 24);
-                                        return diff <= 7;
-                                    }).length}
-                                </Text>
+                                <Text style={styles.statLabel}>Tests Taken</Text>
+                                <Text style={styles.statValue}>{results.length}</Text>
                             </View>
                         </View>
                     </View>
-
-                    {isStudent && (
-                        <View style={styles.progressSection}>
-                            <Text style={styles.sectionTitle}>Course Progress</Text>
-                            <View style={styles.progressContainer}>
-                                <View style={styles.progressHeader}>
-                                    <Text style={styles.progressLabel}>Unique Tests Completed</Text>
-                                    <Text style={styles.progressValue}>{new Set(results.map(r => r.testId || r.id)).size}/{tests.length || 10}</Text>
-                                </View>
-                                <View style={styles.progressBarBg}>
-                                    <View style={[styles.progressBarFill, { width: `${Math.min(100, (new Set(results.map(r => r.testId || r.id)).size / (tests.length || 10)) * 100)}%`, backgroundColor: '#22c55e' }]} />
-                                </View>
-                                <Text style={styles.progressGoal}>Goal: {tests.length || 10} Tests</Text>
-                            </View>
-                        </View>
-                    )}
-
-                    {!isPro && !isStaff && isStudent && (
-                        <TouchableOpacity
-                            style={styles.proBanner}
-                            onPress={() => navigation.navigate('Payment')}
-                            activeOpacity={0.9}
-                        >
-                            <View style={[styles.proBannerGradient, { backgroundColor: '#f59e0b' }]}>
-                                <View>
-                                    <Text style={styles.proBannerTitle}>Unlock Everything</Text>
-                                    <Text style={styles.proBannerDesc}>Get unlimited tests & pro analytics</Text>
-                                </View>
-                                <Ionicons name="star" size={24} color="#fff" />
-                            </View>
-                        </TouchableOpacity>
-                    )}
 
                     <Text style={styles.sectionTitle}>Main Menu</Text>
 
@@ -422,6 +314,37 @@ export default function DashboardScreen({ navigation }) {
                     )}
                 </View>
             </ScrollView>
+
+            {/* 2. ABSOLUTE HEADER (Rendered last = Highest layer) */}
+            <View style={[styles.topBarSticky, { paddingTop: Math.max(insets.top, 15) }]}>
+                <TouchableOpacity
+                    style={styles.headerIconButton}
+                    onPress={() => {
+                        try {
+                            navigation.openDrawer();
+                        } catch (e) {
+                            navigation.dispatch(DrawerActions.openDrawer());
+                        }
+                    }}
+                    hitSlop={{ top: 20, bottom: 20, left: 20, right: 20 }}
+                    activeOpacity={0.7}
+                >
+                    <Ionicons name="menu-outline" size={32} color="#fff" />
+                </TouchableOpacity>
+                
+                <View style={styles.logoContainerSticky}>
+                    <Image source={logo} style={styles.logoMini} resizeMode="contain" />
+                </View>
+
+                <TouchableOpacity 
+                    style={styles.headerIconButton} 
+                    onPress={() => navigation.navigate('Notifications')}
+                    hitSlop={{ top: 20, bottom: 20, left: 20, right: 20 }}
+                    activeOpacity={0.7}
+                >
+                    <Ionicons name="notifications-outline" size={24} color="#fff" />
+                </TouchableOpacity>
+            </View>
         </View>
     );
 }
@@ -431,29 +354,46 @@ const styles = StyleSheet.create({
         flex: 1,
     },
     scrollContainer: {
-        flexGrow: 1,
+        paddingBottom: 40,
     },
     center: {
         justifyContent: 'center',
         alignItems: 'center',
     },
-    headerWrapper: {
-        paddingTop: 45,
-        paddingHorizontal: 20,
-    },
     topBarSticky: {
+        position: 'absolute',
+        top: 0,
+        left: 0,
+        right: 0,
         flexDirection: 'row',
         justifyContent: 'space-between',
         alignItems: 'center',
         paddingHorizontal: 20,
         paddingBottom: 15,
         backgroundColor: '#0f172a',
-        zIndex: 1000,
+        zIndex: 9999,
+        elevation: 9999,
+        borderBottomWidth: 1,
+        borderBottomColor: 'rgba(255,255,255,0.05)',
     },
     logoContainerSticky: {
         flex: 1,
         alignItems: 'center',
         justifyContent: 'center',
+    },
+    headerIconButton: {
+        width: 44,
+        height: 44,
+        borderRadius: 12,
+        backgroundColor: 'rgba(255,255,255,0.08)',
+        justifyContent: 'center',
+        alignItems: 'center',
+        borderWidth: 1,
+        borderColor: 'rgba(255,255,255,0.1)',
+    },
+    logoMini: {
+        width: 150,
+        height: 45,
     },
     headerWrapperPadding: {
         paddingHorizontal: 20,
@@ -473,13 +413,8 @@ const styles = StyleSheet.create({
         fontWeight: '900',
         marginTop: 4,
     },
-    logoMini: {
-        width: 150,
-        height: 45,
-    },
     quickStatsRow: {
         flexDirection: 'row',
-        paddingHorizontal: 20,
         gap: 12,
         marginBottom: 20,
     },
@@ -524,14 +459,6 @@ const styles = StyleSheet.create({
         width: Dimensions.get('window').width - 40,
         marginRight: 0,
     },
-    bannerCard: {
-        height: 160,
-        borderRadius: 24,
-        padding: 24,
-        justifyContent: 'space-between',
-        flexDirection: 'row',
-        alignItems: 'center',
-    },
     bannerTitle: {
         color: '#fff',
         fontSize: 20,
@@ -545,25 +472,9 @@ const styles = StyleSheet.create({
         letterSpacing: 2,
         marginBottom: 4,
     },
-    pagDot: {
-        width: 6,
-        height: 6,
-        borderRadius: 3,
-        backgroundColor: 'rgba(255,255,255,0.2)',
-    },
-    pagDotActive: {
-        width: 20,
-        backgroundColor: '#fff',
-    },
-    bannerPagination: {
-        flexDirection: 'row',
-        gap: 6,
-    },
     content: {
-        padding: 20,
-    },
-    progressSection: {
-        marginBottom: 24,
+        paddingHorizontal: 20,
+        paddingBottom: 20,
     },
     sectionTitle: {
         fontSize: 18,
@@ -572,104 +483,10 @@ const styles = StyleSheet.create({
         marginBottom: 16,
         letterSpacing: 0.5,
     },
-    progressContainer: {
-        backgroundColor: 'rgba(255,255,255,0.02)',
-        padding: 16,
-        borderRadius: 20,
-        borderWidth: 1,
-        borderColor: 'rgba(255,255,255,0.05)',
-    },
-    progressHeader: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        marginBottom: 10,
-    },
-    progressLabel: {
-        fontSize: 13,
-        fontWeight: '700',
-        color: '#94a3b8',
-    },
-    progressValue: {
-        fontSize: 13,
-        fontWeight: '900',
-        color: '#ef4444',
-    },
-    progressBarBg: {
-        height: 6,
-        backgroundColor: 'rgba(255,255,255,0.05)',
-        borderRadius: 3,
-        overflow: 'hidden',
-        marginBottom: 8,
-    },
-    progressBarFill: {
-        height: '100%',
-        borderRadius: 3,
-    },
-    progressGoal: {
-        fontSize: 10,
-        color: '#475569',
-        fontWeight: '600',
-    },
-    statsOverview: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        gap: 12,
-        marginBottom: 24,
-    },
-    statCardSmall: {
-        flex: 1,
-        height: 90,
-        borderRadius: 18,
-        overflow: 'hidden',
-        borderWidth: 1,
-        borderColor: 'rgba(255,255,255,0.05)',
-    },
-    statCardGradient: {
-        flex: 1,
-        padding: 12,
-        justifyContent: 'center',
-        alignItems: 'center',
-    },
-    statCardValue: {
-        color: '#fff',
-        fontSize: 20,
-        fontWeight: 'bold',
-        marginTop: 2,
-    },
-    statCardLabel: {
-        color: 'rgba(255,255,255,0.6)',
-        fontSize: 9,
-        fontWeight: '700',
-        textTransform: 'uppercase',
-        letterSpacing: 0.5,
-    },
-    proBanner: {
-        marginBottom: 24,
-        borderRadius: 18,
-        overflow: 'hidden',
-    },
-    proBannerGradient: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        padding: 18,
-    },
-    proBannerTitle: {
-        color: '#fff',
-        fontSize: 16,
-        fontWeight: '900',
-    },
-    proBannerDesc: {
-        color: 'rgba(255,255,255,0.7)',
-        fontSize: 11,
-        marginTop: 2,
-    },
     gridContainer: {
         flexDirection: 'row',
         flexWrap: 'wrap',
-        paddingHorizontal: 10,
-        width: '100%',
+        marginHorizontal: -8,
     },
     gridSlot: {
         width: '50%',
@@ -683,12 +500,12 @@ const styles = StyleSheet.create({
         borderWidth: 1,
         borderColor: 'rgba(255,255,255,0.05)',
         justifyContent: 'center',
-        minHeight: 130, 
+        minHeight: 130,
+        elevation: 4,
         shadowColor: '#000',
-        shadowOffset: { width: 0, height: 10 },
-        shadowOpacity: 0.3,
-        shadowRadius: 15,
-        elevation: 8,
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.2,
+        shadowRadius: 8,
     },
     gridIconBg: {
         width: 48,
@@ -710,7 +527,7 @@ const styles = StyleSheet.create({
         textAlign: 'center',
     },
     recentSection: {
-        marginTop: 10,
+        marginTop: 20,
     },
     leaderboardCard: {
         backgroundColor: 'rgba(255,255,255,0.01)',
@@ -739,18 +556,6 @@ const styles = StyleSheet.create({
         fontWeight: '900',
         color: '#ef4444',
         fontSize: 11,
-    },
-    headerIconButton: {
-        width: 44,
-        height: 44,
-        borderRadius: 12,
-        backgroundColor: 'rgba(255,255,255,0.08)',
-        justifyContent: 'center',
-        alignItems: 'center',
-        borderWidth: 1,
-        borderColor: 'rgba(255,255,255,0.1)',
-        zIndex: 200,
-        elevation: 15,
     },
     leaderboardInfo: {
         flex: 1,

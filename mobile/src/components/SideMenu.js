@@ -6,8 +6,9 @@ import {
     Image,
     SafeAreaView,
     Alert,
+    ScrollView,
+    TouchableOpacity,
 } from 'react-native';
-import { ScrollView, TouchableOpacity } from 'react-native-gesture-handler';
 import {
     DrawerContentScrollView,
     DrawerItemList,
