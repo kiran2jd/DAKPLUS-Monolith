@@ -5,7 +5,6 @@ import {
     Text,
     SafeAreaView,
     Dimensions,
-    Dimensions,
     ActivityIndicator,
     Pressable,
     ScrollView,
