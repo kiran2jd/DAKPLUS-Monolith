@@ -7,8 +7,10 @@ import {
     Alert,
     SafeAreaView,
     RefreshControl,
+    ScrollView,
+    FlatList,
+    TouchableOpacity,
 } from 'react-native';
-import { ScrollView, FlatList, TouchableOpacity } from 'react-native-gesture-handler';
 import { DrawerActions } from '@react-navigation/native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
@@ -80,12 +82,14 @@ export default function ManageTestsScreen({ navigation }) {
                 <TouchableOpacity
                     style={[styles.actionBtn, styles.editBtn]}
                     onPress={() => navigation.navigate('EditTest', { testId: item.id })}
+                    activeOpacity={0.7}
                 >
                     <Ionicons name="create-outline" size={20} color="#60a5fa" />
                 </TouchableOpacity>
                 <TouchableOpacity
                     style={[styles.actionBtn, styles.deleteBtn]}
                     onPress={() => handleDelete(item.id)}
+                    activeOpacity={0.7}
                 >
                     <Ionicons name="trash-outline" size={20} color="#f87171" />
                 </TouchableOpacity>

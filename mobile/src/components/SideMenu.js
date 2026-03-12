@@ -8,6 +8,7 @@ import {
     SafeAreaView,
     Alert,
     Pressable,
+    TouchableOpacity,
 } from 'react-native';
 import {
     DrawerContentScrollView,
@@ -159,27 +160,25 @@ const SideMenu = (props) => {
 
             <View style={styles.footer}>
                 <View style={styles.socialIcons}>
-                    <Pressable style={styles.socialBtn}>
+                    <TouchableOpacity style={styles.socialBtn} activeOpacity={0.7}>
                         <FontAwesome5 name="facebook-f" size={18} color="#fff" />
-                    </Pressable>
-                    <Pressable style={styles.socialBtn}>
+                    </TouchableOpacity>
+                    <TouchableOpacity style={styles.socialBtn} activeOpacity={0.7}>
                         <FontAwesome5 name="instagram" size={18} color="#fff" />
-                    </Pressable>
-                    <Pressable style={styles.socialBtn}>
+                    </TouchableOpacity>
+                    <TouchableOpacity style={styles.socialBtn} activeOpacity={0.7}>
                         <FontAwesome5 name="twitter" size={18} color="#fff" />
-                    </Pressable>
+                    </TouchableOpacity>
                 </View>
 
-                <Pressable 
-                    style={({ pressed }) => [
-                        styles.logoutBtn,
-                        { opacity: pressed ? 0.7 : 1 }
-                    ]} 
+                <TouchableOpacity 
+                    style={styles.logoutBtn} 
                     onPress={handleLogout}
+                    activeOpacity={0.7}
                 >
                     <Ionicons name="log-out-outline" size={20} color="#ef4444" />
                     <Text style={styles.logoutText}>Sign Out</Text>
-                </Pressable>
+                </TouchableOpacity>
 
                 <Text style={styles.versionText}>SYSTEM BUILD v4.0.2</Text>
             </View>
