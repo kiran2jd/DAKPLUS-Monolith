@@ -8,8 +8,10 @@ import {
     ActivityIndicator,
     Alert,
     SafeAreaView,
-    RefreshControl
+    RefreshControl,
+    TouchableOpacity as RNTouchableOpacity,
 } from 'react-native';
+import { DrawerActions } from '@react-navigation/native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import { testService } from '../services/test';
@@ -102,18 +104,21 @@ export default function ManageTestsScreen({ navigation }) {
     }
 
     return (
-        <SafeAreaView style={styles.container}>
-            <LinearGradient colors={['#1e3a8a', '#3b82f6']} style={styles.header}>
+        <SafeAreaView style={[styles.container, { backgroundColor: '#0f172a' }]}>
+            <View style={styles.header}>
                 <View style={styles.headerRow}>
-                    <TouchableOpacity onPress={() => navigation.goBack()}>
-                        <Ionicons name="arrow-back" size={24} color="#fff" />
-                    </TouchableOpacity>
-                    <Text style={styles.headerTitle}>My Created Tests</Text>
-                    <TouchableOpacity onPress={() => navigation.navigate('CreateTest')}>
-                        <Ionicons name="add-circle" size={28} color="#fff" />
-                    </TouchableOpacity>
+                    <RNTouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
+                        <Ionicons name="chevron-back" size={24} color="#fff" />
+                    </RNTouchableOpacity>
+                    <Text style={styles.headerTitle}>Content Manager</Text>
+                    <RNTouchableOpacity 
+                        onPress={() => navigation.dispatch(DrawerActions.openDrawer())} 
+                        style={styles.backBtn}
+                    >
+                        <Ionicons name="menu-outline" size={24} color="#fff" />
+                    </RNTouchableOpacity>
                 </View>
-            </LinearGradient>
+            </View>
 
             <FlatList
                 data={tests}
@@ -144,49 +149,61 @@ export default function ManageTestsScreen({ navigation }) {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: '#f8fafc',
+        backgroundColor: '#0f172a',
     },
     header: {
-        paddingTop: 50,
+        paddingTop: 45,
         paddingBottom: 20,
         paddingHorizontal: 20,
+        backgroundColor: '#0f172a',
     },
     headerRow: {
         flexDirection: 'row',
         alignItems: 'center',
         justifyContent: 'space-between',
     },
+    backBtn: {
+        width: 44,
+        height: 44,
+        borderRadius: 12,
+        backgroundColor: 'rgba(255,255,255,0.05)',
+        justifyContent: 'center',
+        alignItems: 'center',
+        borderWidth: 1,
+        borderColor: 'rgba(255,255,255,0.1)',
+    },
     headerTitle: {
         color: '#fff',
-        fontSize: 20,
-        fontWeight: 'bold',
+        fontSize: 18,
+        fontWeight: '900',
+        letterSpacing: 0.5,
     },
     listContent: {
         padding: 20,
         flexGrow: 1,
     },
     testCard: {
-        backgroundColor: '#fff',
-        borderRadius: 16,
+        backgroundColor: 'rgba(255,255,255,0.03)',
+        borderRadius: 20,
         padding: 16,
         marginBottom: 16,
         flexDirection: 'row',
         alignItems: 'center',
         borderWidth: 1,
-        borderColor: '#e2e8f0',
-        elevation: 2,
+        borderColor: 'rgba(255,255,255,0.05)',
         shadowColor: '#000',
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.05,
-        shadowRadius: 4,
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.1,
+        shadowRadius: 8,
+        elevation: 3,
     },
     testInfo: {
         flex: 1,
     },
     testTitle: {
         fontSize: 16,
-        fontWeight: 'bold',
-        color: '#1e293b',
+        fontWeight: '900',
+        color: '#fff',
         marginBottom: 4,
     },
     testSub: {

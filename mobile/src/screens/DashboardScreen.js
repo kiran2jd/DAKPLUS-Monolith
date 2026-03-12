@@ -14,7 +14,7 @@ import {
     TouchableOpacity as RNTouchableOpacity,
 } from 'react-native';
 import { ScrollView, TouchableOpacity } from 'react-native-gesture-handler';
-import { useFocusEffect } from '@react-navigation/native';
+import { useFocusEffect, DrawerActions } from '@react-navigation/native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { usePreventScreenCapture } from 'expo-screen-capture';
 import { authService } from '../services/auth';
@@ -177,7 +177,7 @@ export default function DashboardScreen({ navigation }) {
             <View style={styles.topBar}>
                 <RNTouchableOpacity
                     style={styles.headerIconButton}
-                    onPress={() => navigation.openDrawer()}
+                    onPress={() => navigation.dispatch(DrawerActions.openDrawer())}
                     activeOpacity={0.7}
                 >
                     <Ionicons name="menu-outline" size={28} color="#fff" />
@@ -641,21 +641,21 @@ const styles = StyleSheet.create({
         paddingHorizontal: 2,
     },
     gridItem: {
-        width: '48%',
-        backgroundColor: 'rgba(255,255,255,0.05)',
-        padding: 20,
-        borderRadius: 24,
+        width: '47%',
+        backgroundColor: 'rgba(255,255,255,0.04)',
+        padding: 16,
+        borderRadius: 20,
         alignItems: 'center',
         borderWidth: 1,
-        borderColor: 'rgba(255,255,255,0.08)',
-        marginVertical: 6,
-        marginHorizontal: '1%',
-        zIndex: 100,
-        elevation: 10,
+        borderColor: 'rgba(255,255,255,0.05)',
+        marginVertical: 8,
+        justifyContent: 'center',
+        aspectRatio: 1, // Makes items square
         shadowColor: '#000',
-        shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.2,
-        shadowRadius: 8,
+        shadowOffset: { width: 0, height: 10 },
+        shadowOpacity: 0.3,
+        shadowRadius: 15,
+        elevation: 8,
     },
     gridIconBg: {
         width: 48,

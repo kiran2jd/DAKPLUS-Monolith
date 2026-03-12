@@ -11,6 +11,7 @@ import { ScrollView, TouchableOpacity } from 'react-native-gesture-handler';
 import { LinearGradient } from 'expo-linear-gradient';
 import { resultService } from '../services/result';
 import { authService } from '../services/auth';
+import { Ionicons } from '@expo/vector-icons';
 
 import ConfettiCannon from 'react-native-confetti-cannon';
 
@@ -47,7 +48,7 @@ export default function ResultScreen({ navigation, route }) {
 
     if (loading) {
         return (
-            <View style={styles.center}>
+            <View style={[styles.center, { backgroundColor: '#0f172a' }]}>
                 <ActivityIndicator size="large" color="#dc2626" />
             </View>
         );
@@ -66,7 +67,11 @@ export default function ResultScreen({ navigation, route }) {
     });
 
     return (
-        <SafeAreaView style={styles.container}>
+        <SafeAreaView style={[styles.container, { backgroundColor: '#0f172a' }]}>
+            <LinearGradient
+                colors={['#0f172a', '#1e293b', '#0f172a']}
+                style={StyleSheet.absoluteFillObject}
+            />
             {isPassed && (
                 <ConfettiCannon
                     count={200}
@@ -128,7 +133,15 @@ export default function ResultScreen({ navigation, route }) {
                             routes: [{ name: 'Main' }],
                         })}
                     >
-                        <Text style={styles.homeButtonText}>Back to Dashboard</Text>
+                        <LinearGradient
+                            colors={['#dc2626', '#f97316']}
+                            start={{ x: 0, y: 0 }}
+                            end={{ x: 1, y: 0 }}
+                            style={styles.homeBtnGradient}
+                        >
+                            <Ionicons name="home-outline" size={20} color="#fff" style={{ marginRight: 8 }} />
+                            <Text style={styles.homeButtonText}>Back to Dashboard</Text>
+                        </LinearGradient>
                     </TouchableOpacity>
 
                     {user?.role?.toLowerCase() === 'student' && user?.subscriptionTier !== 'PREMIUM' && (
@@ -224,7 +237,7 @@ export default function ResultScreen({ navigation, route }) {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: '#f8fafc',
+        backgroundColor: '#0f172a',
     },
     scrollContainer: {
         flexGrow: 1,
@@ -280,15 +293,15 @@ const styles = StyleSheet.create({
     },
     statCard: {
         flex: 1,
-        backgroundColor: '#ffffff',
+        backgroundColor: 'rgba(255,255,255,0.03)',
         padding: 12,
         borderRadius: 20,
         borderWidth: 1,
-        borderColor: '#e2e8f0',
+        borderColor: 'rgba(255,255,255,0.05)',
         alignItems: 'center',
         shadowColor: '#000',
         shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.05,
+        shadowOpacity: 0.1,
         shadowRadius: 8,
         elevation: 2,
     },
@@ -300,34 +313,34 @@ const styles = StyleSheet.create({
         fontWeight: '600',
     },
     statValue: {
-        color: '#1e293b',
+        color: '#fff',
         fontSize: 20,
-        fontWeight: 'bold',
+        fontWeight: '900',
     },
     sectionTitle: {
-        color: '#1e293b',
+        color: '#fff',
         fontSize: 20,
-        fontWeight: 'bold',
+        fontWeight: '900',
         marginTop: 32,
         marginBottom: 16,
     },
     reviewCard: {
-        backgroundColor: '#ffffff',
+        backgroundColor: 'rgba(255,255,255,0.02)',
         borderRadius: 20,
         padding: 20,
         marginBottom: 16,
         borderWidth: 1,
-        borderColor: '#e2e8f0',
+        borderColor: 'rgba(255,255,255,0.05)',
         shadowColor: '#000',
         shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.05,
+        shadowOpacity: 0.1,
         shadowRadius: 10,
         elevation: 3,
     },
     reviewQuestion: {
-        color: '#1e293b',
+        color: '#fff',
         fontSize: 16,
-        fontWeight: 'bold',
+        fontWeight: '900',
         marginBottom: 12,
         lineHeight: 22,
     },
@@ -387,20 +400,22 @@ const styles = StyleSheet.create({
         lineHeight: 20,
     },
     homeButton: {
-        backgroundColor: '#dc2626',
-        padding: 18,
         borderRadius: 16,
-        alignItems: 'center',
-        shadowColor: '#dc2626',
-        shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.2,
-        shadowRadius: 10,
+        overflow: 'hidden',
         elevation: 4,
+    },
+    homeBtnGradient: {
+        padding: 18,
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'center',
     },
     homeButtonText: {
         color: '#fff',
         fontSize: 16,
-        fontWeight: 'bold',
+        fontWeight: '900',
+        textTransform: 'uppercase',
+        letterSpacing: 0.5,
     },
     filterTabs: {
         flexDirection: 'row',

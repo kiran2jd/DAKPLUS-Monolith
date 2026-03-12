@@ -13,8 +13,9 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import { resultService } from '../services/result';
 
-import { useFocusEffect } from '@react-navigation/native';
+import { useFocusEffect, DrawerActions } from '@react-navigation/native';
 import { useCallback } from 'react';
+import { TouchableOpacity as RNTouchableOpacity } from 'react-native';
 
 const { width } = Dimensions.get('window');
 
@@ -108,11 +109,16 @@ export default function AnalyticsScreen({ navigation }) {
             />
             <SafeAreaView style={{ flex: 1 }}>
                 <View style={styles.header}>
-                    <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
+                    <RNTouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
                         <Ionicons name="chevron-back" size={24} color="#fff" />
-                    </TouchableOpacity>
+                    </RNTouchableOpacity>
                     <Text style={styles.headerTitle}>Performance Hub</Text>
-                    <View style={{ width: 44 }} />
+                    <RNTouchableOpacity 
+                        onPress={() => navigation.dispatch(DrawerActions.openDrawer())} 
+                        style={styles.backBtn}
+                    >
+                        <Ionicons name="menu-outline" size={24} color="#fff" />
+                    </RNTouchableOpacity>
                 </View>
 
                 <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>

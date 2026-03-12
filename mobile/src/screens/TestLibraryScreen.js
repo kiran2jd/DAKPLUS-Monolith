@@ -5,8 +5,11 @@ import {
     Text,
     ActivityIndicator,
     SafeAreaView,
+    Image,
+    TouchableOpacity as RNTouchableOpacity,
 } from 'react-native';
 import { ScrollView, FlatList, TouchableOpacity } from 'react-native-gesture-handler';
+import { useFocusEffect, DrawerActions } from '@react-navigation/native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import { testService } from '../services/test';
@@ -145,11 +148,16 @@ export default function TestLibraryScreen({ navigation }) {
             />
             <SafeAreaView style={{ flex: 1 }}>
                 <View style={styles.header}>
-                    <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
+                    <RNTouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
                         <Ionicons name="chevron-back" size={24} color="#fff" />
-                    </TouchableOpacity>
-                    <Text style={styles.headerTitle}>Test Library</Text>
-                    <View style={{ width: 44 }} />
+                    </RNTouchableOpacity>
+                    <Text style={styles.headerTitle}>Exam Vault</Text>
+                    <RNTouchableOpacity 
+                        onPress={() => navigation.dispatch(DrawerActions.openDrawer())} 
+                        style={styles.backBtn}
+                    >
+                        <Ionicons name="menu-outline" size={24} color="#fff" />
+                    </RNTouchableOpacity>
                 </View>
 
                 <View style={styles.tabContainer}>
@@ -360,12 +368,17 @@ const styles = StyleSheet.create({
         padding: 20,
     },
     testCard: {
-        backgroundColor: 'rgba(255,255,255,0.02)',
-        borderRadius: 22,
+        backgroundColor: 'rgba(255,255,255,0.03)',
+        borderRadius: 24,
         padding: 20,
-        marginBottom: 16,
+        marginBottom: 20,
         borderWidth: 1,
         borderColor: 'rgba(255,255,255,0.05)',
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 10 },
+        shadowOpacity: 0.2,
+        shadowRadius: 12,
+        elevation: 5,
     },
     lockedCard: {
         opacity: 0.7,

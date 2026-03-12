@@ -10,8 +10,10 @@ import {
     SafeAreaView,
     TextInput,
     Modal,
-    ScrollView
+    ScrollView,
+    TouchableOpacity as RNTouchableOpacity,
 } from 'react-native';
+import { DrawerActions } from '@react-navigation/native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import { topicService } from '../services/topic';
@@ -136,18 +138,21 @@ export default function TopicManagementScreen({ navigation }) {
     );
 
     return (
-        <SafeAreaView style={styles.container}>
-            <LinearGradient colors={['#059669', '#10b981']} style={styles.header}>
+        <SafeAreaView style={[styles.container, { backgroundColor: '#0f172a' }]}>
+            <View style={styles.header}>
                 <View style={styles.headerRow}>
-                    <TouchableOpacity onPress={() => navigation.goBack()}>
-                        <Ionicons name="arrow-back" size={24} color="#fff" />
-                    </TouchableOpacity>
-                    <Text style={styles.headerTitle}>Topic Management</Text>
-                    <TouchableOpacity onPress={() => setModalVisible(true)}>
-                        <Ionicons name="add-circle" size={28} color="#fff" />
-                    </TouchableOpacity>
+                    <RNTouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
+                        <Ionicons name="chevron-back" size={24} color="#fff" />
+                    </RNTouchableOpacity>
+                    <Text style={styles.headerTitle}>Topic Matrix</Text>
+                    <RNTouchableOpacity 
+                        onPress={() => navigation.dispatch(DrawerActions.openDrawer())} 
+                        style={styles.backBtn}
+                    >
+                        <Ionicons name="menu-outline" size={24} color="#fff" />
+                    </RNTouchableOpacity>
                 </View>
-            </LinearGradient>
+            </View>
 
             {loading ? (
                 <ActivityIndicator size="large" color="#059669" style={{ marginTop: 50 }} />
@@ -217,19 +222,57 @@ export default function TopicManagementScreen({ navigation }) {
 }
 
 const styles = StyleSheet.create({
-    container: { flex: 1, backgroundColor: '#f8fafc' },
-    header: { paddingTop: 50, paddingBottom: 20, paddingHorizontal: 20 },
-    headerRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
-    headerTitle: { color: '#fff', fontSize: 20, fontWeight: 'bold' },
+    container: { flex: 1, backgroundColor: '#0f172a' },
+    header: {
+        paddingTop: 45,
+        paddingBottom: 20,
+        paddingHorizontal: 20,
+        backgroundColor: '#0f172a',
+    },
+    headerRow: { 
+        flexDirection: 'row', 
+        alignItems: 'center', 
+        justifyContent: 'space-between' 
+    },
+    backBtn: {
+        width: 44,
+        height: 44,
+        borderRadius: 12,
+        backgroundColor: 'rgba(255,255,255,0.05)',
+        justifyContent: 'center',
+        alignItems: 'center',
+        borderWidth: 1,
+        borderColor: 'rgba(255,255,255,0.1)',
+    },
+    headerTitle: { 
+        color: '#fff', 
+        fontSize: 18, 
+        fontWeight: '900',
+        letterSpacing: 0.5 
+    },
     list: { padding: 20 },
-    topicCard: { backgroundColor: '#fff', borderRadius: 16, padding: 16, marginBottom: 16, borderWidth: 1, borderColor: '#e2e8f0' },
+    topicCard: { 
+        backgroundColor: 'rgba(255,255,255,0.03)', 
+        borderRadius: 20, 
+        padding: 16, 
+        marginBottom: 16, 
+        borderWidth: 1, 
+        borderColor: 'rgba(255,255,255,0.05)' 
+    },
     topicHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 },
-    topicName: { fontSize: 18, fontWeight: 'bold', color: '#1e293b' },
+    topicName: { fontSize: 18, fontWeight: '900', color: '#fff' },
     headerActions: { flexDirection: 'row', alignItems: 'center', gap: 12 },
     subtopicsContainer: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
-    subtopicBadge: { backgroundColor: '#f1f5f9', paddingHorizontal: 10, paddingVertical: 4, borderRadius: 20, borderWidth: 1, borderColor: '#e2e8f0' },
-    subtopicText: { fontSize: 12, color: '#475569' },
-    noSubtopics: { fontSize: 12, color: '#94a3b8', fontStyle: 'italic' },
+    subtopicBadge: { 
+        backgroundColor: 'rgba(255,255,255,0.02)', 
+        paddingHorizontal: 10, 
+        paddingVertical: 4, 
+        borderRadius: 12, 
+        borderWidth: 1, 
+        borderColor: 'rgba(255,255,255,0.05)' 
+    },
+    subtopicText: { fontSize: 12, color: '#94a3b8' },
+    noSubtopics: { fontSize: 12, color: '#475569', fontStyle: 'italic' },
     modalOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'center', padding: 24 },
     modalContent: { backgroundColor: '#fff', borderRadius: 24, padding: 24 },
     modalTitle: { fontSize: 20, fontWeight: 'bold', color: '#1e293b', marginBottom: 20 },
