@@ -108,7 +108,11 @@ export default function LoginScreen({ navigation }) {
             await authService.login(identifier, password, persistent);
             navigation.replace('Main');
         } catch (err) {
-            const errorMsg = err.response?.data?.message || err.message || 'Invalid credentials or network issue';
+            let errorMsg = err.response?.data?.message || err.message || 'Invalid credentials or network issue';
+            // Sanitize technical details
+            if (errorMsg.includes('400') || errorMsg.includes('500') || errorMsg.includes('Network Error')) {
+                errorMsg = 'Invalid login details or network connection issue. Please try again.';
+            }
             Alert.alert(
                 'Login Failed',
                 errorMsg
@@ -516,8 +520,10 @@ const styles = StyleSheet.create({
     },
     checkmark: {
         color: '#fff',
-        fontSize: 12,
-        fontWeight: 'bold',
+        fontSize: 14,
+        fontWeight: '900',
+        textAlign: 'center',
+        includeFontPadding: false,
     },
     checkboxLabel: {
         fontSize: 14,

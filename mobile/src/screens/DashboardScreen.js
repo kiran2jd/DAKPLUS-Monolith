@@ -11,6 +11,7 @@ import {
     Dimensions,
     Platform,
     Image,
+    TouchableOpacity as RNTouchableOpacity,
 } from 'react-native';
 import { ScrollView, TouchableOpacity } from 'react-native-gesture-handler';
 import { useFocusEffect } from '@react-navigation/native';
@@ -49,31 +50,27 @@ export default function DashboardScreen({ navigation }) {
     // usePreventScreenCapture(); // Temporarily disabled for client demo
 
     const loadData = useCallback(async (force = false) => {
-        if (!force && user && results.length > 0) return;
         setLoading(true);
         try {
-            // 1. Load User Profile (Critical)
-            let userData;
-            try {
-                userData = await authService.getProfile();
-            } catch (err) {
-                console.log("Profile load failed, falling back to local user");
-                userData = await authService.getUser();
-            }
-
+            // 1. Load User Profile with strict 5s timeout
+            const profilePromise = authService.getProfile().catch(() => authService.getUser());
+            const profileTimeout = new Promise((resolve) => setTimeout(() => resolve(null), 5000));
+            
+            const userData = await Promise.race([profilePromise, profileTimeout]);
+            
             if (!userData) {
+                console.log("Dashboard: No user data available after timeout");
                 setLoading(false);
                 setRefreshing(false);
                 return;
             }
             setUser(userData);
 
-            // 2. Load Dashboard Data (Resilient)
+            // 2. Load Dashboard Data (Student only)
             const role = userData.role?.toLowerCase();
             if (role === 'student') {
                 const userId = userData.id || userData._id;
 
-                // Simple fetch with timeout protection
                 const fetchData = async () => {
                     try {
                         const [resultsRes, testsRes, lbRes] = await Promise.allSettled([
@@ -86,23 +83,23 @@ export default function DashboardScreen({ navigation }) {
                         if (testsRes.status === 'fulfilled') setTests(testsRes.value || []);
                         if (lbRes.status === 'fulfilled') setLeaderboard(lbRes.value || []);
                     } catch (e) {
-                        console.log("Partial data load failed:", e.message);
+                        console.log("Dashboard data partial failure:", e.message);
                     }
                 };
 
-                // Add a race against timeout to prevent UI hang
+                // Strict 10s timeout for all other data
                 await Promise.race([
                     fetchData(),
-                    new Promise(resolve => setTimeout(resolve, 8000))
+                    new Promise(resolve => setTimeout(resolve, 10000))
                 ]);
             }
         } catch (err) {
-            console.error("Dashboard primary load error:", err);
+            console.log("Dashboard fetch error:", err.message);
         } finally {
             setLoading(false);
             setRefreshing(false);
         }
-    }, [user, results.length]);
+    }, []);
 
     useFocusEffect(
         useCallback(() => {
@@ -178,13 +175,13 @@ export default function DashboardScreen({ navigation }) {
     const renderHeader = () => (
         <View style={styles.headerWrapper}>
             <View style={styles.topBar}>
-                <TouchableOpacity
+                <RNTouchableOpacity
                     style={styles.headerIconButton}
                     onPress={() => navigation.openDrawer()}
                     activeOpacity={0.7}
                 >
                     <Ionicons name="menu-outline" size={28} color="#fff" />
-                </TouchableOpacity>
+                </RNTouchableOpacity>
                 <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
                     <Image source={logo} style={styles.logoMini} resizeMode="contain" />
                 </View>
