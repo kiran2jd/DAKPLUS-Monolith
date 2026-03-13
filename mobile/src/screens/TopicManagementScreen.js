@@ -31,6 +31,7 @@ export default function TopicManagementScreen({ navigation }) {
     const [editingSubtopic, setEditingSubtopic] = useState(null);
     const [selectedTopic, setSelectedTopic] = useState(null);
     const [subtopics, setSubtopics] = useState({}); // { topicId: [subtopics] }
+    const [courseIds, setCourseIds] = useState([]); // Selected course tags
 
     useEffect(() => {
         loadTopics();
@@ -60,13 +61,20 @@ export default function TopicManagementScreen({ navigation }) {
     };
 
 
+    const toggleCourse = (cid) => {
+        setCourseIds(prev => 
+            prev.includes(cid) ? prev.filter(c => c !== cid) : [...prev, cid]
+        );
+    };
+
     const handleAddTopic = async () => {
         const topicObj = editingTopic || newTopic;
         if (!topicObj.name?.trim()) return;
         setUploading(true);
         try {
             const topicData = { 
-                name: topicObj.name
+                name: topicObj.name,
+                courseIds: courseIds
             };
             
             if (editingTopic) {
@@ -147,6 +155,7 @@ export default function TopicManagementScreen({ navigation }) {
                     <TouchableOpacity
                         onPress={() => {
                             setEditingTopic(item);
+                            setCourseIds(item.courseIds || []);
                             setModalVisible(true);
                         }}
                         style={styles.actionIcon}
@@ -220,7 +229,11 @@ export default function TopicManagementScreen({ navigation }) {
                     <Text style={styles.headerSubtitle}>Map your curriculum topics and modules</Text>
                     <TouchableOpacity 
                         style={styles.createBtn}
-                        onPress={() => setModalVisible(true)}
+                        onPress={() => {
+                            setEditingTopic(null);
+                            setCourseIds([]);
+                            setModalVisible(true);
+                        }}
                     >
                         <Ionicons name="duplicate" size={18} color="#fff" />
                         <Text style={styles.createBtnText}>New Topic</Text>
@@ -259,6 +272,21 @@ export default function TopicManagementScreen({ navigation }) {
                             }}
                             placeholderTextColor="#94a3b8"
                         />
+
+                        <Text style={styles.modalLabel}>Available In Courses</Text>
+                        <View style={styles.courseSelectionRow}>
+                            {['MTS', 'PMMG', 'PASA'].map(cid => (
+                                <TouchableOpacity 
+                                    key={cid}
+                                    style={[styles.courseChip, courseIds.includes(cid) && styles.courseChipActive]}
+                                    onPress={() => toggleCourse(cid)}
+                                >
+                                    <Text style={[styles.courseChipText, courseIds.includes(cid) && styles.courseChipTextActive]}>
+                                        {cid}
+                                    </Text>
+                                </TouchableOpacity>
+                            ))}
+                        </View>
                         
 
                         <View style={styles.modalBtns}>
@@ -391,6 +419,39 @@ const styles = StyleSheet.create({
         fontWeight: 'bold',
     },
     fileBtnTextSelected: {
+        color: '#10b981',
+    },
+    modalLabel: {
+        color: '#94a3b8',
+        fontSize: 12,
+        fontWeight: '900',
+        textTransform: 'uppercase',
+        letterSpacing: 1,
+        marginBottom: 12,
+    },
+    courseSelectionRow: {
+        flexDirection: 'row',
+        gap: 10,
+        marginBottom: 30,
+    },
+    courseChip: {
+        paddingHorizontal: 16,
+        paddingVertical: 10,
+        borderRadius: 12,
+        backgroundColor: 'rgba(255,255,255,0.04)',
+        borderWidth: 1,
+        borderColor: 'rgba(255,255,255,0.05)',
+    },
+    courseChipActive: {
+        backgroundColor: 'rgba(16,185,129,0.1)',
+        borderColor: '#10b981',
+    },
+    courseChipText: {
+        color: '#64748b',
+        fontSize: 13,
+        fontWeight: 'bold',
+    },
+    courseChipTextActive: {
         color: '#10b981',
     },
 });
