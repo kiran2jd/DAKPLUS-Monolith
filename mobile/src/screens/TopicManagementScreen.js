@@ -138,32 +138,27 @@ export default function TopicManagementScreen({ navigation }) {
     );
 
     return (
-        <View style={[styles.container, { backgroundColor: '#0f172a' }]}>
-            <View style={[styles.header, { paddingTop: Math.max(insets.top, 15) }]}>
+        <View style={styles.container}>
+            <LinearGradient colors={['#1e293b', '#0f172a']} style={[styles.header, { paddingTop: Math.max(insets.top, 15) }]}>
                 <View style={styles.headerRow}>
                     <TouchableOpacity 
                         onPress={() => navigation.goBack()} 
-                        style={styles.backBtn}
+                        style={styles.headerIconButton}
                         activeOpacity={0.7}
                     >
                         <Ionicons name="chevron-back" size={24} color="#fff" />
                     </TouchableOpacity>
-                    <Text style={styles.headerTitle}>Topic Matrix</Text>
+                    <Text style={styles.headerTitle}>TOPIC MATRIX</Text>
                     <TouchableOpacity 
-                        onPress={() => {
-                            try {
-                                navigation.getParent()?.openDrawer();
-                            } catch (e) {
-                                navigation.dispatch(DrawerActions.openDrawer());
-                            }
-                        }} 
-                        style={styles.backBtn}
+                        onPress={() => navigation.dispatch(DrawerActions.openDrawer())} 
+                        style={styles.headerIconButton}
                         activeOpacity={0.7}
                     >
-                        <Ionicons name="menu-outline" size={24} color="#fff" />
+                        <Ionicons name="menu-outline" size={28} color="#fff" />
                     </TouchableOpacity>
                 </View>
-            </View>
+                <Text style={styles.headerSubtitle}>Map your curriculum topics and modules</Text>
+            </LinearGradient>
 
             {loading ? (
                 <ActivityIndicator size="large" color="#059669" style={{ marginTop: 50 }} />
@@ -234,61 +229,26 @@ export default function TopicManagementScreen({ navigation }) {
 
 const styles = StyleSheet.create({
     container: { flex: 1, backgroundColor: '#0f172a' },
-    header: {
-        paddingBottom: 20,
-        paddingHorizontal: 20,
-        backgroundColor: '#0f172a',
-    },
-    headerRow: { 
-        flexDirection: 'row', 
-        alignItems: 'center', 
-        justifyContent: 'space-between' 
-    },
-    backBtn: {
-        width: 44,
-        height: 44,
-        borderRadius: 12,
-        backgroundColor: 'rgba(255,255,255,0.05)',
-        justifyContent: 'center',
-        alignItems: 'center',
-        borderWidth: 1,
-        borderColor: 'rgba(255,255,255,0.1)',
-    },
-    headerTitle: { 
-        color: '#fff', 
-        fontSize: 18, 
-        fontWeight: '900',
-        letterSpacing: 0.5 
-    },
-    list: { padding: 20 },
-    topicCard: { 
-        backgroundColor: 'rgba(255,255,255,0.03)', 
-        borderRadius: 20, 
-        padding: 16, 
-        marginBottom: 16, 
-        borderWidth: 1, 
-        borderColor: 'rgba(255,255,255,0.05)' 
-    },
-    topicHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 },
-    topicName: { fontSize: 18, fontWeight: '900', color: '#fff' },
+    header: { paddingBottom: 24, paddingHorizontal: 20, borderBottomLeftRadius: 32, borderBottomRightRadius: 32 },
+    headerRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
+    headerIconButton: { width: 44, height: 44, borderRadius: 12, backgroundColor: 'rgba(255,255,255,0.08)', justifyContent: 'center', alignItems: 'center', borderWidth: 1, borderColor: 'rgba(255,255,255,0.1)' },
+    headerTitle: { color: '#fff', fontSize: 18, fontWeight: '900', letterSpacing: 1 },
+    headerSubtitle: { color: '#94a3b8', fontSize: 12, marginTop: 4, fontWeight: '500' },
+    list: { padding: 20, paddingBottom: 40 },
+    topicCard: { backgroundColor: 'rgba(255,255,255,0.03)', borderRadius: 24, padding: 20, marginBottom: 16, borderWidth: 1, borderColor: 'rgba(255,255,255,0.05)' },
+    topicHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 15 },
+    topicName: { fontSize: 17, fontWeight: '900', color: '#fff' },
     headerActions: { flexDirection: 'row', alignItems: 'center', gap: 12 },
     subtopicsContainer: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
-    subtopicBadge: { 
-        backgroundColor: 'rgba(255,255,255,0.02)', 
-        paddingHorizontal: 10, 
-        paddingVertical: 4, 
-        borderRadius: 12, 
-        borderWidth: 1, 
-        borderColor: 'rgba(255,255,255,0.05)' 
-    },
-    subtopicText: { fontSize: 12, color: '#94a3b8' },
+    subtopicBadge: { backgroundColor: 'rgba(255,255,255,0.02)', paddingHorizontal: 12, paddingVertical: 6, borderRadius: 12, borderWidth: 1, borderColor: 'rgba(255,255,255,0.05)' },
+    subtopicText: { fontSize: 12, color: '#94a3b8', fontWeight: '500' },
     noSubtopics: { fontSize: 12, color: '#475569', fontStyle: 'italic' },
-    modalOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'center', padding: 24 },
-    modalContent: { backgroundColor: '#1e293b', borderRadius: 24, padding: 24, borderWidth: 1, borderColor: 'rgba(255,255,255,0.1)' },
-    modalTitle: { fontSize: 20, fontWeight: 'bold', color: '#fff', marginBottom: 20 },
-    input: { backgroundColor: 'rgba(255,255,255,0.05)', borderRadius: 12, padding: 16, borderWidth: 1, borderColor: 'rgba(255,255,255,0.1)', marginBottom: 24, color: '#fff' },
+    modalOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.8)', justifyContent: 'center', padding: 24 },
+    modalContent: { backgroundColor: '#1e293b', borderRadius: 32, padding: 32, borderWidth: 1, borderColor: 'rgba(255,255,255,0.1)' },
+    modalTitle: { fontSize: 22, fontWeight: '900', color: '#fff', marginBottom: 24, letterSpacing: 0.5 },
+    input: { backgroundColor: 'rgba(255,255,255,0.04)', borderRadius: 16, padding: 18, borderWidth: 1, borderColor: 'rgba(255,255,255,0.1)', marginBottom: 30, color: '#fff', fontSize: 16 },
     modalBtns: { flexDirection: 'row', gap: 12 },
-    modalBtn: { flex: 1, padding: 16, borderRadius: 14, alignItems: 'center' },
+    modalBtn: { flex: 1, padding: 18, borderRadius: 16, alignItems: 'center' },
     cancelBtn: { backgroundColor: 'rgba(255,255,255,0.05)' },
     cancelBtnText: { color: '#94a3b8', fontWeight: 'bold' },
     saveBtn: { backgroundColor: '#10b981' },
