@@ -92,7 +92,13 @@ export default function CreateTestScreen({ navigation }) {
     const handleDocumentPick = async () => {
         try {
             const result = await DocumentPicker.getDocumentAsync({
-                type: ['application/pdf', 'image/*'],
+                type: [
+                    'application/pdf',
+                    'application/msword',
+                    'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+                    'text/plain',
+                    'image/*'
+                ],
                 copyToCacheDirectory: true
             });
 
