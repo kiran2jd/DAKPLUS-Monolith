@@ -8,6 +8,8 @@ export default function TopicManagementPage() {
     const [newSubtopic, setNewSubtopic] = useState({ name: '', description: '', topicId: '' });
     const [error, setError] = useState('');
     const [success, setSuccess] = useState('');
+    const [editingTopic, setEditingTopic] = useState(null);
+    const [editingSubtopic, setEditingSubtopic] = useState(null);
 
     useEffect(() => {
         fetchTopics();
@@ -32,28 +34,42 @@ export default function TopicManagementPage() {
 
     const handleCreateTopic = async (e) => {
         e.preventDefault();
+        const dataObj = editingTopic || newTopic;
+        if (!dataObj.name) return;
+        
         setLoading(true);
         try {
-            const topicData = { ...newTopic };
+            const topicData = { 
+                name: dataObj.name, 
+                description: dataObj.description,
+                imageUrl: editingTopic?.imageUrl || null,
+                pdfUrl: editingTopic?.pdfUrl || null
+            };
             
             // Handle Image Upload
-            if (newTopic.imageFile) {
-                const imgRes = await topicService.uploadSyllabusFile(newTopic.imageFile);
+            if (dataObj.imageFile) {
+                const imgRes = await topicService.uploadSyllabusFile(dataObj.imageFile);
                 topicData.imageUrl = imgRes.url;
             }
             
             // Handle PDF Upload
-            if (newTopic.pdfFile) {
-                const pdfRes = await topicService.uploadSyllabusFile(newTopic.pdfFile);
+            if (dataObj.pdfFile) {
+                const pdfRes = await topicService.uploadSyllabusFile(dataObj.pdfFile);
                 topicData.pdfUrl = pdfRes.url;
             }
 
-            await topicService.createTopic(topicData);
-            setNewTopic({ name: '', description: '', imageFile: null, pdfFile: null });
-            setSuccess('Topic created successfully');
+            if (editingTopic) {
+                await topicService.updateTopic(editingTopic.id, topicData);
+                setSuccess('Topic updated successfully');
+                setEditingTopic(null);
+            } else {
+                await topicService.createTopic(topicData);
+                setNewTopic({ name: '', description: '', imageFile: null, pdfFile: null });
+                setSuccess('Topic created successfully');
+            }
             fetchTopics();
         } catch (err) {
-            setError('Failed to create topic');
+            setError(`Failed to ${editingTopic ? 'update' : 'create'} topic`);
         } finally {
             setLoading(false);
         }
@@ -61,32 +77,45 @@ export default function TopicManagementPage() {
 
     const handleCreateSubtopic = async (e) => {
         e.preventDefault();
-        if (!newSubtopic.topicId) {
+        const subObj = editingSubtopic || newSubtopic;
+        if (!subObj.topicId && !editingSubtopic) {
             setError('Please select a parent topic');
             return;
         }
         setLoading(true);
         try {
-            const subData = { ...newSubtopic };
+            const subData = { 
+                name: subObj.name,
+                description: subObj.description,
+                topicId: subObj.topicId,
+                imageUrl: editingSubtopic?.imageUrl || null,
+                pdfUrl: editingSubtopic?.pdfUrl || null
+            };
             
             // Handle Image Upload
-            if (newSubtopic.imageFile) {
-                const imgRes = await topicService.uploadSyllabusFile(newSubtopic.imageFile);
+            if (subObj.imageFile) {
+                const imgRes = await topicService.uploadSyllabusFile(subObj.imageFile);
                 subData.imageUrl = imgRes.url;
             }
             
             // Handle PDF Upload
-            if (newSubtopic.pdfFile) {
-                const pdfRes = await topicService.uploadSyllabusFile(newSubtopic.pdfFile);
+            if (subObj.pdfFile) {
+                const pdfRes = await topicService.uploadSyllabusFile(subObj.pdfFile);
                 subData.pdfUrl = pdfRes.url;
             }
 
-            await topicService.createSubtopic(subData);
-            setNewSubtopic({ name: '', description: '', topicId: '', imageFile: null, pdfFile: null });
-            setSuccess('Subtopic created successfully');
+            if (editingSubtopic) {
+                await topicService.updateSubtopic(editingSubtopic.id, subData);
+                setSuccess('Subtopic updated successfully');
+                setEditingSubtopic(null);
+            } else {
+                await topicService.createSubtopic(subData);
+                setNewSubtopic({ name: '', description: '', topicId: '', imageFile: null, pdfFile: null });
+                setSuccess('Subtopic created successfully');
+            }
             fetchTopics();
         } catch (err) {
-            setError('Failed to create subtopic');
+            setError(`Failed to ${editingSubtopic ? 'update' : 'create'} subtopic`);
         } finally {
             setLoading(false);
         }
@@ -124,15 +153,18 @@ export default function TopicManagementPage() {
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
                 {/* Topic Creation */}
                 <div className="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-md transition-colors">
-                    <h2 className="text-xl font-semibold mb-4 text-gray-700 dark:text-gray-200">Create New Topic</h2>
+                    <h2 className="text-xl font-semibold mb-4 text-gray-700 dark:text-gray-200">{editingTopic ? 'Edit Topic' : 'Create New Topic'}</h2>
                     <form onSubmit={handleCreateTopic} className="space-y-4">
                         <div>
                             <label className="block text-sm font-medium mb-1 dark:text-gray-300">Topic Name</label>
                             <input
                                 type="text"
                                 className="w-full p-2 border rounded-md bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-600 dark:text-white focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition"
-                                value={newTopic.name}
-                                onChange={e => setNewTopic({ ...newTopic, name: e.target.value })}
+                                value={editingTopic ? editingTopic.name : newTopic.name}
+                                onChange={e => {
+                                    if (editingTopic) setEditingTopic({ ...editingTopic, name: e.target.value });
+                                    else setNewTopic({ ...newTopic, name: e.target.value });
+                                }}
                                 required
                             />
                         </div>
@@ -140,8 +172,11 @@ export default function TopicManagementPage() {
                             <label className="block text-sm font-medium mb-1 dark:text-gray-300">Description</label>
                             <textarea
                                 className="w-full p-2 border rounded-md bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-600 dark:text-white focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition"
-                                value={newTopic.description}
-                                onChange={e => setNewTopic({ ...newTopic, description: e.target.value })}
+                                value={editingTopic ? editingTopic.description : newTopic.description}
+                                onChange={e => {
+                                    if (editingTopic) setEditingTopic({ ...editingTopic, description: e.target.value });
+                                    else setNewTopic({ ...newTopic, description: e.target.value });
+                                }}
                             />
                         </div>
                         <div className="grid grid-cols-2 gap-4">
@@ -150,7 +185,10 @@ export default function TopicManagementPage() {
                                 <input 
                                     type="file" 
                                     accept="image/*"
-                                    onChange={e => setNewTopic({ ...newTopic, imageFile: e.target.files[0] })}
+                                    onChange={e => {
+                                        if (editingTopic) setEditingTopic({ ...editingTopic, imageFile: e.target.files[0] });
+                                        else setNewTopic({ ...newTopic, imageFile: e.target.files[0] });
+                                    }}
                                     className="text-xs text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-xs file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100"
                                 />
                             </div>
@@ -159,28 +197,42 @@ export default function TopicManagementPage() {
                                 <input 
                                     type="file" 
                                     accept=".pdf"
-                                    onChange={e => setNewTopic({ ...newTopic, pdfFile: e.target.files[0] })}
+                                    onChange={e => {
+                                        if (editingTopic) setEditingTopic({ ...editingTopic, pdfFile: e.target.files[0] });
+                                        else setNewTopic({ ...newTopic, pdfFile: e.target.files[0] });
+                                    }}
                                     className="text-xs text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-xs file:font-semibold file:bg-gray-50 file:text-gray-700 hover:file:bg-gray-100"
                                 />
                             </div>
                         </div>
-                        <button type="submit" disabled={loading} className="w-full bg-primary text-white py-2 rounded-md hover:bg-indigo-700 transition disabled:opacity-50">
-                            {loading ? 'Uploading...' : 'Add Topic'}
-                        </button>
+                        <div className="flex gap-2">
+                            {editingTopic && (
+                                <button type="button" onClick={() => setEditingTopic(null)} className="flex-1 bg-gray-200 text-gray-800 py-2 rounded-md hover:bg-gray-300 transition">
+                                    Cancel
+                                </button>
+                            )}
+                            <button type="submit" disabled={loading} className="flex-[2] bg-primary text-white py-2 rounded-md hover:bg-indigo-700 transition disabled:opacity-50">
+                                {loading ? 'Uploading...' : editingTopic ? 'Update Topic' : 'Add Topic'}
+                            </button>
+                        </div>
                     </form>
                 </div>
 
                 {/* Subtopic Creation */}
                 <div className="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-md transition-colors">
-                    <h2 className="text-xl font-semibold mb-4 text-gray-700 dark:text-gray-200">Create New Subtopic</h2>
+                    <h2 className="text-xl font-semibold mb-4 text-gray-700 dark:text-gray-200">{editingSubtopic ? 'Edit Subtopic' : 'Create New Subtopic'}</h2>
                     <form onSubmit={handleCreateSubtopic} className="space-y-4">
                         <div>
                             <label className="block text-sm font-medium mb-1 dark:text-gray-300">Parent Topic</label>
                             <select
                                 className="w-full p-2 border rounded-md bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-600 dark:text-white focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition"
-                                value={newSubtopic.topicId}
-                                onChange={e => setNewSubtopic({ ...newSubtopic, topicId: e.target.value })}
+                                value={editingSubtopic ? editingSubtopic.topicId : newSubtopic.topicId}
+                                onChange={e => {
+                                    if (editingSubtopic) setEditingSubtopic({ ...editingSubtopic, topicId: e.target.value });
+                                    else setNewSubtopic({ ...newSubtopic, topicId: e.target.value });
+                                }}
                                 required
+                                disabled={editingSubtopic}
                             >
                                 <option value="">Select Topic</option>
                                 {topics.map(t => <option key={t.id} value={t.id}>{t.name}</option>)}
@@ -191,8 +243,11 @@ export default function TopicManagementPage() {
                             <input
                                 type="text"
                                 className="w-full p-2 border rounded-md bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-600 dark:text-white focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition"
-                                value={newSubtopic.name}
-                                onChange={e => setNewSubtopic({ ...newSubtopic, name: e.target.value })}
+                                value={editingSubtopic ? editingSubtopic.name : newSubtopic.name}
+                                onChange={e => {
+                                    if (editingSubtopic) setEditingSubtopic({ ...editingSubtopic, name: e.target.value });
+                                    else setNewSubtopic({ ...newSubtopic, name: e.target.value });
+                                }}
                                 required
                             />
                         </div>
@@ -200,8 +255,11 @@ export default function TopicManagementPage() {
                             <label className="block text-sm font-medium mb-1 dark:text-gray-300">Description</label>
                             <textarea
                                 className="w-full p-2 border rounded-md bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-600 dark:text-white focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition"
-                                value={newSubtopic.description}
-                                onChange={e => setNewSubtopic({ ...newSubtopic, description: e.target.value })}
+                                value={editingSubtopic ? editingSubtopic.description : newSubtopic.description}
+                                onChange={e => {
+                                    if (editingSubtopic) setEditingSubtopic({ ...editingSubtopic, description: e.target.value });
+                                    else setNewSubtopic({ ...newSubtopic, description: e.target.value });
+                                }}
                             />
                         </div>
                         <div className="grid grid-cols-2 gap-4">
@@ -210,7 +268,10 @@ export default function TopicManagementPage() {
                                 <input 
                                     type="file" 
                                     accept="image/*"
-                                    onChange={e => setNewSubtopic({ ...newSubtopic, imageFile: e.target.files[0] })}
+                                    onChange={e => {
+                                        if (editingSubtopic) setEditingSubtopic({ ...editingSubtopic, imageFile: e.target.files[0] });
+                                        else setNewSubtopic({ ...newSubtopic, imageFile: e.target.files[0] });
+                                    }}
                                     className="text-xs text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-xs file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100"
                                 />
                             </div>
@@ -219,14 +280,24 @@ export default function TopicManagementPage() {
                                 <input 
                                     type="file" 
                                     accept=".pdf"
-                                    onChange={e => setNewSubtopic({ ...newSubtopic, pdfFile: e.target.files[0] })}
+                                    onChange={e => {
+                                        if (editingSubtopic) setEditingSubtopic({ ...editingSubtopic, pdfFile: e.target.files[0] });
+                                        else setNewSubtopic({ ...newSubtopic, pdfFile: e.target.files[0] });
+                                    }}
                                     className="text-xs text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-xs file:font-semibold file:bg-gray-50 file:text-gray-700 hover:file:bg-gray-100"
                                 />
                             </div>
                         </div>
-                        <button type="submit" disabled={loading} className="w-full bg-secondary text-white py-2 rounded-md hover:opacity-90 transition disabled:opacity-50">
-                            {loading ? 'Uploading...' : 'Add Subtopic'}
-                        </button>
+                        <div className="flex gap-2">
+                            {editingSubtopic && (
+                                <button type="button" onClick={() => setEditingSubtopic(null)} className="flex-1 bg-gray-200 text-gray-800 py-2 rounded-md hover:bg-gray-300 transition">
+                                    Cancel
+                                </button>
+                            )}
+                            <button type="submit" disabled={loading} className="flex-[2] bg-secondary text-white py-2 rounded-md hover:opacity-90 transition disabled:opacity-50">
+                                {loading ? 'Uploading...' : editingSubtopic ? 'Update Subtopic' : 'Add Subtopic'}
+                            </button>
+                        </div>
                     </form>
                 </div>
             </div>
@@ -250,6 +321,9 @@ export default function TopicManagementPage() {
                                     <td className="px-6 py-4 font-bold text-primary dark:text-blue-400">{topic.name}</td>
                                     <td className="px-6 py-4 text-sm text-gray-600 dark:text-gray-400">{topic.description}</td>
                                     <td className="px-6 py-4 text-right">
+                                        <button onClick={() => setEditingTopic(topic)} className="text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 mr-4 font-semibold">
+                                            Edit
+                                        </button>
                                         <button onClick={() => handleDeleteTopic(topic.id)} className="text-red-600 dark:text-red-400 hover:text-red-800 dark:hover:text-red-300">
                                             Delete
                                         </button>
@@ -262,6 +336,9 @@ export default function TopicManagementPage() {
                                         </td>
                                         <td className="px-6 py-3 text-xs text-gray-500 dark:text-gray-400">{sub.description}</td>
                                         <td className="px-6 py-3 text-right">
+                                            <button onClick={() => setEditingSubtopic(sub)} className="text-blue-400 dark:text-blue-500 hover:text-blue-600 dark:hover:text-blue-300 text-xs mr-3 font-semibold">
+                                                Edit
+                                            </button>
                                             <button onClick={() => handleDeleteSubtopic(sub.id)} className="text-red-400 dark:text-red-500 hover:text-red-600 dark:hover:text-red-300 text-xs">
                                                 Delete
                                             </button>

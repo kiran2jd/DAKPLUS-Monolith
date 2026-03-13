@@ -21,6 +21,10 @@ public class TopicService {
         return topicRepository.save(topic);
     }
 
+    public Topic updateTopic(Topic topic) {
+        return topicRepository.save(topic);
+    }
+
     public List<Topic> getAllTopics() {
         return topicRepository.findAll();
     }
@@ -30,6 +34,10 @@ public class TopicService {
     }
 
     public Subtopic createSubtopic(Subtopic subtopic) {
+        return subtopicRepository.save(subtopic);
+    }
+
+    public Subtopic updateSubtopic(Subtopic subtopic) {
         return subtopicRepository.save(subtopic);
     }
 

@@ -129,7 +129,7 @@ export default function DashboardScreen({ navigation }) {
     }
 
     const accuracy = results.length > 0 
-        ? (Math.round(results.reduce((acc, r) => acc + (r.score / r.totalQuestions) * 100, 0) / results.length) || 0)
+        ? (Math.round(results.reduce((acc, r) => acc + (r.totalQuestions > 0 ? (r.score / r.totalQuestions) * 100 : 0), 0) / results.length) || 0)
         : 0;
 
     return (

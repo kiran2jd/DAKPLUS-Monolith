@@ -25,6 +25,8 @@ export default function TopicManagementScreen({ navigation }) {
     const [subtopicModalVisible, setSubtopicModalVisible] = useState(false);
     const [newTopic, setNewTopic] = useState({ name: '', imageFile: null, pdfFile: null });
     const [newSubtopic, setNewSubtopic] = useState({ name: '', imageFile: null, pdfFile: null });
+    const [editingTopic, setEditingTopic] = useState(null);
+    const [editingSubtopic, setEditingSubtopic] = useState(null);
     const [selectedTopic, setSelectedTopic] = useState(null);
     const [subtopics, setSubtopics] = useState({}); // { topicId: [subtopics] }
 
@@ -65,9 +67,17 @@ export default function TopicManagementScreen({ navigation }) {
             if (!result.canceled && result.assets && result.assets.length > 0) {
                 const asset = result.assets[0];
                 if (isSubtopic) {
-                    setNewSubtopic(prev => ({ ...prev, [type + 'File']: asset }));
+                    if (editingSubtopic) {
+                        setEditingSubtopic(prev => ({ ...prev, [type + 'File']: asset }));
+                    } else {
+                        setNewSubtopic(prev => ({ ...prev, [type + 'File']: asset }));
+                    }
                 } else {
-                    setNewTopic(prev => ({ ...prev, [type + 'File']: asset }));
+                    if (editingTopic) {
+                        setEditingTopic(prev => ({ ...prev, [type + 'File']: asset }));
+                    } else {
+                        setNewTopic(prev => ({ ...prev, [type + 'File']: asset }));
+                    }
                 }
             }
         } catch (err) {
@@ -76,58 +86,81 @@ export default function TopicManagementScreen({ navigation }) {
     };
 
     const handleAddTopic = async () => {
-        if (!newTopic.name.trim()) return;
+        const topicObj = editingTopic || newTopic;
+        if (!topicObj.name?.trim()) return;
         setUploading(true);
         try {
-            const topicData = { name: newTopic.name };
+            const topicData = { 
+                name: topicObj.name,
+                imageUrl: editingTopic?.imageUrl || null,
+                pdfUrl: editingTopic?.pdfUrl || null
+            };
             
-            if (newTopic.imageFile) {
-                const imgRes = await topicService.uploadSyllabusFile(newTopic.imageFile.uri, newTopic.imageFile.name, newTopic.imageFile.mimeType);
+            if (topicObj.imageFile) {
+                const imgRes = await topicService.uploadSyllabusFile(topicObj.imageFile.uri, topicObj.imageFile.name, topicObj.imageFile.mimeType);
                 topicData.imageUrl = imgRes.url;
             }
-            if (newTopic.pdfFile) {
-                const pdfRes = await topicService.uploadSyllabusFile(newTopic.pdfFile.uri, newTopic.pdfFile.name, newTopic.pdfFile.mimeType);
+            if (topicObj.pdfFile) {
+                const pdfRes = await topicService.uploadSyllabusFile(topicObj.pdfFile.uri, topicObj.pdfFile.name, topicObj.pdfFile.mimeType);
                 topicData.pdfUrl = pdfRes.url;
             }
 
-            const created = await topicService.createTopic(topicData);
-            setTopics([...topics, created]);
-            setNewTopic({ name: '', imageFile: null, pdfFile: null });
+            if (editingTopic) {
+                const updated = await topicService.updateTopic(editingTopic.id, topicData);
+                setTopics(topics.map(t => t.id === updated.id ? updated : t));
+                setEditingTopic(null);
+                Alert.alert('Success', 'Topic updated');
+            } else {
+                const created = await topicService.createTopic(topicData);
+                setTopics([...topics, created]);
+                setNewTopic({ name: '', imageFile: null, pdfFile: null });
+                Alert.alert('Success', 'Topic created');
+            }
             setModalVisible(false);
-            Alert.alert('Success', 'Topic created');
         } catch (err) {
-            Alert.alert('Error', 'Failed to create topic');
+            Alert.alert('Error', `Failed to ${editingTopic ? 'update' : 'create'} topic`);
         } finally {
             setUploading(false);
         }
     };
 
     const handleAddSubtopic = async () => {
-        if (!newSubtopic.name.trim() || !selectedTopic) return;
+        const subObj = editingSubtopic || newSubtopic;
+        if (!subObj.name?.trim() || !selectedTopic) return;
         setUploading(true);
         try {
             const subData = {
-                name: newSubtopic.name,
-                topicId: selectedTopic.id
+                name: subObj.name,
+                topicId: selectedTopic.id,
+                imageUrl: editingSubtopic?.imageUrl || null,
+                pdfUrl: editingSubtopic?.pdfUrl || null
             };
 
-            if (newSubtopic.imageFile) {
-                const imgRes = await topicService.uploadSyllabusFile(newSubtopic.imageFile.uri, newSubtopic.imageFile.name, newSubtopic.imageFile.mimeType);
+            if (subObj.imageFile) {
+                const imgRes = await topicService.uploadSyllabusFile(subObj.imageFile.uri, subObj.imageFile.name, subObj.imageFile.mimeType);
                 subData.imageUrl = imgRes.url;
             }
-            if (newSubtopic.pdfFile) {
-                const pdfRes = await topicService.uploadSyllabusFile(newSubtopic.pdfFile.uri, newSubtopic.pdfFile.name, newSubtopic.pdfFile.mimeType);
+            if (subObj.pdfFile) {
+                const pdfRes = await topicService.uploadSyllabusFile(subObj.pdfFile.uri, subObj.pdfFile.name, subObj.pdfFile.mimeType);
                 subData.pdfUrl = pdfRes.url;
             }
 
-            const created = await topicService.createSubtopic(subData);
-            const updatedSubtopics = [...(subtopics[selectedTopic.id] || []), created];
-            setSubtopics({ ...subtopics, [selectedTopic.id]: updatedSubtopics });
-            setNewSubtopic({ name: '', imageFile: null, pdfFile: null });
+            if (editingSubtopic) {
+                const updated = await topicService.updateSubtopic(editingSubtopic.id, subData);
+                const list = subtopics[selectedTopic.id] || [];
+                setSubtopics({ ...subtopics, [selectedTopic.id]: list.map(s => s.id === updated.id ? updated : s) });
+                setEditingSubtopic(null);
+                Alert.alert('Success', 'Subtopic updated');
+            } else {
+                const created = await topicService.createSubtopic(subData);
+                const updatedSubtopics = [...(subtopics[selectedTopic.id] || []), created];
+                setSubtopics({ ...subtopics, [selectedTopic.id]: updatedSubtopics });
+                setNewSubtopic({ name: '', imageFile: null, pdfFile: null });
+                Alert.alert('Success', 'Subtopic created');
+            }
             setSubtopicModalVisible(false);
-            Alert.alert('Success', 'Subtopic created');
         } catch (err) {
-            Alert.alert('Error', 'Failed to create subtopic');
+            Alert.alert('Error', `Failed to ${editingSubtopic ? 'update' : 'create'} subtopic`);
         } finally {
             setUploading(false);
         }
@@ -166,7 +199,18 @@ export default function TopicManagementScreen({ navigation }) {
                 <View style={styles.headerActions}>
                     <TouchableOpacity
                         onPress={() => {
+                            setEditingTopic(item);
+                            setModalVisible(true);
+                        }}
+                        style={styles.actionIcon}
+                        activeOpacity={0.7}
+                    >
+                        <Ionicons name="create-outline" size={20} color="#3b82f6" />
+                    </TouchableOpacity>
+                    <TouchableOpacity
+                        onPress={() => {
                             setSelectedTopic(item);
+                            setEditingSubtopic(null);
                             setSubtopicModalVisible(true);
                         }}
                         style={styles.addIcon}
@@ -185,10 +229,19 @@ export default function TopicManagementScreen({ navigation }) {
 
             <View style={styles.subtopicsContainer}>
                 {(subtopics[item.id] || []).map(sub => (
-                    <View key={sub.id} style={styles.subtopicBadge}>
+                    <TouchableOpacity 
+                        key={sub.id} 
+                        style={styles.subtopicBadge}
+                        onPress={() => {
+                            setSelectedTopic(item);
+                            setEditingSubtopic(sub);
+                            setSubtopicModalVisible(true);
+                        }}
+                    >
                         <Text style={styles.subtopicText}>{sub.name}</Text>
                         {sub.pdfUrl && <Ionicons name="document-text" size={10} color="#ef4444" style={{ marginLeft: 4 }} />}
-                    </View>
+                        <Ionicons name="pencil" size={8} color="#94a3b8" style={{ marginLeft: 4 }} />
+                    </TouchableOpacity>
                 ))}
                 {(!subtopics[item.id] || subtopics[item.id].length === 0) && (
                     <Text style={styles.noSubtopics}>No subtopics yet</Text>
@@ -249,38 +302,48 @@ export default function TopicManagementScreen({ navigation }) {
             <Modal visible={modalVisible} transparent animationType="slide">
                 <View style={styles.modalOverlay}>
                     <View style={styles.modalContent}>
-                        <Text style={styles.modalTitle}>Create New Topic</Text>
+                        <Text style={styles.modalTitle}>{editingTopic ? 'Edit Topic' : 'Create New Topic'}</Text>
                         <TextInput
                             style={styles.input}
                             placeholder="Topic Name"
-                            value={newTopic.name}
-                            onChangeText={(val) => setNewTopic({ ...newTopic, name: val })}
+                            value={editingTopic ? editingTopic.name : newTopic.name}
+                            onChangeText={(val) => {
+                                if (editingTopic) setEditingTopic({ ...editingTopic, name: val });
+                                else setNewTopic({ ...newTopic, name: val });
+                            }}
                             placeholderTextColor="#94a3b8"
                         />
                         
                         <View style={styles.fileRow}>
                             <TouchableOpacity 
-                                style={[styles.fileBtn, newTopic.imageFile && styles.fileBtnSelected]} 
+                                style={[styles.fileBtn, (newTopic.imageFile || editingTopic?.imageFile) && styles.fileBtnSelected]} 
                                 onPress={() => pickFile('image')}
                             >
-                                <Ionicons name="image" size={18} color={newTopic.imageFile ? '#10b981' : '#94a3b8'} />
-                                <Text style={[styles.fileBtnText, newTopic.imageFile && styles.fileBtnTextSelected]}>
-                                    {newTopic.imageFile ? 'Image Selected' : 'Add Image'}
+                                <Ionicons name="image" size={18} color={(newTopic.imageFile || editingTopic?.imageFile) ? '#10b981' : '#94a3b8'} />
+                                <Text style={[styles.fileBtnText, (newTopic.imageFile || editingTopic?.imageFile) && styles.fileBtnTextSelected]}>
+                                    {(newTopic.imageFile || editingTopic?.imageFile) ? 'Image Picked' : 'Add Image'}
                                 </Text>
                             </TouchableOpacity>
                             <TouchableOpacity 
-                                style={[styles.fileBtn, newTopic.pdfFile && styles.fileBtnSelected]} 
+                                style={[styles.fileBtn, (newTopic.pdfFile || editingTopic?.pdfFile) && styles.fileBtnSelected]} 
                                 onPress={() => pickFile('pdf')}
                             >
-                                <Ionicons name="document-text" size={18} color={newTopic.pdfFile ? '#10b981' : '#94a3b8'} />
-                                <Text style={[styles.fileBtnText, newTopic.pdfFile && styles.fileBtnTextSelected]}>
-                                    {newTopic.pdfFile ? 'PDF Selected' : 'Add PDF'}
+                                <Ionicons name="document-text" size={18} color={(newTopic.pdfFile || editingTopic?.pdfFile) ? '#10b981' : '#94a3b8'} />
+                                <Text style={[styles.fileBtnText, (newTopic.pdfFile || editingTopic?.pdfFile) && styles.fileBtnTextSelected]}>
+                                    {(newTopic.pdfFile || editingTopic?.pdfFile) ? 'PDF Picked' : 'Add PDF'}
                                 </Text>
                             </TouchableOpacity>
                         </View>
 
                         <View style={styles.modalBtns}>
-                            <TouchableOpacity style={[styles.modalBtn, styles.cancelBtn]} onPress={() => setModalVisible(false)} disabled={uploading}>
+                            <TouchableOpacity 
+                                style={[styles.modalBtn, styles.cancelBtn]} 
+                                onPress={() => {
+                                    setModalVisible(false);
+                                    setEditingTopic(null);
+                                }} 
+                                disabled={uploading}
+                            >
                                 <Text style={styles.cancelBtnText}>Cancel</Text>
                             </TouchableOpacity>
                             <TouchableOpacity style={[styles.modalBtn, styles.saveBtn]} onPress={handleAddTopic} disabled={uploading}>
@@ -295,38 +358,48 @@ export default function TopicManagementScreen({ navigation }) {
             <Modal visible={subtopicModalVisible} transparent animationType="fade">
                 <View style={styles.modalOverlay}>
                     <View style={styles.modalContent}>
-                        <Text style={styles.modalTitle}>Add Subtopic to {selectedTopic?.name}</Text>
+                        <Text style={styles.modalTitle}>{editingSubtopic ? 'Edit' : 'Add'} Subtopic to {selectedTopic?.name}</Text>
                         <TextInput
                             style={styles.input}
                             placeholder="Subtopic Name"
-                            value={newSubtopic.name}
-                            onChangeText={(val) => setNewSubtopic({ ...newSubtopic, name: val })}
+                            value={editingSubtopic ? editingSubtopic.name : newSubtopic.name}
+                            onChangeText={(val) => {
+                                if (editingSubtopic) setEditingSubtopic({ ...editingSubtopic, name: val });
+                                else setNewSubtopic({ ...newSubtopic, name: val });
+                            }}
                             placeholderTextColor="#94a3b8"
                         />
 
                         <View style={styles.fileRow}>
                             <TouchableOpacity 
-                                style={[styles.fileBtn, newSubtopic.imageFile && styles.fileBtnSelected]} 
+                                style={[styles.fileBtn, (newSubtopic.imageFile || editingSubtopic?.imageFile) && styles.fileBtnSelected]} 
                                 onPress={() => pickFile('image', true)}
                             >
-                                <Ionicons name="image" size={18} color={newSubtopic.imageFile ? '#10b981' : '#94a3b8'} />
-                                <Text style={[styles.fileBtnText, newSubtopic.imageFile && styles.fileBtnTextSelected]}>
-                                    {newSubtopic.imageFile ? 'Image Selected' : 'Add Image'}
+                                <Ionicons name="image" size={18} color={(newSubtopic.imageFile || editingSubtopic?.imageFile) ? '#10b981' : '#94a3b8'} />
+                                <Text style={[styles.fileBtnText, (newSubtopic.imageFile || editingSubtopic?.imageFile) && styles.fileBtnTextSelected]}>
+                                    {(newSubtopic.imageFile || editingSubtopic?.imageFile) ? 'Image Picked' : 'Add Image'}
                                 </Text>
                             </TouchableOpacity>
                             <TouchableOpacity 
-                                style={[styles.fileBtn, newSubtopic.pdfFile && styles.fileBtnSelected]} 
+                                style={[styles.fileBtn, (newSubtopic.pdfFile || editingSubtopic?.pdfFile) && styles.fileBtnSelected]} 
                                 onPress={() => pickFile('pdf', true)}
                             >
-                                <Ionicons name="document-text" size={18} color={newSubtopic.pdfFile ? '#10b981' : '#94a3b8'} />
-                                <Text style={[styles.fileBtnText, newSubtopic.pdfFile && styles.fileBtnTextSelected]}>
-                                    {newSubtopic.pdfFile ? 'PDF Selected' : 'Add PDF'}
+                                <Ionicons name="document-text" size={18} color={(newSubtopic.pdfFile || editingSubtopic?.pdfFile) ? '#10b981' : '#94a3b8'} />
+                                <Text style={[styles.fileBtnText, (newSubtopic.pdfFile || editingSubtopic?.pdfFile) && styles.fileBtnTextSelected]}>
+                                    {(newSubtopic.pdfFile || editingSubtopic?.pdfFile) ? 'PDF Picked' : 'Add PDF'}
                                 </Text>
                             </TouchableOpacity>
                         </View>
 
                         <View style={styles.modalBtns}>
-                            <TouchableOpacity style={[styles.modalBtn, styles.cancelBtn]} onPress={() => setSubtopicModalVisible(false)} disabled={uploading}>
+                            <TouchableOpacity 
+                                style={[styles.modalBtn, styles.cancelBtn]} 
+                                onPress={() => {
+                                    setSubtopicModalVisible(false);
+                                    setEditingSubtopic(null);
+                                }} 
+                                disabled={uploading}
+                            >
                                 <Text style={styles.cancelBtnText}>Cancel</Text>
                             </TouchableOpacity>
                             <TouchableOpacity style={[styles.modalBtn, styles.saveBtn]} onPress={handleAddSubtopic} disabled={uploading}>
@@ -351,7 +424,8 @@ const styles = StyleSheet.create({
     topicCard: { backgroundColor: 'rgba(255,255,255,0.03)', borderRadius: 24, padding: 20, marginBottom: 16, borderWidth: 1, borderColor: 'rgba(255,255,255,0.05)' },
     topicHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 15 },
     topicName: { fontSize: 17, fontWeight: '900', color: '#fff' },
-    headerActions: { flexDirection: 'row', alignItems: 'center', gap: 12 },
+    headerActions: { flexDirection: 'row', alignItems: 'center', gap: 10 },
+    actionIcon: { padding: 4 },
     subtopicsContainer: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
     subtopicBadge: { backgroundColor: 'rgba(255,255,255,0.02)', paddingHorizontal: 12, paddingVertical: 6, borderRadius: 12, borderWidth: 1, borderColor: 'rgba(255,255,255,0.05)' },
     subtopicText: { fontSize: 12, color: '#94a3b8', fontWeight: '500' },

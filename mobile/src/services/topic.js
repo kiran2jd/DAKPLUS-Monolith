@@ -21,6 +21,16 @@ export const topicService = {
         return response.data;
     },
 
+    updateTopic: async (id, topicData) => {
+        const response = await api.put(`topics/${id}`, topicData);
+        return response.data;
+    },
+
+    updateSubtopic: async (id, subtopicData) => {
+        const response = await api.put(`topics/subtopics/${id}`, subtopicData);
+        return response.data;
+    },
+
     deleteTopic: async (id) => {
         const response = await api.delete(`topics/${id}`);
         return response.data;

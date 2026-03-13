@@ -12,7 +12,8 @@ export default function QuestionBuilder({ questions, setQuestions }) {
                 correctAnswer: '', // stored as string for simplicity: option text or index
                 points: 1,
                 explanation: '',
-                imageUrl: '' // manual image upload support
+                imageUrl: '',
+                isUploading: false
             }
         ]);
     };
@@ -28,20 +29,19 @@ export default function QuestionBuilder({ questions, setQuestions }) {
         setQuestions(newQuestions);
     };
 
-    const handleImageUpload = (index, e) => {
+    const handleImageUpload = async (index, e) => {
         const file = e.target.files[0];
         if (!file) return;
 
-        if (file.size > 2 * 1024 * 1024) {
-            alert("Image size should be less than 2MB");
-            return;
+        updateQuestion(index, 'isUploading', true);
+        try {
+            const res = await topicService.uploadSyllabusFile(file);
+            updateQuestion(index, 'imageUrl', res.url);
+        } catch (err) {
+            alert("Image upload failed");
+        } finally {
+            updateQuestion(index, 'isUploading', false);
         }
-
-        const reader = new FileReader();
-        reader.onloadend = () => {
-            updateQuestion(index, 'imageUrl', reader.result);
-        };
-        reader.readAsDataURL(file);
     };
 
     const removeImage = (index) => {
@@ -82,15 +82,17 @@ export default function QuestionBuilder({ questions, setQuestions }) {
                                 <label className="block text-sm font-medium text-gray-700">Image / Diagram</label>
                                 {!q.imageUrl ? (
                                     <div className="mt-1 flex items-center">
-                                        <label className="cursor-pointer bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-md py-2 px-3 flex items-center justify-center text-sm text-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700 w-full shadow-sm">
+                                        <label className={`cursor-pointer bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-md py-2 px-3 flex items-center justify-center text-sm text-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700 w-full shadow-sm ${q.isUploading ? 'opacity-50 cursor-not-allowed' : ''}`}>
                                             <ImageIcon size={16} className="mr-2" />
-                                            Upload
-                                            <input
-                                                type="file"
-                                                className="hidden"
-                                                accept="image/*"
-                                                onChange={(e) => handleImageUpload(qIndex, e)}
-                                            />
+                                            {q.isUploading ? 'Uploading...' : 'Upload Image'}
+                                            {!q.isUploading && (
+                                                <input
+                                                    type="file"
+                                                    className="hidden"
+                                                    accept="image/*"
+                                                    onChange={(e) => handleImageUpload(qIndex, e)}
+                                                />
+                                            )}
                                         </label>
                                     </div>
                                 ) : (

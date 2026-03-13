@@ -27,7 +27,7 @@ export default function CreateTestScreen({ navigation }) {
     const [duration, setDuration] = useState('60');
     const [category, setCategory] = useState('General');
     const [difficulty, setDifficulty] = useState('Medium');
-    const [questions, setQuestions] = useState([{ text: '', options: ['', '', '', ''], correctAnswer: '', explanation: '', points: 1 }]);
+    const [questions, setQuestions] = useState([{ text: '', options: ['', '', '', ''], correctAnswer: '', explanation: '', points: 1, imageUrl: '', isUploading: false }]);
     const [isPremium, setIsPremium] = useState(false);
     const [loading, setLoading] = useState(false);
     const [extracting, setExtracting] = useState(false);
@@ -65,48 +65,32 @@ export default function CreateTestScreen({ navigation }) {
         }
     };
 
-    const handleDocumentPick = async () => {
+    const pickQuestionImage = async (index) => {
         try {
             const result = await DocumentPicker.getDocumentAsync({
-                type: ['application/pdf', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'],
+                type: 'image/*',
+                copyToCacheDirectory: true
             });
 
             if (!result.canceled && result.assets && result.assets.length > 0) {
-                const file = result.assets[0];
-                setExtracting(true);
+                const asset = result.assets[0];
+                updateQuestion(index, 'isUploading', true);
                 try {
-                    const extracted = await testService.extractQuestions(
-                        file.uri,
-                        file.name,
-                        file.mimeType,
-                        selectedTopic,
-                        selectedSubtopic
-                    );
-
-                    if (extracted && extracted.length > 0) {
-                        // If current list only has one empty question, replace it
-                        if (questions.length === 1 && !questions[0].text) {
-                            setQuestions(extracted);
-                        } else {
-                            setQuestions([...questions, ...extracted]);
-                        }
-                        Alert.alert('Success', `Extracted ${extracted.length} questions from document!`);
-                    } else {
-                        Alert.alert('Notice', 'No questions could be extracted from this document.');
-                    }
+                    const res = await topicService.uploadSyllabusFile(asset.uri, asset.name, asset.mimeType);
+                    updateQuestion(index, 'imageUrl', res.url);
                 } catch (err) {
-                    Alert.alert('Error', 'AI Extraction failed. Please check your document or try again later.');
+                    Alert.alert('Error', 'Image upload failed');
                 } finally {
-                    setExtracting(false);
+                    updateQuestion(index, 'isUploading', false);
                 }
             }
         } catch (err) {
-            Alert.alert('Error', 'Failed to pick document');
+            Alert.alert('Error', 'Failed to pick image');
         }
     };
 
     const addQuestion = () => {
-        setQuestions([...questions, { text: '', options: ['', '', '', ''], correctAnswer: '', explanation: '', points: 1 }]);
+        setQuestions([...questions, { text: '', options: ['', '', '', ''], correctAnswer: '', explanation: '', points: 1, imageUrl: '', isUploading: false }]);
     };
 
     const updateQuestion = (index, field, value) => {
@@ -294,6 +278,24 @@ export default function CreateTestScreen({ navigation }) {
                                     placeholder="Enter question text..."
                                     placeholderTextColor="#94a3b8"
                                 />
+
+                                <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 15, gap: 10 }}>
+                                    <TouchableOpacity 
+                                        style={[styles.smallImgBtn, q.imageUrl ? styles.imgPicked : null]} 
+                                        onPress={() => pickQuestionImage(qIdx)}
+                                        disabled={q.isUploading}
+                                    >
+                                        <Ionicons name="image-outline" size={16} color={q.imageUrl ? '#10b981' : '#64748b'} />
+                                        <Text style={[styles.smallImgBtnText, q.imageUrl ? styles.imgPickedText : null]}>
+                                            {q.isUploading ? '...' : (q.imageUrl ? 'Image Added' : 'Add Image')}
+                                        </Text>
+                                    </TouchableOpacity>
+                                    {q.imageUrl && (
+                                        <TouchableOpacity onPress={() => updateQuestion(qIdx, 'imageUrl', '')}>
+                                            <Ionicons name="close-circle" size={18} color="#f87171" />
+                                        </TouchableOpacity>
+                                    )}
+                                </View>
                                 {q.options.map((opt, oIdx) => (
                                     <View key={oIdx} style={styles.optionRow}>
                                         <TouchableOpacity
@@ -371,4 +373,27 @@ const styles = StyleSheet.create({
     chipSelected: { backgroundColor: '#dc2626', borderColor: '#dc2626' },
     chipText: { fontSize: 13, color: '#94a3b8', fontWeight: '600' },
     chipTextSelected: { color: '#fff', fontWeight: 'bold' },
+    smallImgBtn: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        backgroundColor: 'rgba(255,255,255,0.05)',
+        paddingVertical: 6,
+        paddingHorizontal: 10,
+        borderRadius: 8,
+        borderWidth: 1,
+        borderColor: 'rgba(255,255,255,0.1)',
+        gap: 6
+    },
+    imgPicked: {
+        backgroundColor: 'rgba(16, 185, 129, 0.1)',
+        borderColor: '#10b981'
+    },
+    smallImgBtnText: {
+        color: '#64748b',
+        fontSize: 10,
+        fontWeight: 'bold'
+    },
+    imgPickedText: {
+        color: '#10b981'
+    }
 });

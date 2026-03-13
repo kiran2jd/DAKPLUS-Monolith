@@ -21,6 +21,12 @@ public class TopicController {
         return ResponseEntity.ok(topicService.createTopic(topic));
     }
 
+    @PutMapping("/{id}")
+    public ResponseEntity<Topic> updateTopic(@PathVariable String id, @RequestBody Topic topic) {
+        topic.setId(id);
+        return ResponseEntity.ok(topicService.updateTopic(topic));
+    }
+
     @GetMapping("/")
     public List<Topic> getAllTopics() {
         return topicService.getAllTopics();
@@ -36,6 +42,12 @@ public class TopicController {
     @PostMapping("/subtopics")
     public ResponseEntity<Subtopic> createSubtopic(@RequestBody Subtopic subtopic) {
         return ResponseEntity.ok(topicService.createSubtopic(subtopic));
+    }
+
+    @PutMapping("/subtopics/{id}")
+    public ResponseEntity<Subtopic> updateSubtopic(@PathVariable String id, @RequestBody Subtopic subtopic) {
+        subtopic.setId(id);
+        return ResponseEntity.ok(topicService.updateSubtopic(subtopic));
     }
 
     @GetMapping("/{topicId}/subtopics")
