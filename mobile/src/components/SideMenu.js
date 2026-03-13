@@ -9,12 +9,7 @@ import {
     ScrollView,
     TouchableOpacity,
 } from 'react-native';
-import {
-    DrawerContentScrollView,
-    DrawerItemList,
-    DrawerItem
-} from '@react-navigation/drawer';
-import { Ionicons, MaterialCommunityIcons, FontAwesome5 } from '@expo/vector-icons';
+import { Ionicons, FontAwesome5 } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { authService } from '../services/auth';
 
@@ -57,16 +52,23 @@ const SideMenu = (props) => {
         );
     };
 
+    // ROBUST ROLE DETECTION (Case-Insensitive)
+    const role = user?.role?.toUpperCase() || 'STUDENT';
+    const isStaff = role === 'TEACHER' || role === 'ADMIN';
+
     const menuItems = [
-        { label: 'Dashboard', icon: 'grid-outline', route: 'Home', type: 'ion' },
-        { label: 'My Learning', icon: 'book-open-outline', route: 'Tests', type: 'ion' },
-        { label: 'Performance', icon: 'analytics-outline', route: 'Performance', type: 'ion' },
-        { label: 'Transactions', icon: 'card-outline', route: 'Payment', type: 'ion' },
-        { label: 'Support Center', icon: 'help-circle-outline', route: 'Help', type: 'ion' },
+        { label: 'Dashboard', icon: 'grid-outline', route: 'Home' },
+        { label: 'My Learning', icon: 'book-open-outline', route: 'Tests' },
+        { label: 'Performance', icon: 'analytics-outline', route: 'Performance' },
+        ...(isStaff ? [
+            { label: 'Manage Tests', icon: 'layers-outline', route: 'ManageTests' },
+            { label: 'Topic Matrix', icon: 'apps-outline', route: 'TopicManagement' }
+        ] : []),
+        { label: 'Transactions', icon: 'card-outline', route: 'Payment' },
+        { label: 'Support Center', icon: 'help-circle-outline', route: 'Help' },
     ];
 
     const handleNavigation = (route) => {
-        // If it's a tab route, navigate via the Tabs navigator
         if (['Home', 'Tests', 'Performance', 'Help'].includes(route)) {
             navigation.navigate('Tabs', { screen: route });
         } else {
@@ -92,12 +94,12 @@ const SideMenu = (props) => {
                     <View style={styles.onlineStatus} />
                 </View>
                 <Text style={styles.userName}>{user?.fullName || 'Dak Plus Aspirant'}</Text>
-                <Text style={styles.userRole}>{user?.role?.toLowerCase() === 'student' ? 'PRIME ASPIRANT' : user?.role || 'Aspirant'}</Text>
+                <Text style={styles.userRole}>{role === 'STUDENT' ? 'PRIME ASPIRANT' : role}</Text>
             </View>
 
-            <ScrollView style={styles.menuList}>
-                <Text style={styles.sectionTitle}>NAVIGATION</Text>
-                {menuItems.slice(0, 3).map((item) => (
+            <ScrollView style={styles.menuList} showsVerticalScrollIndicator={false}>
+                <Text style={styles.sectionTitle}>EXPLORE DAKPLUS</Text>
+                {menuItems.map((item) => (
                     <TouchableOpacity
                         key={item.label}
                         style={[
@@ -129,47 +131,9 @@ const SideMenu = (props) => {
                         </Text>
                     </TouchableOpacity>
                 ))}
-
-                <Text style={[styles.sectionTitle, { marginTop: 20 }]}>ACCOUNT</Text>
-                {menuItems.slice(3).map((item) => (
-                    <TouchableOpacity
-                        key={item.label}
-                        style={[
-                            styles.menuItem,
-                            activeRouteName === item.route && styles.activeMenuItem
-                        ]}
-                        onPress={() => handleNavigation(item.route)}
-                        activeOpacity={0.7}
-                    >
-                        <Ionicons
-                            name={item.icon}
-                            size={22}
-                            color={activeRouteName === item.route ? '#fff' : '#94a3b8'}
-                            style={styles.menuIcon}
-                        />
-                        <Text style={[
-                            styles.menuLabel,
-                            activeRouteName === item.route && styles.activeMenuLabel
-                        ]}>
-                            {item.label}
-                        </Text>
-                    </TouchableOpacity>
-                ))}
             </ScrollView>
 
             <View style={styles.footer}>
-                <View style={styles.socialIcons}>
-                    <TouchableOpacity style={styles.socialBtn} activeOpacity={0.7}>
-                        <FontAwesome5 name="facebook-f" size={18} color="#fff" />
-                    </TouchableOpacity>
-                    <TouchableOpacity style={styles.socialBtn} activeOpacity={0.7}>
-                        <FontAwesome5 name="instagram" size={18} color="#fff" />
-                    </TouchableOpacity>
-                    <TouchableOpacity style={styles.socialBtn} activeOpacity={0.7}>
-                        <FontAwesome5 name="twitter" size={18} color="#fff" />
-                    </TouchableOpacity>
-                </View>
-
                 <TouchableOpacity 
                     style={styles.logoutBtn} 
                     onPress={handleLogout}
@@ -179,7 +143,7 @@ const SideMenu = (props) => {
                     <Text style={styles.logoutText}>Sign Out</Text>
                 </TouchableOpacity>
 
-                <Text style={styles.versionText}>SYSTEM BUILD v4.0.2</Text>
+                <Text style={styles.versionText}>SYSTEM BUILD v5.0.0</Text>
             </View>
         </SafeAreaView>
     );
@@ -206,16 +170,14 @@ const styles = StyleSheet.create({
     profileImage: {
         width: 140,
         height: 45,
-        borderWidth: 1,
-        borderColor: 'rgba(255,255,255,0.1)',
     },
     onlineStatus: {
         position: 'absolute',
         bottom: 5,
         right: 5,
-        width: 14,
-        height: 14,
-        borderRadius: 7,
+        width: 12,
+        height: 12,
+        borderRadius: 6,
         backgroundColor: '#22c55e',
         borderWidth: 2,
         borderColor: '#0f172a',
@@ -237,7 +199,7 @@ const styles = StyleSheet.create({
         padding: 16,
     },
     sectionTitle: {
-        fontSize: 11,
+        fontSize: 10,
         fontWeight: '900',
         color: '#475569',
         letterSpacing: 1.5,
@@ -281,21 +243,6 @@ const styles = StyleSheet.create({
         padding: 20,
         borderTopWidth: 1,
         borderTopColor: 'rgba(255,255,255,0.05)',
-        backgroundColor: 'rgba(15, 23, 42, 0.8)',
-    },
-    socialIcons: {
-        flexDirection: 'row',
-        justifyContent: 'center',
-        marginBottom: 20,
-        gap: 15,
-    },
-    socialBtn: {
-        width: 38,
-        height: 38,
-        borderRadius: 10,
-        backgroundColor: 'rgba(255,255,255,0.1)',
-        justifyContent: 'center',
-        alignItems: 'center',
     },
     logoutBtn: {
         flexDirection: 'row',
