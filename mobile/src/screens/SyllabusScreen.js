@@ -26,12 +26,13 @@ export default function SyllabusScreen({ navigation }) {
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-        fetchSyllabus();
+        const courseId = navigation.getState()?.routes?.find(r => r.name === 'Syllabus')?.params?.courseId;
+        fetchSyllabus(courseId);
     }, []);
 
-    const fetchSyllabus = async () => {
+    const fetchSyllabus = async (courseId) => {
         try {
-            const topicsData = await topicService.getAllTopics();
+            const topicsData = await topicService.getAllTopics(courseId);
             // Fetch subtopics for each topic
             const syllabus = await Promise.all(topicsData.map(async (topic) => {
                 try {

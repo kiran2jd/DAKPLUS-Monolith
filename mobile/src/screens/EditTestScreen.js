@@ -25,6 +25,7 @@ export default function EditTestScreen({ navigation, route }) {
     const [difficulty, setDifficulty] = useState('Medium');
     const [questions, setQuestions] = useState([{ text: '', options: ['', '', '', ''], correctAnswer: '', explanation: '', points: 1 }]);
     const [isPremium, setIsPremium] = useState(false);
+    const [courseIds, setCourseIds] = useState([]);
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
 
@@ -41,6 +42,7 @@ export default function EditTestScreen({ navigation, route }) {
             setCategory(test.category || 'General');
             setDifficulty(test.difficulty || 'Medium');
             setIsPremium(test.premium || test.isPremium || false);
+            setCourseIds(test.courseIds || []);
             if (test.questions && test.questions.length > 0) {
                 setQuestions(test.questions.map(q => ({
                     text: q.text,
@@ -72,6 +74,12 @@ export default function EditTestScreen({ navigation, route }) {
         setQuestions(newQuestions);
     };
 
+    const toggleCourse = (id) => {
+        setCourseIds(prev => 
+            prev.includes(id) ? prev.filter(c => c !== id) : [...prev, id]
+        );
+    };
+
     const handleUpdate = async () => {
         if (!title || questions.some(q => !q.text || !q.correctAnswer)) {
             Alert.alert('Error', 'Please fill in all required fields and ensure each question has a correct answer.');
@@ -87,6 +95,7 @@ export default function EditTestScreen({ navigation, route }) {
                 category,
                 difficulty,
                 isPremium,
+                courseIds,
                 questions: questions.map(q => ({
                     ...q,
                     type: 'mcq'
@@ -167,6 +176,25 @@ export default function EditTestScreen({ navigation, route }) {
                                     <Text style={{ color: isPremium ? '#dc2626' : '#64748b', fontWeight: 'bold' }}>
                                         {isPremium ? 'YES' : 'NO'}
                                     </Text>
+                                </View>
+                            </View>
+                        </View>
+
+                        <View style={styles.row}>
+                            <View style={[styles.inputGroup, { flex: 1 }]}>
+                                <Text style={styles.label}>Available In Courses</Text>
+                                <View style={styles.courseSelectionRow}>
+                                    {['MTS', 'PMMG', 'PASA'].map(cid => (
+                                        <TouchableOpacity 
+                                            key={cid}
+                                            style={[styles.courseChip, courseIds.includes(cid) ? styles.courseChipSelected : null]}
+                                            onPress={() => toggleCourse(cid)}
+                                        >
+                                            <Text style={[styles.courseChipText, courseIds.includes(cid) ? styles.courseChipTextSelected : null]}>
+                                                {cid}
+                                            </Text>
+                                        </TouchableOpacity>
+                                    ))}
                                 </View>
                             </View>
                         </View>
@@ -356,4 +384,16 @@ const styles = StyleSheet.create({
     disabledBtn: {
         opacity: 0.6,
     },
+    courseSelectionRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 10, marginTop: 5 },
+    courseChip: { 
+        paddingHorizontal: 12, 
+        paddingVertical: 8, 
+        borderRadius: 12, 
+        backgroundColor: '#e2e8f0',
+        borderWidth: 1,
+        borderColor: '#cbd5e1'
+    },
+    courseChipSelected: { backgroundColor: '#dc2626', borderColor: '#dc2626' },
+    courseChipText: { color: '#475569', fontSize: 13, fontWeight: '600' },
+    courseChipTextSelected: { color: '#fff', fontWeight: 'bold' }
 });

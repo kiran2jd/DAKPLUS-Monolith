@@ -31,6 +31,7 @@ public class Test {
     private int totalAttempts = 0;
     private String topicId;
     private String subtopicId;
+    private java.util.List<String> courseIds; // ["MTS", "PMMG", "PASA"]
 
     public Test() {
     }
@@ -185,6 +186,14 @@ public class Test {
 
     public void setSubtopicId(String subtopicId) {
         this.subtopicId = subtopicId;
+    }
+
+    public java.util.List<String> getCourseIds() {
+        return courseIds;
+    }
+
+    public void setCourseIds(java.util.List<String> courseIds) {
+        this.courseIds = courseIds;
     }
 
     public void incrementAttempts() {

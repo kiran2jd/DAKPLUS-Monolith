@@ -17,8 +17,9 @@ export const testService = {
         return response.data;
     },
 
-    getAvailableTests: async () => {
-        const response = await api.get('tests/available/all');
+    async getAvailableTests(courseId) {
+        const url = courseId ? `tests/available/all?courseId=${courseId}` : 'tests/available/all';
+        const response = await api.get(url);
         return response.data;
     },
 

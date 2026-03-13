@@ -1,8 +1,9 @@
 import api from './api';
 
 export const topicService = {
-    getAllTopics: async () => {
-        const response = await api.get('topics/');
+    async getAllTopics(courseId) {
+        const url = courseId ? `/topics/?courseId=${courseId}` : '/topics/';
+        const response = await api.get(url);
         return response.data;
     },
 

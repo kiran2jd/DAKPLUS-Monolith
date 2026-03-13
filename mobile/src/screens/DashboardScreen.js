@@ -45,9 +45,10 @@ export default function DashboardScreen({ navigation }) {
     const isStudent = role === 'STUDENT';
 
     const banners = [
-        { title: "GDS to MTS Exam", subtitle: "TARGET 2026 BATCH", colors: ['#dc2626', '#b91c1c'], icon: 'mail-outline' },
-        { title: "Postman & Mail Guard", subtitle: "COMPLETE PAPER 1 & 2", colors: ['#1e3a8a', '#1d4ed8'], icon: 'cube-outline' },
-        { title: "PA/SA Special Classes", subtitle: "TARGET 2026 BATCH", colors: ['#7c3aed', '#5b21b6'], icon: 'school-outline' }
+        { id: 'MTS', title: "MTS Exam", subtitle: "TARGET 2026 BATCH", colors: ['#dc2626', '#b91c1c'], icon: 'mail-outline' },
+        { id: 'PMMG', title: "Postman & Mail Guard", subtitle: "COMPLETE PAPER 1 & 2", colors: ['#1e3a8a', '#1d4ed8'], icon: 'cube-outline' },
+        { id: 'PASA', title: "PA/SA Special Classes", subtitle: "TARGET 2026 BATCH", colors: ['#7c3aed', '#5b21b6'], icon: 'school-outline' },
+        { id: 'COMBINED', title: "Combined Course", subtitle: "PA/SA, PM/MG, MTS", colors: ['#059669', '#047857'], icon: 'library-outline' }
     ];
 
     // 1. BACK BUTTON GUARD
@@ -162,13 +163,18 @@ export default function DashboardScreen({ navigation }) {
                             keyExtractor={(_, i) => i.toString()}
                             onMomentumScrollEnd={(e) => setCurrentSlide(Math.round(e.nativeEvent.contentOffset.x / (width - 40)))}
                             renderItem={({ item }) => (
-                                <LinearGradient colors={item.colors} style={styles.bannerCard} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}>
-                                    <View style={{ flex: 1 }}>
-                                        <Text style={styles.bannerSubtitle}>{item.subtitle}</Text>
-                                        <Text style={styles.bannerTitle}>{item.title}</Text>
-                                    </View>
-                                    <Ionicons name={item.icon} size={60} color="rgba(255,255,255,0.2)" />
-                                </LinearGradient>
+                                <TouchableOpacity 
+                                    activeOpacity={0.9} 
+                                    onPress={() => navigation.navigate('Tests', { courseId: item.id })}
+                                >
+                                    <LinearGradient colors={item.colors} style={styles.bannerCard} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}>
+                                        <View style={{ flex: 1 }}>
+                                            <Text style={styles.bannerSubtitle}>{item.subtitle}</Text>
+                                            <Text style={styles.bannerTitle}>{item.title}</Text>
+                                        </View>
+                                        <Ionicons name={item.icon} size={60} color="rgba(255,255,255,0.2)" />
+                                    </LinearGradient>
+                                </TouchableOpacity>
                             )}
                         />
                         <View style={styles.pagination}>

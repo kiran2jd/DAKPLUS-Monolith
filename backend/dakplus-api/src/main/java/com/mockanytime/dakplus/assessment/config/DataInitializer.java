@@ -11,6 +11,7 @@ import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Configuration;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 @Configuration("assessmentDataInitializer")
@@ -24,58 +25,65 @@ public class DataInitializer implements CommandLineRunner {
     @Override
     public void run(String... args) throws Exception {
         if (topicRepository.count() == 0) {
-            seedData();
+            seedPostalData();
         }
     }
 
-    private void seedData() {
-        // Seed Topics
-        Topic java = new Topic(null, "Java", "Fundamental concepts of Java programming", "coffee", null, null);
-        Topic python = new Topic(null, "Python", "Master Python for Data Science and Web", "code", null, null);
-        Topic web = new Topic(null, "Web Development", "HTML, CSS, React and Node", "layout", null, null);
+    private void seedPostalData() {
+        // Seed Real Postal Exam Courses as Topics (Tags)
+        Topic mts = new Topic(null, "GDS to MTS", "Complete preparation for MTS examination", "mail", null, null, Arrays.asList("MTS"));
+        Topic pmmg = new Topic(null, "Postman & Mail Guard", "Covers Paper 1 & 2 for PM/MG", "cube", null, null, Arrays.asList("PMMG"));
+        Topic pasa = new Topic(null, "PA/SA Special", "Target oriented batch for PA/SA", "school", null, null, Arrays.asList("PASA"));
 
-        java = topicRepository.save(java);
-        python = topicRepository.save(python);
-        web = topicRepository.save(web);
+        mts = topicRepository.save(mts);
+        pmmg = topicRepository.save(pmmg);
+        pasa = topicRepository.save(pasa);
 
-        // Seed Subtopics
-        Subtopic syntax = subtopicRepository
-                .save(new Subtopic(null, "Basics & Syntax", "Variables, types, operators", java.getId(), null, null));
-        Subtopic oop = subtopicRepository
-                .save(new Subtopic(null, "OOP Concepts", "Classes, Interfaces, Inheritance", java.getId(), null, null));
+        // Seed Subtopics for MTS
+        Subtopic poGuide1Mts = subtopicRepository
+                .save(new Subtopic(null, "PO Guide Part 1", "Section 1 - Control of the Post Office", mts.getId(), null, null));
+        
+        // Seed Subtopics for PMMG
+        Subtopic poGuide1Pm = subtopicRepository
+                .save(new Subtopic(null, "PO Guide Part 1", "Detailed coverage for PM/MG", pmmg.getId(), null, null));
 
-        Subtopic django = subtopicRepository
-                .save(new Subtopic(null, "Django Framework", "Backend with Python", python.getId(), null, null));
-        Subtopic react = subtopicRepository
-                .save(new Subtopic(null, "React Hooks", "State and Effects in React", web.getId(), null, null));
+        // Seed Sample Shared Test (Shared between MTS and PMMG)
+        Test sharedMock = new Test();
+        sharedMock.setTitle("PO Guide Part 1 - Combined Quiz");
+        sharedMock.setDescription("Common questions for both MTS and PM/MG exams.");
+        sharedMock.setCategory("PO Guide");
+        sharedMock.setDifficulty("Medium");
+        sharedMock.setDurationMinutes(40);
+        sharedMock.setTopicId(mts.getId()); // Primary association
+        sharedMock.setCourseIds(Arrays.asList("MTS", "PMMG")); // Shared Content!
+        sharedMock.setPremium(true);
+        sharedMock.setQuestions(new ArrayList<>());
+        testRepository.save(sharedMock);
 
-        // Seed Sample Tests
-        Test javaTest = new Test();
-        javaTest.setTitle("Java Core Quiz");
-        javaTest.setDescription("Test your knowledge of Java fundamentals and OOP.");
-        javaTest.setCategory("Programming");
-        javaTest.setDifficulty("Medium");
-        javaTest.setDurationMinutes(30);
-        javaTest.setTopicId(java.getId());
-        javaTest.setSubtopicId(oop.getId());
-        javaTest.setPremium(false);
-        javaTest.setQuestions(new ArrayList<>()); // Empty for now, user can add via AI
+        Test mtsOnlyMock = new Test();
+        mtsOnlyMock.setTitle("MTS Model Paper 1");
+        mtsOnlyMock.setDescription("Exclusive mock test for GDS to MTS.");
+        mtsOnlyMock.setCategory("MTS");
+        mtsOnlyMock.setDifficulty("Medium");
+        mtsOnlyMock.setDurationMinutes(60);
+        mtsOnlyMock.setTopicId(mts.getId());
+        mtsOnlyMock.setCourseIds(Arrays.asList("MTS"));
+        mtsOnlyMock.setPremium(true);
+        mtsOnlyMock.setQuestions(new ArrayList<>());
+        testRepository.save(mtsOnlyMock);
 
-        testRepository.save(javaTest);
+        Test pasaMock = new Test();
+        pasaMock.setTitle("PA/SA Comprehensive Quiz");
+        pasaMock.setDescription("Advanced questions for PA/SA exam.");
+        pasaMock.setCategory("PA/SA");
+        pasaMock.setDifficulty("Hard");
+        pasaMock.setDurationMinutes(90);
+        pasaMock.setTopicId(pasa.getId());
+        pasaMock.setCourseIds(Arrays.asList("PASA"));
+        pasaMock.setPremium(true);
+        pasaMock.setQuestions(new ArrayList<>());
+        testRepository.save(pasaMock);
 
-        Test reactTest = new Test();
-        reactTest.setTitle("React Fundamentals");
-        reactTest.setDescription("Modern React development with hooks.");
-        reactTest.setCategory("Web Development");
-        reactTest.setDifficulty("Easy");
-        reactTest.setDurationMinutes(20);
-        reactTest.setTopicId(web.getId());
-        reactTest.setSubtopicId(react.getId());
-        reactTest.setPremium(true);
-        reactTest.setQuestions(new ArrayList<>());
-
-        testRepository.save(reactTest);
-
-        System.out.println(">>> Sample Data Seeded Successfully <<<");
+        System.out.println(">>> Postal Exam Shared Data Seeded Successfully <<<");
     }
 }

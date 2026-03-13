@@ -29,6 +29,7 @@ export default function CreateTestScreen({ navigation }) {
     const [difficulty, setDifficulty] = useState('Medium');
     const [questions, setQuestions] = useState([{ text: '', options: ['', '', '', ''], correctAnswer: '', explanation: '', points: 1, imageUrl: '', isUploading: false }]);
     const [isPremium, setIsPremium] = useState(false);
+    const [courseIds, setCourseIds] = useState([]); // Selected course tags
     const [loading, setLoading] = useState(false);
     const [extracting, setExtracting] = useState(false);
 
@@ -164,6 +165,12 @@ export default function CreateTestScreen({ navigation }) {
         setQuestions(newQuestions);
     };
 
+    const toggleCourse = (id) => {
+        setCourseIds(prev => 
+            prev.includes(id) ? prev.filter(c => c !== id) : [...prev, id]
+        );
+    };
+
     const handleCreate = async () => {
         if (!title || questions.some(q => !q.text || !q.correctAnswer)) {
             Alert.alert('Error', 'Please fill in all required fields and ensure each question has a correct answer.');
@@ -180,6 +187,7 @@ export default function CreateTestScreen({ navigation }) {
                 difficulty,
                 topicId: selectedTopic,
                 subtopicId: selectedSubtopic,
+                courseIds: courseIds,
                 isPremium,
                 questions: questions.map(q => ({
                     ...q,
@@ -256,6 +264,30 @@ export default function CreateTestScreen({ navigation }) {
                                     <Text style={{ color: isPremium ? '#dc2626' : '#64748b', fontWeight: 'bold' }}>
                                         {isPremium ? 'YES' : 'NO'}
                                     </Text>
+                                </View>
+                            </View>
+                        </View>
+
+                        <View style={styles.row}>
+                            <View style={[styles.inputGroup, { flex: 1 }]}>
+                                <Text style={styles.label}>Available In Courses</Text>
+                                <View style={styles.courseSelectionRow}>
+                                    {['MTS', 'PMMG', 'PASA'].map(cid => (
+                                        <TouchableOpacity 
+                                            key={cid}
+                                            style={[styles.courseChip, courseIds.includes(cid) ? styles.courseChipSelected : null]}
+                                            onPress={() => toggleCourse(cid)}
+                                        >
+                                            <Ionicons 
+                                                name={courseIds.includes(cid) ? "checkbox" : "square-outline"} 
+                                                size={16} 
+                                                color={courseIds.includes(cid) ? "#fff" : "#94a3b8"} 
+                                            />
+                                            <Text style={[styles.courseChipText, courseIds.includes(cid) ? styles.courseChipTextSelected : null]}>
+                                                {cid}
+                                            </Text>
+                                        </TouchableOpacity>
+                                    ))}
                                 </View>
                             </View>
                         </View>
@@ -457,5 +489,20 @@ const styles = StyleSheet.create({
     },
     imgPickedText: {
         color: '#10b981'
-    }
+    },
+    courseSelectionRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 10, marginTop: 5 },
+    courseChip: { 
+        flexDirection: 'row', 
+        alignItems: 'center', 
+        gap: 6, 
+        paddingHorizontal: 12, 
+        paddingVertical: 8, 
+        borderRadius: 12, 
+        backgroundColor: 'rgba(255,255,255,0.05)',
+        borderWidth: 1,
+        borderColor: 'rgba(255,255,255,0.08)'
+    },
+    courseChipSelected: { backgroundColor: '#dc2626', borderColor: '#dc2626' },
+    courseChipText: { color: '#94a3b8', fontSize: 13, fontWeight: '600' },
+    courseChipTextSelected: { color: '#fff', fontWeight: 'bold' }
 });

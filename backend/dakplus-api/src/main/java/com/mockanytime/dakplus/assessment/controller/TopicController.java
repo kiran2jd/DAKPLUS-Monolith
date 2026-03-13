@@ -28,7 +28,10 @@ public class TopicController {
     }
 
     @GetMapping("/")
-    public List<Topic> getAllTopics() {
+    public List<Topic> getAllTopics(@RequestParam(required = false) String courseId) {
+        if (courseId != null) {
+            return topicService.getTopicsByCourse(courseId);
+        }
         return topicService.getAllTopics();
     }
 

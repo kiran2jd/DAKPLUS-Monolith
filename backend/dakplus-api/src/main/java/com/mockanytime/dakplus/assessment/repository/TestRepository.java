@@ -6,4 +6,6 @@ import java.util.List;
 
 public interface TestRepository extends MongoRepository<Test, String> {
     List<Test> findByCreatedBy(String createdBy);
+    List<Test> findByCourseIdsContaining(String courseId);
+    List<Test> findByTopicId(String topicId);
 }

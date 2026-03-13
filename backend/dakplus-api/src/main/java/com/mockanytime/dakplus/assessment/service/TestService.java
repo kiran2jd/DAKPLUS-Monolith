@@ -24,6 +24,14 @@ public class TestService {
         return testRepository.findAll();
     }
 
+    public List<Test> getTestsByCourse(String courseId) {
+        return testRepository.findByCourseIdsContaining(courseId);
+    }
+
+    public List<Test> getTestsByTopic(String topicId) {
+        return testRepository.findByTopicId(topicId);
+    }
+
     public List<Test> getTestsByTeacher(String teacherId) {
         return testRepository.findByCreatedBy(teacherId);
     }
@@ -45,6 +53,9 @@ public class TestService {
         existing.setPremium(updates.isPremium());
         existing.setPrice(updates.getPrice());
         existing.setTags(updates.getTags());
+        existing.setCourseIds(updates.getCourseIds());
+        existing.setTopicId(updates.getTopicId());
+        existing.setSubtopicId(updates.getSubtopicId());
 
         return testRepository.save(existing);
     }

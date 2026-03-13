@@ -43,7 +43,7 @@ export default function PaymentScreen({ navigation }) {
                 setSuccess(true);
                 // Auto-redirect to Home if user is now Premium
                 setTimeout(() => {
-                    navigation.navigate('Home');
+                    navigation.navigate('Main');
                 }, 1500);
             }
         } catch (err) {
@@ -76,10 +76,10 @@ export default function PaymentScreen({ navigation }) {
             
             // Explicitly reload profile when browser is closed
             const updatedProfile = await api.get('/auth/profile');
-            if (updatedProfile.user?.subscriptionTier === 'PREMIUM') {
+            if (updatedProfile.user?.subscriptionTier === 'PREMIUM' || (updatedProfile.user?.unlockedExams && updatedProfile.user.unlockedExams.length > 0)) {
                 setSuccess(true);
-                Alert.alert("Success", "Your account has been upgraded to PRO!");
-                navigation.navigate('Home');
+                Alert.alert("Success", "Your course has been unlocked!");
+                navigation.navigate('Main');
             } else {
                 // If not yet premium, maybe they just closed the browser without finishing
                 loadProfile();

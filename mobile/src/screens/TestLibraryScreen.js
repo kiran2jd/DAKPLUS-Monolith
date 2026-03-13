@@ -40,9 +40,12 @@ export default function TestLibraryScreen({ navigation }) {
             const userData = await authService.getUser();
             setUser(userData);
 
+            const courseId = navigation.getState()?.routes?.find(r => r.name === 'Tests')?.params?.courseId;
+            console.log("Loading Library for course:", courseId);
+
             const [topicsData, testsData] = await Promise.all([
-                topicService.getAllTopics(),
-                testService.getAvailableTests()
+                topicService.getAllTopics(courseId),
+                testService.getAvailableTests(courseId)
             ]);
 
             setTopics(topicsData);
@@ -75,10 +78,20 @@ export default function TestLibraryScreen({ navigation }) {
     };
 
     const isPro = user?.subscriptionTier === 'PREMIUM' || user?.role === 'ADMIN' || user?.role === 'TEACHER';
+    const unlockedExams = user?.unlockedExams || [];
 
     const renderTestItem = ({ item }) => {
         const isPremium = item.premium || item.isPremium;
-        const isLocked = isPremium && !isPro;
+        const purchasedIds = purchases.map(p => p.itemId);
+        
+        // Course-based locking logic (Shared Content Support)
+        const itemCourseIds = item.courseIds || [];
+        const isUnlocked = isPro || 
+                          unlockedExams.includes('COMBINED') || 
+                          itemCourseIds.some(cid => unlockedExams.includes(cid)) ||
+                          purchasedIds.includes(item.id);
+
+        const isLocked = isPremium && !isUnlocked;
 
         return (
             <Pressable

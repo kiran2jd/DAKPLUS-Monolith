@@ -29,6 +29,10 @@ public class TopicService {
         return topicRepository.findAll();
     }
 
+    public List<Topic> getTopicsByCourse(String courseId) {
+        return topicRepository.findByCourseIdsContaining(courseId);
+    }
+
     public Optional<Topic> getTopicById(String id) {
         return topicRepository.findById(id);
     }
