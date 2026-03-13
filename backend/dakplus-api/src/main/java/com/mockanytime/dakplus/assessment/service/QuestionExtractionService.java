@@ -89,6 +89,7 @@ public class QuestionExtractionService {
                 3. Clean OCR noise (random symbols, broken words).
                 4. If a question is incomplete, skip it rather than guessing.
                 5. Use professional Hindi terminology relevant to Indian postal exams.
+                6. IMPORTANT: DO NOT SKIP QUESTIONS. If the response is truncated, I will handle it. Just provide as many as possible in the JSON format.
 
                 FORMAT:
                 {
@@ -143,31 +144,15 @@ public class QuestionExtractionService {
 
         // Handle Truncation: If the response ends abruptly, try to close the JSON
         // structure
-        if (response.startsWith("{") && !response.endsWith("}")) {
-            System.out.println("AI Response appears truncated. Length: " + response.length());
-
-            // Step 1: Handle partial string values by closing the quote
-            long quoteCount = response.chars().filter(ch -> ch == '"').count();
-            if (quoteCount % 2 != 0) {
-                System.out.println("Detected unclosed string. Closing it now.");
-                response += "\"";
-            }
-
-            // Step 2: Try to find the last complete question object
-            int lastObjectEnd = response.lastIndexOf("},");
-            if (lastObjectEnd != -1) {
-                System.out.println("Found last complete object. Truncating partial data.");
-                response = response.substring(0, lastObjectEnd + 1) + "]}";
-            } else {
-                // Aggressive fallback
-                if (response.contains("[")) {
-                    if (!response.endsWith("]"))
-                        response += "]";
+                if (response.lastIndexOf("}") < response.lastIndexOf("{")) {
+                     response += "}";
                 }
-                if (!response.endsWith("}"))
-                    response += "}";
-            }
-        }
+                if (response.contains("[") && !response.endsWith("]}")) {
+                    if (response.endsWith(",")) {
+                        response = response.substring(0, response.length() - 1);
+                    }
+                    response += "]}";
+                }
 
         try {
             // Using simple structure for the output parser or manual mapping if needed.

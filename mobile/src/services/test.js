@@ -40,10 +40,15 @@ export const testService = {
     extractQuestions: async (fileUri, fileName, fileType, topicId, subtopicId) => {
         const formData = new FormData();
 
-        // In React Native, FormData requires a file object with uri, name, and type
+        // Detect and fix missing extension in filename if necessary
+        let finalName = fileName || 'document.pdf';
+        if (fileType === 'application/pdf' && !finalName.toLowerCase().endsWith('.pdf')) finalName += '.pdf';
+        if ((fileType === 'application/msword' || fileType === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document') && !finalName.toLowerCase().endsWith('.docx') && !finalName.toLowerCase().endsWith('.doc')) finalName += '.docx';
+        if (fileType === 'text/plain' && !finalName.toLowerCase().endsWith('.txt')) finalName += '.txt';
+
         formData.append('file', {
             uri: Platform.OS === 'android' ? fileUri : fileUri.replace('file://', ''),
-            name: fileName || 'document.pdf',
+            name: finalName,
             type: fileType || 'application/pdf'
         });
 

@@ -33,6 +33,7 @@ spring:
       chat:
         options:
           model: llama-3.3-70b-versatile
+          max-tokens: 8192 # Increased for large document extraction
   servlet:
     multipart:
       max-file-size: 100MB
