@@ -105,32 +105,27 @@ export default function ManageTestsScreen({ navigation }) {
     }
 
     return (
-        <View style={[styles.container, { backgroundColor: '#0f172a' }]}>
-            <View style={[styles.header, { paddingTop: Math.max(insets.top, 15) }]}>
+        <View style={styles.container}>
+            <LinearGradient colors={['#1e293b', '#0f172a']} style={[styles.header, { paddingTop: Math.max(insets.top, 15) }]}>
                 <View style={styles.headerRow}>
                     <TouchableOpacity 
                         onPress={() => navigation.goBack()} 
-                        style={styles.backBtn}
+                        style={styles.headerIconButton}
                         activeOpacity={0.7}
                     >
                         <Ionicons name="chevron-back" size={24} color="#fff" />
                     </TouchableOpacity>
-                    <Text style={styles.headerTitle}>Content Manager</Text>
+                    <Text style={styles.headerTitle}>CONTENT MANAGER</Text>
                     <TouchableOpacity 
-                        onPress={() => {
-                            try {
-                                navigation.getParent()?.openDrawer();
-                            } catch (e) {
-                                navigation.dispatch(DrawerActions.openDrawer());
-                            }
-                        }} 
-                        style={styles.backBtn}
+                        onPress={() => navigation.dispatch(DrawerActions.openDrawer())} 
+                        style={styles.headerIconButton}
                         activeOpacity={0.7}
                     >
-                        <Ionicons name="menu-outline" size={24} color="#fff" />
+                        <Ionicons name="menu-outline" size={28} color="#fff" />
                     </TouchableOpacity>
                 </View>
-            </View>
+                <Text style={styles.headerSubtitle}>Manage and publish your mock exams</Text>
+            </LinearGradient>
 
             <FlatList
                 data={tests}
@@ -138,159 +133,69 @@ export default function ManageTestsScreen({ navigation }) {
                 renderItem={renderTestItem}
                 contentContainerStyle={styles.listContent}
                 refreshControl={
-                    <RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={['#1e3a8a']} />
+                    <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#dc2626" />
                 }
                 ListEmptyComponent={
                     <View style={styles.emptyState}>
-                        <Ionicons name="document-text-outline" size={64} color="#cbd5e1" />
-                        <Text style={styles.emptyTitle}>No tests created yet</Text>
+                        <View style={styles.emptyIconBg}>
+                            <Ionicons name="document-text-outline" size={64} color="rgba(255,255,255,0.1)" />
+                        </View>
+                        <Text style={styles.emptyTitle}>NO TESTS CREATED YET</Text>
                         <Text style={styles.emptySub}>Start by creating your first mock test!</Text>
                         <TouchableOpacity
-                            style={styles.createBtn}
+                            style={styles.createBtnLarge}
                             onPress={() => navigation.navigate('CreateTest')}
                         >
-                            <Text style={styles.createBtnText}>Create Test</Text>
+                            <LinearGradient colors={['#dc2626', '#b91c1c']} style={styles.gradientBtn}>
+                                <Text style={styles.createBtnText}>+ CREATE NEW TEST</Text>
+                            </LinearGradient>
                         </TouchableOpacity>
                     </View>
                 }
             />
+
+            {/* Floating Action Button */}
+            <TouchableOpacity 
+                style={styles.fab}
+                onPress={() => navigation.navigate('CreateTest')}
+                activeOpacity={0.8}
+            >
+                <LinearGradient colors={['#dc2626', '#b91c1c']} style={styles.fabGradient}>
+                    <Ionicons name="add" size={32} color="#fff" />
+                </LinearGradient>
+            </TouchableOpacity>
         </View>
     );
 }
 
 const styles = StyleSheet.create({
-    container: {
-        flex: 1,
-        backgroundColor: '#0f172a',
-    },
-    header: {
-        paddingBottom: 20,
-        paddingHorizontal: 20,
-        backgroundColor: '#0f172a',
-    },
-    headerRow: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-    },
-    backBtn: {
-        width: 44,
-        height: 44,
-        borderRadius: 12,
-        backgroundColor: 'rgba(255,255,255,0.05)',
-        justifyContent: 'center',
-        alignItems: 'center',
-        borderWidth: 1,
-        borderColor: 'rgba(255,255,255,0.1)',
-    },
-    headerTitle: {
-        color: '#fff',
-        fontSize: 18,
-        fontWeight: '900',
-        letterSpacing: 0.5,
-    },
-    listContent: {
-        padding: 20,
-        flexGrow: 1,
-    },
-    testCard: {
-        backgroundColor: 'rgba(255,255,255,0.03)',
-        borderRadius: 20,
-        padding: 16,
-        marginBottom: 16,
-        flexDirection: 'row',
-        alignItems: 'center',
-        borderWidth: 1,
-        borderColor: 'rgba(255,255,255,0.05)',
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.1,
-        shadowRadius: 8,
-        elevation: 3,
-    },
-    testInfo: {
-        flex: 1,
-    },
-    testTitle: {
-        fontSize: 16,
-        fontWeight: '900',
-        color: '#fff',
-        marginBottom: 4,
-    },
-    testSub: {
-        fontSize: 13,
-        color: '#64748b',
-        marginBottom: 12,
-    },
-    metaRow: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        gap: 12,
-    },
-    tag: {
-        backgroundColor: 'rgba(255,255,255,0.05)',
-        paddingHorizontal: 8,
-        paddingVertical: 2,
-        borderRadius: 6,
-    },
-    tagText: {
-        fontSize: 11,
-        color: '#94a3b8',
-        fontWeight: '600',
-    },
-    metaText: {
-        fontSize: 12,
-        color: '#475569',
-    },
-    actions: {
-        flexDirection: 'row',
-        gap: 8,
-        marginLeft: 12,
-    },
-    actionBtn: {
-        width: 36,
-        height: 36,
-        borderRadius: 18,
-        justifyContent: 'center',
-        alignItems: 'center',
-    },
-    editBtn: {
-        backgroundColor: 'rgba(96, 165, 250, 0.1)',
-    },
-    deleteBtn: {
-        backgroundColor: 'rgba(248, 113, 113, 0.1)',
-    },
-    center: {
-        flex: 1,
-        justifyContent: 'center',
-        alignItems: 'center',
-    },
-    emptyState: {
-        flex: 1,
-        justifyContent: 'center',
-        alignItems: 'center',
-        marginTop: 100,
-    },
-    emptyTitle: {
-        fontSize: 18,
-        fontWeight: 'bold',
-        color: '#475569',
-        marginTop: 16,
-    },
-    emptySub: {
-        fontSize: 14,
-        color: '#94a3b8',
-        marginTop: 8,
-        marginBottom: 24,
-    },
-    createBtn: {
-        backgroundColor: '#1e3a8a',
-        paddingHorizontal: 24,
-        paddingVertical: 12,
-        borderRadius: 12,
-    },
-    createBtnText: {
-        color: '#fff',
-        fontWeight: 'bold',
-    }
+    container: { flex: 1, backgroundColor: '#0f172a' },
+    header: { paddingBottom: 24, paddingHorizontal: 20, borderBottomLeftRadius: 32, borderBottomRightRadius: 32 },
+    headerRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
+    headerIconButton: { width: 44, height: 44, borderRadius: 12, backgroundColor: 'rgba(255,255,255,0.08)', justifyContent: 'center', alignItems: 'center', borderWidth: 1, borderColor: 'rgba(255,255,255,0.1)' },
+    headerTitle: { color: '#fff', fontSize: 18, fontWeight: '900', letterSpacing: 1 },
+    headerSubtitle: { color: '#94a3b8', fontSize: 12, marginTop: 4, fontWeight: '500' },
+    listContent: { padding: 20, paddingBottom: 100, flexGrow: 1 },
+    testCard: { backgroundColor: 'rgba(255,255,255,0.03)', borderRadius: 24, padding: 20, marginBottom: 16, flexDirection: 'row', alignItems: 'center', borderWidth: 1, borderColor: 'rgba(255,255,255,0.05)' },
+    testInfo: { flex: 1 },
+    testTitle: { fontSize: 16, fontWeight: '900', color: '#fff', marginBottom: 4 },
+    testSub: { fontSize: 13, color: '#64748b', marginBottom: 12 },
+    metaRow: { flexDirection: 'row', alignItems: 'center', gap: 12 },
+    tag: { backgroundColor: 'rgba(56, 189, 248, 0.1)', paddingHorizontal: 8, paddingVertical: 2, borderRadius: 6 },
+    tagText: { fontSize: 10, color: '#38bdf8', fontWeight: '900', textTransform: 'uppercase' },
+    metaText: { fontSize: 12, color: '#475569', fontWeight: 'bold' },
+    actions: { flexDirection: 'row', gap: 10, marginLeft: 12 },
+    actionBtn: { width: 38, height: 38, borderRadius: 12, justifyContent: 'center', alignItems: 'center' },
+    editBtn: { backgroundColor: 'rgba(96, 165, 250, 0.1)' },
+    deleteBtn: { backgroundColor: 'rgba(248, 113, 113, 0.1)' },
+    center: { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#0f172a' },
+    emptyState: { flex: 1, justifyContent: 'center', alignItems: 'center', marginTop: 100 },
+    emptyIconBg: { width: 100, height: 100, borderRadius: 50, backgroundColor: 'rgba(255,255,255,0.03)', justifyContent: 'center', alignItems: 'center', marginBottom: 20 },
+    emptyTitle: { fontSize: 16, fontWeight: '900', color: '#fff', letterSpacing: 1 },
+    emptySub: { fontSize: 14, color: '#64748b', marginTop: 8, marginBottom: 24, textAlign: 'center' },
+    createBtnLarge: { borderRadius: 16, overflow: 'hidden' },
+    gradientBtn: { paddingHorizontal: 24, paddingVertical: 14, alignItems: 'center' },
+    createBtnText: { color: '#fff', fontWeight: '900', letterSpacing: 0.5 },
+    fab: { position: 'absolute', bottom: 30, right: 24, borderRadius: 30, elevation: 8, shadowColor: '#dc2626', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 12, overflow: 'hidden' },
+    fabGradient: { width: 56, height: 56, justifyContent: 'center', alignItems: 'center' },
 });
