@@ -25,9 +25,8 @@ import logo from '../../assets/logo.jpg';
 const { width } = Dimensions.get('window');
 
 /**
- * PREMIUM STABILIZED DASHBOARD
- * Restored high-fidelity UI with Admin tools and Student stats.
- * Uses core touchables and absolute layering for 100% reliability.
+ * PRODUCTION-READY PREMIUM DASHBOARD
+ * Fixed service call bugs and expanded functionality for Admin vs Student.
  */
 export default function DashboardScreen({ navigation }) {
     const insets = useSafeAreaInsets();
@@ -39,7 +38,7 @@ export default function DashboardScreen({ navigation }) {
     const [leaderboard, setLeaderboard] = useState([]);
     const flatListRef = useRef(null);
 
-    const isStudent = user?.role === 'student';
+    const isStudent = user?.role === 'student' || !user?.role;
     const isStaff = user?.role === 'staff' || user?.role === 'admin';
 
     const banners = [
@@ -56,16 +55,25 @@ export default function DashboardScreen({ navigation }) {
 
     const loadDashboardData = async () => {
         try {
-            const userData = await authService.getCurrentUser();
+            // FIX: Correct service call names
+            const userData = await authService.getUser();
             setUser(userData);
-            const [resultsData, leaderboardData] = await Promise.all([
-                resultService.getUserResults(),
-                userData?.role === 'student' ? resultService.getLeaderboard() : Promise.resolve([])
-            ]);
-            setResults(resultsData || []);
-            setLeaderboard(leaderboardData || []);
+            
+            if (userData) {
+                const [resultsData, leaderboardData] = await Promise.all([
+                    resultService.getMyResults(), // FIX: Corrected method name
+                    userData?.role === 'student' ? resultService.getLeaderboard() : Promise.resolve([])
+                ]);
+                setResults(resultsData || []);
+                setLeaderboard(leaderboardData || []);
+            }
         } catch (error) {
-            console.error('Dashboard load failed:', error);
+            console.error('Dashboard primary load failed:', error);
+            // Attempt to refresh profile if storage is stale
+            try {
+                const refreshedUser = await authService.getProfile();
+                setUser(refreshedUser);
+            } catch (e) {}
         } finally {
             setLoading(false);
             setRefreshing(false);
@@ -96,6 +104,7 @@ export default function DashboardScreen({ navigation }) {
                     <View style={styles.welcomeTextSection}>
                         <Text style={styles.greetingText}>Welcome back,</Text>
                         <Text style={styles.nameHeader}>{user?.fullName || 'DAK Plus Aspirant'}</Text>
+                        <Text style={styles.roleBadge}>{user?.role?.toUpperCase() || 'STUDENT'}</Text>
                     </View>
 
                     {/* Premium Banners Carousel */}
@@ -107,14 +116,14 @@ export default function DashboardScreen({ navigation }) {
                             pagingEnabled
                             showsHorizontalScrollIndicator={false}
                             keyExtractor={(_, i) => i.toString()}
-                            onMomentumScrollEnd={(e) => setCurrentSlide(Math.round(e.nativeEvent.contentOffset.x / (width - 40)))}
+                            onMomentumScrollEnd={(e) => setCurrentSlide(Math.round(e.event.contentOffset.x / (width - 40)))}
                             renderItem={({ item }) => (
                                 <LinearGradient colors={item.colors} style={styles.bannerCard} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}>
-                                    <View>
+                                    <View style={{ flex: 1 }}>
                                         <Text style={styles.bannerSubtitle}>{item.subtitle}</Text>
                                         <Text style={styles.bannerTitle}>{item.title}</Text>
                                     </View>
-                                    <Ionicons name={item.icon} size={60} color="rgba(255,255,255,0.2)" style={styles.bannerIcon} />
+                                    <Ionicons name={item.icon} size={60} color="rgba(255,255,255,0.2)" />
                                 </LinearGradient>
                             )}
                         />
@@ -147,16 +156,16 @@ export default function DashboardScreen({ navigation }) {
                         </View>
                     </View>
 
-                    <Text style={styles.sectionTitle}>Main Menu</Text>
+                    <Text style={styles.sectionTitle}>Essential Tools</Text>
 
                     <View style={styles.gridContainer}>
                         {[
                             { label: 'Mock Tests', icon: 'clipboard', route: 'Tests', color: '#dc2626', sub: 'Chapter-wise' },
-                            ...(isStaff ? [{ label: 'Create Test', icon: 'add-circle', route: 'CreateTest', color: '#f97316', sub: 'Add content' }] : []),
-                            ...(isStaff ? [{ label: 'Manage Tests', icon: 'layers', route: 'ManageTests', color: '#3b82f6', sub: 'Test list' }] : [{ label: 'Syllabus', icon: 'list', route: 'Tests', color: '#10b981', sub: 'Track progress' }]),
-                            { label: 'Analytics', icon: 'stats-chart', route: 'Performance', color: '#8b5cf6', sub: 'Performance' },
-                            ...(isStaff ? [{ label: 'Topics', icon: 'apps', route: 'TopicManagement', color: '#10b981', sub: 'Categories' }] : [{ label: 'Classes', icon: 'people', route: 'Tests', color: '#f59e0b', sub: 'Live learning' }]),
-                            { label: 'Support', icon: 'help-circle', route: 'Help', color: '#64748b', sub: 'Help center' }
+                            ...(isStaff ? [{ label: 'Question Bank', icon: 'add-circle', route: 'CreateTest', color: '#f97316', sub: 'Create tests' }] : []),
+                            ...(isStaff ? [{ label: 'Manage Tests', icon: 'layers', route: 'ManageTests', color: '#3b82f6', sub: 'Full control' }] : [{ label: 'Unlock Exam', icon: 'card', route: 'Payment', color: '#10b981', sub: 'Go Premium' }]),
+                            { label: 'Analytics', icon: 'stats-chart', route: 'Performance', color: '#8b5cf6', sub: 'Deep insights' },
+                            ...(isStaff ? [{ label: 'Topic Matrix', icon: 'apps', route: 'TopicManagement', color: '#10b981', sub: 'Core topics' }] : [{ label: 'Classes', icon: 'people', route: 'Tests', color: '#f59e0b', sub: 'Video learning' }]),
+                            { label: 'Help Desk', icon: 'help-circle', route: 'Help', color: '#64748b', sub: 'Get support' }
                         ].map((item, idx) => (
                             <View key={idx} style={styles.gridSlot}>
                                 <TouchableOpacity
@@ -193,7 +202,7 @@ export default function DashboardScreen({ navigation }) {
                 </View>
             </ScrollView>
 
-            {/* 2. ABSOLUTE TOP HEADER (Highest Priority Layer for Touches) */}
+            {/* 2. ABSOLUTE TOP HEADER (Locked for zero touch issues) */}
             <View style={[styles.topBar, { paddingTop: Math.max(insets.top, 15) }]}>
                 <TouchableOpacity
                     style={styles.headerIconButton}
@@ -238,11 +247,11 @@ const styles = StyleSheet.create({
     welcomeTextSection: { marginBottom: 24 },
     greetingText: { color: '#94a3b8', fontSize: 14, fontWeight: '600' },
     nameHeader: { color: '#fff', fontSize: 26, fontWeight: '900', marginTop: 4 },
+    roleBadge: { color: '#38bdf8', fontSize: 10, fontWeight: '900', letterSpacing: 1, marginTop: 4, backgroundColor: 'rgba(56, 189, 248, 0.1)', alignSelf: 'flex-start', paddingHorizontal: 8, paddingVertical: 2, borderRadius: 4 },
     carouselContainer: { height: 160, borderRadius: 24, overflow: 'hidden', marginBottom: 24, position: 'relative' },
     bannerCard: { width: width - 40, height: 160, padding: 24, justifyContent: 'center', flexDirection: 'row', alignItems: 'center' },
     bannerTitle: { color: '#fff', fontSize: 22, fontWeight: '900' },
     bannerSubtitle: { color: '#ffffffcc', fontSize: 10, fontWeight: 'bold', textTransform: 'uppercase', letterSpacing: 1.5, marginBottom: 4 },
-    bannerIcon: { position: 'absolute', right: 20, bottom: 20 },
     pagination: { position: 'absolute', bottom: 15, left: 24, flexDirection: 'row', gap: 6 },
     dot: { width: 6, height: 6, borderRadius: 3, backgroundColor: 'rgba(255,255,255,0.2)' },
     activeDot: { width: 20, backgroundColor: '#fff' },
