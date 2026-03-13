@@ -42,10 +42,22 @@ export const testService = {
 
         // Detect and fix missing extension in filename if necessary
         let finalName = fileName || 'document.pdf';
+        
+        // If fileName is generic or missing extension, fallback to URI parsing
+        if (!finalName.includes('.') || finalName === 'document.pdf') {
+            const uriParts = fileUri.split('/');
+            const uriName = uriParts[uriParts.length - 1];
+            if (uriName.includes('.')) {
+                finalName = uriName;
+                console.log("Fallback filename to URI segment:", finalName);
+            }
+        }
+
         if (fileType === 'application/pdf' && !finalName.toLowerCase().endsWith('.pdf')) finalName += '.pdf';
         if ((fileType === 'application/msword' || fileType === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document') && !finalName.toLowerCase().endsWith('.docx') && !finalName.toLowerCase().endsWith('.doc')) finalName += '.docx';
         if (fileType === 'text/plain' && !finalName.toLowerCase().endsWith('.txt')) finalName += '.txt';
 
+        console.log(`Sending file: ${finalName} (${fileType})`);
         formData.append('file', {
             uri: Platform.OS === 'android' ? fileUri : fileUri.replace('file://', ''),
             name: finalName,

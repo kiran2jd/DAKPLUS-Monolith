@@ -79,11 +79,15 @@ public class TestController {
     }
 
     @PostMapping("/extract-questions")
-    public List<Question> extractQuestions(
+    public ResponseEntity<?> extractQuestions(
             @RequestParam("file") MultipartFile file,
             @RequestParam(value = "topicId", required = false) String topicId,
             @RequestParam(value = "subtopicId", required = false) String subtopicId) throws Exception {
         String text = documentParsingService.extractText(file);
-        return questionExtractionService.extractQuestions(text, topicId, subtopicId);
+        if (text == null || text.trim().isEmpty()) {
+            return ResponseEntity.badRequest().body("The document appears to be empty or contains no readable text. Please try a different file.");
+        }
+        List<Question> questions = questionExtractionService.extractQuestions(text, topicId, subtopicId);
+        return ResponseEntity.ok(questions);
     }
 }

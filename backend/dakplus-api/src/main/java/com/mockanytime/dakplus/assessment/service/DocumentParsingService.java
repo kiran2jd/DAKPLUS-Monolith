@@ -20,20 +20,35 @@ public class DocumentParsingService {
 
     public String extractText(MultipartFile file) throws IOException {
         String filename = file.getOriginalFilename();
-        if (filename == null)
+        long size = file.getSize();
+        System.out.println("=== Extraction Request ===");
+        System.out.println("Filename: " + filename);
+        System.out.println("Size: " + size + " bytes");
+        System.out.println("Content Type: " + file.getContentType());
+        
+        if (filename == null || filename.isBlank()) {
+            System.err.println("Error: Filename is null or blank.");
             return "";
-
-        if (filename.toLowerCase().endsWith(".pdf")) {
-            return extractFromPdf(file);
-        } else if (filename.toLowerCase().endsWith(".docx")) {
-            return extractFromWord(file);
-        } else if (filename.toLowerCase().endsWith(".txt")) {
-            return new String(file.getBytes());
-        } else if (isImageFile(filename)) {
-            return performOcr(file.getBytes());
-        } else {
-            throw new IllegalArgumentException("Unsupported file type: " + filename);
         }
+
+        String result = "";
+        String lowerName = filename.toLowerCase();
+        
+        if (lowerName.endsWith(".pdf")) {
+            result = extractFromPdf(file);
+        } else if (lowerName.endsWith(".docx")) {
+            result = extractFromWord(file);
+        } else if (lowerName.endsWith(".txt")) {
+            result = new String(file.getBytes());
+        } else if (isImageFile(filename)) {
+            result = performOcr(file.getBytes());
+        } else {
+            System.err.println("Error: Unsupported file type: " + filename);
+            throw new IllegalArgumentException("Unsupported file type: " + filename + ". Please ensure your file has a .pdf, .docx, or .txt extension.");
+        }
+        
+        System.out.println("Extraction Result: " + (result != null ? result.length() : 0) + " characters.");
+        return result;
     }
 
     private boolean isImageFile(String filename) {

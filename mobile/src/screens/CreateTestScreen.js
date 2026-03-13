@@ -138,7 +138,9 @@ export default function CreateTestScreen({ navigation }) {
                         Alert.alert('Info', 'AI processed the document but found no questions. Please try a clearer format.');
                     }
                 } catch (err) {
-                    Alert.alert('Error', 'AI Extraction failed. Please try a different document.');
+                    console.error("Extraction Error:", err);
+                    const errorMessage = err.response?.data || err.message || 'AI Extraction failed. Please try a different document.';
+                    Alert.alert('Extraction Failed', errorMessage);
                 } finally {
                     setExtracting(false);
                 }
