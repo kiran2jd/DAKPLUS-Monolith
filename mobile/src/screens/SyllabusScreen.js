@@ -21,14 +21,14 @@ const { width } = Dimensions.get('window');
  * SYLLABUS SCREEN (v1.0)
  * Aligned with Frontend Course Syllabus.
  */
-export default function SyllabusScreen({ navigation }) {
+export default function SyllabusScreen({ navigation, route }) {
     const [topics, setTopics] = useState([]);
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-        const courseId = navigation.getState()?.routes?.find(r => r.name === 'Syllabus')?.params?.courseId;
+        const courseId = route.params?.courseId;
         fetchSyllabus(courseId);
-    }, []);
+    }, [route.params?.courseId]);
 
     const fetchSyllabus = async (courseId) => {
         try {

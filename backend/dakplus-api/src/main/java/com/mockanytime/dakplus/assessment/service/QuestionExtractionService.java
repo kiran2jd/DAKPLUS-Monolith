@@ -88,7 +88,7 @@ public class QuestionExtractionService {
                 3. Clean OCR noise (random symbols, broken words).
                 4. If a question is incomplete, skip it rather than guessing.
                 5. Use professional Hindi terminology relevant to Indian postal exams.
-                6. IMPORTANT: Extract EVERY question found in the text. Aim for 25 to 100 questions per request if present. Do not stop until you have processed the entire text. If the response is truncated, I will handle it.
+                6. IMPORTANT: Extract EVERY SINGLE question found in the text. Aim for exactly 100 questions per request if available in the text. Do not stop until you have reached the end of the text. I will handle high character counts.
 
                 FORMAT:
                 {

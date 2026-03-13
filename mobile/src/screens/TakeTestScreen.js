@@ -11,10 +11,10 @@ import {
     Dimensions,
     TouchableOpacity,
 } from 'react-native';
-import { ScrollView } from 'react-native-gesture-handler';
-import { LinearGradient } from 'expo-linear-gradient';
-import { usePreventScreenCapture } from 'expo-screen-capture';
 import { Ionicons } from '@expo/vector-icons';
+import { useFocusEffect } from '@react-navigation/native';
+import { useCallback } from 'react';
+import { BackHandler } from 'react-native';
 import { testService } from '../services/test';
 import { resultService } from '../services/result';
 import { authService } from '../services/auth';
@@ -31,6 +31,29 @@ export default function TakeTestScreen({ navigation, route }) {
     const [language, setLanguage] = useState('en'); // 'en' or 'hi'
     const [alreadySubmitted, setAlreadySubmitted] = useState(false);
     const timerRef = useRef(null);
+
+    // PREVENT ACCIDENTS: Deep Back Button Protection
+    useFocusEffect(
+        useCallback(() => {
+            const onBackPress = () => {
+                if (!alreadySubmitted) {
+                    Alert.alert(
+                        "Exit Exam?",
+                        "Your progress will be lost if you leave now. Please submit the test instead.",
+                        [
+                            { text: "Continue Exam", style: "cancel" },
+                            { text: "Exit & Lose Progress", style: "destructive", onPress: () => navigation.goBack() }
+                        ]
+                    );
+                    return true;
+                }
+                return false;
+            };
+
+            BackHandler.addEventListener('hardwareBackPress', onBackPress);
+            return () => BackHandler.removeEventListener('hardwareBackPress', onBackPress);
+        }, [alreadySubmitted, navigation])
+    );
 
     useEffect(() => {
         const loadTest = async () => {
@@ -236,7 +259,17 @@ export default function TakeTestScreen({ navigation, route }) {
         <SafeAreaView style={styles.container}>
             <LinearGradient colors={['#dc2626', '#1e3a8a']} style={styles.header}>
                 <View style={styles.headerTop}>
-                    <TouchableOpacity onPress={() => Alert.alert('Exit Test', 'Are you sure?', [{ text: 'Cancel' }, { text: 'Exit', onPress: () => navigation.goBack() }])} activeOpacity={0.7}>
+                    <TouchableOpacity 
+                        onPress={() => Alert.alert(
+                            'Exit Exam?', 
+                            'Are you sure? Progress will not be saved.', 
+                            [
+                                { text: 'Cancel', style: 'cancel' }, 
+                                { text: 'Exit', style: 'destructive', onPress: () => navigation.goBack() }
+                            ]
+                        )} 
+                        activeOpacity={0.7}
+                    >
                         <Text style={styles.exitText}>Exit</Text>
                     </TouchableOpacity>
                     

@@ -32,19 +32,28 @@ public class DocumentParsingService {
         }
 
         String result = "";
-        String lowerName = filename.toLowerCase();
+        String lowerName = filename != null ? filename.toLowerCase() : "";
+        String contentType = file.getContentType() != null ? file.getContentType().toLowerCase() : "";
         
-        if (lowerName.endsWith(".pdf")) {
+        System.out.println("Processing based on: Filename=" + lowerName + ", ContentType=" + contentType);
+
+        if (lowerName.endsWith(".pdf") || contentType.contains("pdf")) {
             result = extractFromPdf(file);
-        } else if (lowerName.endsWith(".docx")) {
+        } else if (lowerName.endsWith(".docx") || contentType.contains("word") || contentType.contains("officedocument")) {
             result = extractFromWord(file);
-        } else if (lowerName.endsWith(".txt")) {
+        } else if (lowerName.endsWith(".txt") || contentType.contains("text/plain")) {
             result = new String(file.getBytes());
-        } else if (isImageFile(filename)) {
+        } else if (isImageFile(filename) || contentType.contains("image/")) {
             result = performOcr(file.getBytes());
         } else {
-            System.err.println("Error: Unsupported file type: " + filename);
-            throw new IllegalArgumentException("Unsupported file type: " + filename + ". Please ensure your file has a .pdf, .docx, or .txt extension.");
+            // Last resort: try PDF parser if no other clues but size looks reasonable
+            try {
+                System.out.println("No clear type detected. Trying PDF fallback parser...");
+                result = extractFromPdf(file);
+            } catch (Exception e) {
+                System.err.println("Error: Unsupported file type and PDF fallback failed: " + filename);
+                throw new IllegalArgumentException("Unsupported file type: " + filename + " (MIME: " + contentType + "). Please ensure your file has a .pdf, .docx, or .txt extension.");
+            }
         }
         
         System.out.println("Extraction Result: " + (result != null ? result.length() : 0) + " characters.");

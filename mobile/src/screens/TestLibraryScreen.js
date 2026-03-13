@@ -17,7 +17,7 @@ import { topicService } from '../services/topic';
 import { authService } from '../services/auth';
 import api from '../services/api';
 
-export default function TestLibraryScreen({ navigation }) {
+export default function TestLibraryScreen({ navigation, route }) {
     const insets = useSafeAreaInsets();
     const [user, setUser] = useState(null);
     const [tests, setTests] = useState([]);
@@ -32,15 +32,16 @@ export default function TestLibraryScreen({ navigation }) {
     useFocusEffect(
         React.useCallback(() => {
             loadInitialData();
-        }, [])
+        }, [route.params?.courseId])
     );
 
     const loadInitialData = async () => {
         try {
+            setLoading(true);
             const userData = await authService.getUser();
             setUser(userData);
 
-            const courseId = navigation.getState()?.routes?.find(r => r.name === 'Tests')?.params?.courseId;
+            const courseId = route.params?.courseId;
             console.log("Loading Library for course:", courseId);
 
             const [topicsData, testsData] = await Promise.all([

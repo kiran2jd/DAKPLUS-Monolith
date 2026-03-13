@@ -67,18 +67,23 @@ export default function PaymentPage() {
 
     // 2. Map pricing based on user's exam choice
     const pricing = {
-        'GDS to MTS': { amount: 199, id: 'MTS_EXAM', label: 'MTS Exam Prep' },
-        'MTS': { amount: 199, id: 'MTS_EXAM', label: 'MTS Exam Prep' },
-        'GDS to Postman': { amount: 299, id: 'PM_MG_EXAM', label: 'Postman/MG Prep' },
-        'MTS to Postman': { amount: 299, id: 'PM_MG_EXAM', label: 'Postman/MG Prep' },
-        'PM MG Exam': { amount: 299, id: 'PM_MG_EXAM', label: 'Postman/MG Prep' },
-        'GDS/MTS/Postman to PA/SA': { amount: 499, id: 'PA_SA_EXAM', label: 'PA/SA Exam Prep' },
-        'PA SA Exam': { amount: 499, id: 'PA_SA_EXAM', label: 'PA/SA Exam Prep' },
+        'MTS': { amount: 10, id: 'MTS', label: 'MTS Exam Prep' },
+        'PMMG': { amount: 30, id: 'PMMG', label: 'Postman/MG Prep' },
+        'PASA': { amount: 30, id: 'PASA', label: 'PA/SA Exam Prep' },
+        'COMBINED': { amount: 70, id: 'COMBINED', label: 'Combined Course' },
+        'GDS to MTS': { amount: 10, id: 'MTS', label: 'MTS Exam Prep' },
+        'GDS to Postman': { amount: 30, id: 'PMMG', label: 'Postman/MG Prep' },
+        'MTS to Postman': { amount: 30, id: 'PMMG', label: 'Postman/MG Prep' },
+        'PM MG Exam': { amount: 30, id: 'PMMG', label: 'Postman/MG Prep' },
+        'GDS/MTS/Postman to PA/SA': { amount: 30, id: 'PASA', label: 'PA/SA Exam Prep' },
+        'PA SA Exam': { amount: 30, id: 'PASA', label: 'PA/SA Exam Prep' },
         'IP Exam': { amount: 999, id: 'IP_EXAM', label: 'IP Exam Prep' }
     };
 
+    // Use itemId from URL if provided (preferred for mobile)
+    const urlItemId = searchParams.get('itemId');
     const userExam = user?.examType || 'Others';
-    const selectedPlan = pricing[userExam] || { amount: 299, id: 'GENERAL_PRO', label: 'DAK Plus Pro' };
+    const selectedPlan = pricing[urlItemId] || pricing[userExam] || { amount: 70, id: 'COMBINED', label: 'DAK Plus Pro' };
 
     const handlePayment = async () => {
         setProcessing(true);
@@ -95,11 +100,10 @@ export default function PaymentPage() {
             // Logic moved to component scope above
 
             // If testId is present, it's a individual test purchase (₹49), else specific Exam or Pro Subscription
-            // TEST OVERRIDE: 50 INR for Plan
-            const amount = testId ? 49 : 50; // selectedPlan.amount;
+            const amount = testId ? 49 : selectedPlan.amount;
             const itemId = testId || selectedPlan.id;
-            // FIX: Plans should be treated as SUBSCRIPTIONS to trigger Tier Upgrade in backend
-            const itemType = testId ? 'TEST' : 'SUBSCRIPTION';
+            // FIX: Plans should be treated as EXAM to trigger unlockExam in backend
+            const itemType = testId ? 'TEST' : 'EXAM';
 
             const orderData = await paymentService.createOrder(amount, itemId, itemType);
 

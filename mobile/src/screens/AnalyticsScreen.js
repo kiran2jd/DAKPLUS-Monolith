@@ -43,16 +43,24 @@ export default function AnalyticsScreen({ navigation }) {
                 const total = results.length;
                 const avg = results.reduce((acc, curr) => acc + (curr.percentage || 0), 0) / total;
 
-                // Simple weekly distribution
+                // Real weekly distribution
                 const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-                const weekData = days.map(day => ({ day, score: Math.round(Math.random() * 40 + 40) })); // Fallback visuals
+                const weekData = days.map(day => ({ day, score: 0 }));
 
-                // Map actual results to days
-                results.slice(0, 7).forEach((res, idx) => {
+                // Map actual results to days (Aggregate best score per day in the last 7 days)
+                const sevenDaysAgo = new Date();
+                sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+
+                results.forEach(res => {
                     const date = new Date(res.createdAt);
-                    const dayName = days[date.getDay()];
-                    const match = weekData.find(d => d.day === dayName);
-                    if (match) match.score = res.percentage;
+                    if (date >= sevenDaysAgo) {
+                        const dayName = days[date.getDay()];
+                        const match = weekData.find(d => d.day === dayName);
+                        if (match) {
+                            // Take the highest score for that day to show progress
+                            match.score = Math.max(match.score, res.percentage || 0);
+                        }
+                    }
                 });
 
                 const categories = {};

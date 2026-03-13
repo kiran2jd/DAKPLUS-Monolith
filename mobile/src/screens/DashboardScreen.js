@@ -249,6 +249,36 @@ export default function DashboardScreen({ navigation }) {
                             </View>
                         </View>
                     )}
+
+                    {/* DYNAMIC BUY BANNER (FOR LOCKED COURSES) */}
+                    {isStudent && !user?.unlockedExams?.includes(banners[currentSlide].id) && user?.subscriptionTier !== 'PREMIUM' && (
+                        <TouchableOpacity 
+                            style={styles.buyBanner}
+                            onPress={() => navigation.navigate('Payment', { courseId: banners[currentSlide].id })}
+                            activeOpacity={0.9}
+                        >
+                            <LinearGradient 
+                                colors={['#dc2626', '#991b1b']} 
+                                style={styles.buyBannerGradient}
+                                start={{ x: 0, y: 0 }}
+                                end={{ x: 1, y: 0 }}
+                            >
+                                <View style={styles.buyBannerContent}>
+                                    <View style={styles.buyBannerIconBg}>
+                                        <Ionicons name="lock-open" size={20} color="#fff" />
+                                    </View>
+                                    <View style={{ flex: 1 }}>
+                                        <Text style={styles.buyBannerTitle}>Unlock {banners[currentSlide].title}</Text>
+                                        <Text style={styles.buyBannerSub}>Full Access for just ₹{
+                                            banners[currentSlide].id === 'MTS' ? '10' : 
+                                            banners[currentSlide].id === 'COMBINED' ? '70' : '30'
+                                        }</Text>
+                                    </View>
+                                    <Ionicons name="chevron-forward" size={24} color="#fff" />
+                                </View>
+                            </LinearGradient>
+                        </TouchableOpacity>
+                    )}
                 </View>
             </ScrollView>
 
@@ -325,5 +355,42 @@ const styles = StyleSheet.create({
     rankText: { color: '#ef4444', fontWeight: 'bold', fontSize: 10 },
     leaderboardName: { color: '#fff', flex: 1, fontSize: 13, fontWeight: '600' },
     leaderboardScore: { color: '#94a3b8', fontSize: 11 },
-    recentSection: { marginTop: 10 }
+    recentSection: { marginTop: 10 },
+    buyBanner: {
+        marginTop: 20,
+        marginBottom: 10,
+        borderRadius: 20,
+        overflow: 'hidden',
+        elevation: 5,
+        shadowColor: '#dc2626',
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.3,
+        shadowRadius: 8,
+    },
+    buyBannerGradient: {
+        padding: 16,
+    },
+    buyBannerContent: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 12,
+    },
+    buyBannerIconBg: {
+        width: 40,
+        height: 40,
+        borderRadius: 12,
+        backgroundColor: 'rgba(255,255,255,0.2)',
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+    buyBannerTitle: {
+        color: '#fff',
+        fontSize: 16,
+        fontWeight: 'bold',
+    },
+    buyBannerSub: {
+        color: 'rgba(255,255,255,0.8)',
+        fontSize: 12,
+        fontWeight: '600',
+    },
 });

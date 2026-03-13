@@ -64,7 +64,7 @@ const SideMenu = (props) => {
             { label: 'Manage Tests', icon: 'layers-outline', route: 'ManageTests' },
             { label: 'Topic Matrix', icon: 'apps-outline', route: 'TopicManagement' }
         ] : []),
-        { label: 'Transactions', icon: 'card-outline', route: 'Payment' },
+        { label: 'My Purchases', icon: 'card-outline', route: 'MyPurchases' },
         { label: 'Support Center', icon: 'help-circle-outline', route: 'Help' },
     ];
 

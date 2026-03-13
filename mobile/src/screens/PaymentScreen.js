@@ -52,22 +52,21 @@ export default function PaymentScreen({ navigation }) {
     };
 
     const pricing = {
-        'GDS to MTS': 199,
-        'MTS': 199,
-        'GDS to Postman': 299,
-        'MTS to Postman': 299,
-        'PM MG Exam': 299,
-        'GDS/MTS/Postman to PA/SA': 499,
-        'PA SA Exam': 499,
-        'IP Exam': 999
+        'MTS': 10,
+        'PMMG': 30,
+        'PASA': 30,
+        'COMBINED': 70
     };
 
-    const currentPrice = pricing[user?.examType] || 299;
+    // Get courseId from navigation params if available
+    const routeParams = navigation.getState()?.routes?.find(r => r.name === 'Payment')?.params || {};
+    const selectedCourseId = routeParams.courseId || user?.examType || 'COMBINED';
+    const currentPrice = pricing[selectedCourseId] || pricing[user?.examType] || 70;
 
     const handlePayment = async () => {
         const token = await SecureStore.getItemAsync('access_token');
-        // Include source=mobile to let the web app know to show a "Back to App" button if possible
-        const webPaymentUrl = `https://dakplus.in/payment?source=mobile&token=${encodeURIComponent(token)}`;
+        // Include source=mobile and itemId to let the web app know what they are buying
+        const webPaymentUrl = `https://dakplus.in/payment?source=mobile&token=${encodeURIComponent(token)}&itemId=${selectedCourseId}`;
         
         setLoading(true);
         try {

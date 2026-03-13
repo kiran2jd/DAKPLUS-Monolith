@@ -16,9 +16,9 @@ import CreateTestScreen from '../screens/CreateTestScreen';
 import EditTestScreen from '../screens/EditTestScreen';
 import ResultScreen from '../screens/ResultScreen';
 import PaymentScreen from '../screens/PaymentScreen';
-import AnalyticsScreen from '../screens/AnalyticsScreen';
 import ManageTestsScreen from '../screens/ManageTestsScreen';
 import TopicManagementScreen from '../screens/TopicManagementScreen';
+import MyPurchasesScreen from '../screens/MyPurchasesScreen';
 import SideMenu from '../components/SideMenu';
 import HelpScreen from '../screens/HelpScreen';
 import NotificationsScreen from '../screens/NotificationsScreen';
@@ -115,8 +115,21 @@ export default function AppNavigator() {
         );
     }
 
+    const linking = {
+        prefixes: ['dakplus://'],
+        config: {
+            screens: {
+                Main: 'dashboard',
+                Payment: 'payment',
+                Tests: 'tests/:courseId',
+                TakeTest: 'take-test/:testId',
+                Result: 'result/:resultId',
+            },
+        },
+    };
+
     return (
-        <NavigationContainer>
+        <NavigationContainer linking={linking}>
             <Stack.Navigator
                 initialRouteName={isAuthenticated ? "Main" : "Welcome"}
                 screenOptions={{ headerShown: false }}
@@ -139,6 +152,7 @@ export default function AppNavigator() {
                 <Stack.Screen name="EditTest" component={EditTestScreen} />
                 <Stack.Screen name="Notifications" component={NotificationsScreen} />
                 <Stack.Screen name="Syllabus" component={SyllabusScreen} />
+                <Stack.Screen name="MyPurchases" component={MyPurchasesScreen} />
             </Stack.Navigator>
         </NavigationContainer>
     );
