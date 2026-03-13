@@ -252,7 +252,7 @@ export default function TopicManagementScreen({ navigation }) {
 
     return (
         <View style={styles.container}>
-            <LinearGradient colors={['#1e293b', '#0f172a']} style={[styles.header, { paddingTop: Math.max(insets.top, 15) }]}>
+            <LinearGradient colors={['#1e293b', '#0f172a']} style={[styles.header, { paddingTop: Math.max(insets.top, 5) }]}>
                 <View style={styles.headerRow}>
                     <TouchableOpacity 
                         onPress={() => navigation.goBack()} 
@@ -429,7 +429,7 @@ const styles = StyleSheet.create({
     subtopicsContainer: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
     subtopicBadge: { backgroundColor: 'rgba(255,255,255,0.02)', paddingHorizontal: 12, paddingVertical: 6, borderRadius: 12, borderWidth: 1, borderColor: 'rgba(255,255,255,0.05)' },
     subtopicText: { fontSize: 12, color: '#94a3b8', fontWeight: '500' },
-    noSubtopics: { fontSize: 12, color: '#475569', fontStyle: 'italic' },
+    noSubtopics: { fontSize: 12, color: '#475569', fontStyle: 'italic', paddingLeft: 4 },
     modalOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.8)', justifyContent: 'center', padding: 24 },
     modalContent: { backgroundColor: '#1e293b', borderRadius: 32, padding: 32, borderWidth: 1, borderColor: 'rgba(255,255,255,0.1)' },
     modalTitle: { fontSize: 22, fontWeight: '900', color: '#fff', marginBottom: 24, letterSpacing: 0.5 },

@@ -80,7 +80,7 @@ export default function SyllabusScreen({ navigation }) {
                             {topic.imageUrl && (
                                 <View style={styles.topicImageContainer}>
                                     <Image 
-                                        source={{ uri: topic.imageUrl.startsWith('/') ? `https://api-v2.dakplus.in${topic.imageUrl}` : topic.imageUrl }} 
+                                        source={{ uri: (topic.imageUrl && topic.imageUrl.startsWith('/')) ? `https://api-v2.dakplus.in${topic.imageUrl}` : (topic.imageUrl || 'https://via.placeholder.com/400x200?text=Module+Image') }} 
                                         style={styles.topicImage}
                                         resizeMode="cover"
                                     />
@@ -107,7 +107,7 @@ export default function SyllabusScreen({ navigation }) {
                                             {sub.pdfUrl && (
                                                 <TouchableOpacity 
                                                     style={styles.pdfBadge}
-                                                    onPress={() => WebBrowser.openBrowserAsync(sub.pdfUrl.startsWith('/') ? `https://api-v2.dakplus.in${sub.pdfUrl}` : sub.pdfUrl)}
+                                                    onPress={() => WebBrowser.openBrowserAsync(sub.pdfUrl && sub.pdfUrl.startsWith('/') ? `https://api-v2.dakplus.in${sub.pdfUrl}` : (sub.pdfUrl || ''))}
                                                 >
                                                     <Ionicons name="document-text" size={12} color="#2563eb" />
                                                     <Text style={styles.pdfBadgeText}>Study Material</Text>
@@ -124,7 +124,7 @@ export default function SyllabusScreen({ navigation }) {
                                 {topic.pdfUrl && (
                                     <TouchableOpacity 
                                         style={[styles.actionBtn, styles.pdfBtn]}
-                                        onPress={() => WebBrowser.openBrowserAsync(topic.pdfUrl.startsWith('/') ? `https://api-v2.dakplus.in${topic.pdfUrl}` : topic.pdfUrl)}
+                                        onPress={() => WebBrowser.openBrowserAsync(topic.pdfUrl && topic.pdfUrl.startsWith('/') ? `https://api-v2.dakplus.in${topic.pdfUrl}` : (topic.pdfUrl || ''))}
                                     >
                                         <Ionicons name="download" size={18} color="#fff" style={{ marginRight: 8 }} />
                                         <Text style={styles.actionBtnText}>Full Syllabus</Text>

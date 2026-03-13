@@ -63,7 +63,7 @@ export default function PaymentScreen({ navigation }) {
     const handlePayment = async () => {
         const token = await SecureStore.getItemAsync('access_token');
         // Include source=mobile to let the web app know to show a "Back to App" button if possible
-        const webPaymentUrl = `https://dakplus.in/payment?source=mobile&token=${token}`;
+        const webPaymentUrl = `https://dakplus.in/payment?source=mobile&token=${encodeURIComponent(token)}`;
         
         setLoading(true);
         try {
@@ -71,11 +71,14 @@ export default function PaymentScreen({ navigation }) {
             const result = await WebBrowser.openBrowserAsync(webPaymentUrl);
             
             // Explicitly reload profile when browser is closed
-            await loadProfile();
-            
-            if (user?.subscriptionTier === 'PREMIUM') {
+            const updatedProfile = await api.get('/auth/profile');
+            if (updatedProfile.user?.subscriptionTier === 'PREMIUM') {
+                setSuccess(true);
                 Alert.alert("Success", "Your account has been upgraded to PRO!");
                 navigation.navigate('Home');
+            } else {
+                // If not yet premium, maybe they just closed the browser without finishing
+                loadProfile();
             }
         } catch (err) {
             console.error("Browser Error:", err);
