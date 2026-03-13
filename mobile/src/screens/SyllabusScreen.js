@@ -74,68 +74,81 @@ export default function SyllabusScreen({ navigation }) {
             </View>
 
             <ScrollView contentContainerStyle={styles.scrollContainer} showsVerticalScrollIndicator={false}>
-                    <View key={topic.id} style={styles.topicCard}>
-                        {topic.imageUrl && (
-                            <View style={styles.topicImageContainer}>
-                                <Image 
-                                    source={{ uri: topic.imageUrl.startsWith('/') ? `https://api-v2.dakplus.in${topic.imageUrl}` : topic.imageUrl }} 
-                                    style={styles.topicImage}
-                                    resizeMode="cover"
-                                />
-                                <LinearGradient colors={['transparent', 'rgba(0,0,0,0.6)']} style={styles.imageOverlay} />
+                {topics && topics.length > 0 ? (
+                    topics.map((topic) => (
+                        <View key={topic.id} style={styles.topicCard}>
+                            {topic.imageUrl && (
+                                <View style={styles.topicImageContainer}>
+                                    <Image 
+                                        source={{ uri: topic.imageUrl.startsWith('/') ? `https://api-v2.dakplus.in${topic.imageUrl}` : topic.imageUrl }} 
+                                        style={styles.topicImage}
+                                        resizeMode="cover"
+                                    />
+                                    <LinearGradient colors={['transparent', 'rgba(0,0,0,0.6)']} style={styles.imageOverlay} />
+                                </View>
+                            )}
+                            <View style={styles.topicHeader}>
+                                <View style={styles.gradIconBg}>
+                                    <Ionicons name="school" size={22} color="#2563eb" />
+                                </View>
+                                <Text style={styles.topicName}>{topic.name}</Text>
                             </View>
-                        )}
-                        <View style={styles.topicHeader}>
-                            <View style={styles.gradIconBg}>
-                                <Ionicons name="school" size={22} color="#2563eb" />
-                            </View>
-                            <Text style={styles.topicName}>{topic.name}</Text>
-                        </View>
-                        <Text style={styles.topicDesc}>{topic.description || 'Comprehensive coverage of this subject area for postal exams.'}</Text>
+                            <Text style={styles.topicDesc}>{topic.description || 'Comprehensive coverage of this subject area for postal exams.'}</Text>
 
-                        <View style={styles.moduleSection}>
-                            <Text style={styles.moduleHeader}>MODULES</Text>
-                            {topic.subtopics?.length > 0 ? (
-                                topic.subtopics.map((sub) => (
-                                    <View key={sub.id} style={styles.moduleRowContainer}>
-                                        <View style={styles.moduleRow}>
-                                            <Text style={styles.moduleName}>{sub.name}</Text>
-                                            <Ionicons name="chevron-forward" size={14} color="#cbd5e1" />
+                            <View style={styles.moduleSection}>
+                                <Text style={styles.moduleHeader}>MODULES</Text>
+                                {topic.subtopics?.length > 0 ? (
+                                    topic.subtopics.map((sub) => (
+                                        <View key={sub.id} style={styles.moduleRowContainer}>
+                                            <View style={styles.moduleRow}>
+                                                <Text style={styles.moduleName}>{sub.name}</Text>
+                                                <Ionicons name="chevron-forward" size={14} color="#cbd5e1" />
+                                            </View>
+                                            {sub.pdfUrl && (
+                                                <TouchableOpacity 
+                                                    style={styles.pdfBadge}
+                                                    onPress={() => WebBrowser.openBrowserAsync(sub.pdfUrl.startsWith('/') ? `https://api-v2.dakplus.in${sub.pdfUrl}` : sub.pdfUrl)}
+                                                >
+                                                    <Ionicons name="document-text" size={12} color="#2563eb" />
+                                                    <Text style={styles.pdfBadgeText}>Study Material</Text>
+                                                </TouchableOpacity>
+                                            )}
                                         </View>
-                                        {sub.pdfUrl && (
-                                            <TouchableOpacity 
-                                                style={styles.pdfBadge}
-                                                onPress={() => WebBrowser.openBrowserAsync(sub.pdfUrl.startsWith('/') ? `https://api-v2.dakplus.in${sub.pdfUrl}` : sub.pdfUrl)}
-                                            >
-                                                <Ionicons name="document-text" size={12} color="#2563eb" />
-                                                <Text style={styles.pdfBadgeText}>Study Material</Text>
-                                            </TouchableOpacity>
-                                        )}
-                                    </View>
-                                ))
-                            ) : (
-                                <Text style={styles.emptyText}>No subtopics available for this topic.</Text>
-                            )}
-                        </View>
+                                    ))
+                                ) : (
+                                    <Text style={styles.emptyText}>No subtopics available for this topic.</Text>
+                                )}
+                            </View>
 
-                        <View style={styles.cardActions}>
-                            {topic.pdfUrl && (
+                            <View style={styles.cardActions}>
+                                {topic.pdfUrl && (
+                                    <TouchableOpacity 
+                                        style={[styles.actionBtn, styles.pdfBtn]}
+                                        onPress={() => WebBrowser.openBrowserAsync(topic.pdfUrl.startsWith('/') ? `https://api-v2.dakplus.in${topic.pdfUrl}` : topic.pdfUrl)}
+                                    >
+                                        <Ionicons name="download" size={18} color="#fff" style={{ marginRight: 8 }} />
+                                        <Text style={styles.actionBtnText}>Full Syllabus</Text>
+                                    </TouchableOpacity>
+                                )}
                                 <TouchableOpacity 
-                                    style={[styles.actionBtn, styles.pdfBtn]}
-                                    onPress={() => WebBrowser.openBrowserAsync(topic.pdfUrl.startsWith('/') ? `https://api-v2.dakplus.in${topic.pdfUrl}` : topic.pdfUrl)}
+                                    style={[styles.actionBtn, { flex: 1 }]}
+                                    onPress={() => navigation.navigate('Tests')}
                                 >
-                                    <Ionicons name="download" size={18} color="#fff" style={{ marginRight: 8 }} />
-                                    <Text style={styles.actionBtnText}>Full Syllabus</Text>
+                                    <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                                        <Ionicons name="list" size={18} color="#fff" style={{ marginRight: 8 }} />
+                                        <Text style={styles.actionBtnText}>View Tests</Text>
+                                    </View>
                                 </TouchableOpacity>
-                            )}
-                            <TouchableOpacity 
-                                style={[styles.actionBtn, { flex: 1 }]}
-                                onPress={() => navigation.navigate('Tests')}
-                            >
-                                <Text style={styles.actionBtnText}>View Tests</Text>
-                            </TouchableOpacity>
+                            </View>
                         </View>
+                    ))
+                ) : (
+                    <View style={styles.emptyContainer}>
+                        <Ionicons name="documents-outline" size={64} color="#e2e8f0" />
+                        <Text style={styles.emptyTitle}>Syllabus Unavailable</Text>
+                        <Text style={styles.emptySubtitle}>No topics found. Please check back later.</Text>
                     </View>
+                )}
                 
                 <View style={{ height: 40 }} />
             </ScrollView>
@@ -341,5 +354,22 @@ const styles = StyleSheet.create({
         color: '#fff',
         fontSize: 14,
         fontWeight: 'bold',
+    },
+    emptyContainer: {
+        alignItems: 'center',
+        justifyContent: 'center',
+        paddingVertical: 60,
+    },
+    emptyTitle: {
+        fontSize: 18,
+        fontWeight: 'bold',
+        color: '#1e293b',
+        marginTop: 16,
+    },
+    emptySubtitle: {
+        fontSize: 14,
+        color: '#64748b',
+        marginTop: 8,
+        textAlign: 'center',
     },
 });

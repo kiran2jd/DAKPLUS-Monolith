@@ -11,6 +11,7 @@ import {
 import { ScrollView, FlatList, TouchableOpacity } from 'react-native-gesture-handler';
 import { DrawerActions, useFocusEffect } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import * as DocumentPicker from 'expo-document-picker';
 import { topicService } from '../services/topic';
