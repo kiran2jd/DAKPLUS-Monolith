@@ -143,7 +143,7 @@ export default function DashboardScreen({ navigation }) {
                 <View style={[styles.headerWrapperPadding, { paddingTop: 10 }]}>
                     <View style={styles.welcomeTextSection}>
                         <Text style={styles.greetingText}>Welcome back,</Text>
-                        <Text style={styles.nameHeader}>{user?.fullName || 'Postal Aspirant'}</Text>
+                        <Text style={styles.nameHeader}>{user?.fullName || 'Dakplus Aspirant'}</Text>
                         <View style={styles.roleRow}>
                             <Text style={styles.roleBadge}>{role}</Text>
                             {user?.subscriptionTier === 'PREMIUM' && <Text style={styles.proBadge}>PRO</Text>}

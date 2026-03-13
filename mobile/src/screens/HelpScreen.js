@@ -71,7 +71,7 @@ export default function HelpScreen({ navigation }) {
 
                     <View style={styles.footer}>
                         <Text style={styles.footerText}>DAK Plus v1.0.0</Text>
-                        <Text style={styles.footerSub}>Made for Postmen & Aspirants</Text>
+                        <Text style={styles.footerSub}>Made for Postmen & Dakplus Aspirants</Text>
                     </View>
                 </ScrollView>
             </SafeAreaView>

@@ -26,7 +26,7 @@ export default function WelcomeScreen({ navigation }) {
             <View style={styles.content}>
                 <View style={styles.logoContainer}>
                     <Image source={logo} style={styles.logoImage} resizeMode="contain" />
-                    <Text style={styles.logoText}>DAK Plus</Text>
+                    <Text style={[styles.logoText, { paddingLeft: 4 }]}>DAK Plus</Text>
                     <View style={styles.logoUnderline} />
                 </View>
 

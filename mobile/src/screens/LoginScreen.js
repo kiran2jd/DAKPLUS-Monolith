@@ -190,7 +190,7 @@ export default function LoginScreen({ navigation }) {
                 >
                     <View style={styles.header}>
                         <Image source={logo} style={styles.logoImage} resizeMode="contain" />
-                        <Text style={styles.title}>DAK Plus</Text>
+                        <Text style={[styles.title, { paddingLeft: 2 }]}>DAK Plus</Text>
                         <Text style={styles.subtitle}>Advanced Learning & Assessment</Text>
                     </View>
                     <View style={styles.card}>

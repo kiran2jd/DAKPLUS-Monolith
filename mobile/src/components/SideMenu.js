@@ -93,8 +93,8 @@ const SideMenu = (props) => {
                     />
                     <View style={styles.onlineStatus} />
                 </View>
-                <Text style={styles.userName}>{user?.fullName || 'Dak Plus Aspirant'}</Text>
-                <Text style={styles.userRole}>{role === 'STUDENT' ? 'PRIME ASPIRANT' : role}</Text>
+                <Text style={styles.userName}>{user?.fullName || 'Dakplus Aspirant'}</Text>
+                <Text style={styles.userRole}>{role === 'STUDENT' ? 'DAKPLUS ASPIRANT' : role}</Text>
             </View>
 
             <ScrollView style={styles.menuList} showsVerticalScrollIndicator={false}>
@@ -187,6 +187,7 @@ const styles = StyleSheet.create({
         fontWeight: '900',
         color: '#fff',
         letterSpacing: 0.5,
+        textAlign: 'center'
     },
     userRole: {
         fontSize: 12,
