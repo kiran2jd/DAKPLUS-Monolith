@@ -30,9 +30,9 @@ public class DataInitializer implements CommandLineRunner {
 
     private void seedData() {
         // Seed Topics
-        Topic java = new Topic(null, "Java", "Fundamental concepts of Java programming", "coffee");
-        Topic python = new Topic(null, "Python", "Master Python for Data Science and Web", "code");
-        Topic web = new Topic(null, "Web Development", "HTML, CSS, React and Node", "layout");
+        Topic java = new Topic(null, "Java", "Fundamental concepts of Java programming", "coffee", null, null);
+        Topic python = new Topic(null, "Python", "Master Python for Data Science and Web", "code", null, null);
+        Topic web = new Topic(null, "Web Development", "HTML, CSS, React and Node", "layout", null, null);
 
         java = topicRepository.save(java);
         python = topicRepository.save(python);
@@ -40,14 +40,14 @@ public class DataInitializer implements CommandLineRunner {
 
         // Seed Subtopics
         Subtopic syntax = subtopicRepository
-                .save(new Subtopic(null, "Basics & Syntax", "Variables, types, operators", java.getId()));
+                .save(new Subtopic(null, "Basics & Syntax", "Variables, types, operators", java.getId(), null, null));
         Subtopic oop = subtopicRepository
-                .save(new Subtopic(null, "OOP Concepts", "Classes, Interfaces, Inheritance", java.getId()));
+                .save(new Subtopic(null, "OOP Concepts", "Classes, Interfaces, Inheritance", java.getId(), null, null));
 
         Subtopic django = subtopicRepository
-                .save(new Subtopic(null, "Django Framework", "Backend with Python", python.getId()));
+                .save(new Subtopic(null, "Django Framework", "Backend with Python", python.getId(), null, null));
         Subtopic react = subtopicRepository
-                .save(new Subtopic(null, "React Hooks", "State and Effects in React", web.getId()));
+                .save(new Subtopic(null, "React Hooks", "State and Effects in React", web.getId(), null, null));
 
         // Seed Sample Tests
         Test javaTest = new Test();

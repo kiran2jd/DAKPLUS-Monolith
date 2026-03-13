@@ -8,9 +8,11 @@ import {
     TouchableOpacity,
     SafeAreaView,
     Dimensions,
+    Image,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
+import * as WebBrowser from 'expo-web-browser';
 import { topicService } from '../services/topic';
 
 const { width } = Dimensions.get('window');
@@ -72,8 +74,17 @@ export default function SyllabusScreen({ navigation }) {
             </View>
 
             <ScrollView contentContainerStyle={styles.scrollContainer} showsVerticalScrollIndicator={false}>
-                {topics.map((topic) => (
                     <View key={topic.id} style={styles.topicCard}>
+                        {topic.imageUrl && (
+                            <View style={styles.topicImageContainer}>
+                                <Image 
+                                    source={{ uri: topic.imageUrl.startsWith('/') ? `https://api-v2.dakplus.in${topic.imageUrl}` : topic.imageUrl }} 
+                                    style={styles.topicImage}
+                                    resizeMode="cover"
+                                />
+                                <LinearGradient colors={['transparent', 'rgba(0,0,0,0.6)']} style={styles.imageOverlay} />
+                            </View>
+                        )}
                         <View style={styles.topicHeader}>
                             <View style={styles.gradIconBg}>
                                 <Ionicons name="school" size={22} color="#2563eb" />
@@ -86,9 +97,20 @@ export default function SyllabusScreen({ navigation }) {
                             <Text style={styles.moduleHeader}>MODULES</Text>
                             {topic.subtopics?.length > 0 ? (
                                 topic.subtopics.map((sub) => (
-                                    <View key={sub.id} style={styles.moduleRow}>
-                                        <Text style={styles.moduleName}>{sub.name}</Text>
-                                        <Ionicons name="chevron-forward" size={14} color="#cbd5e1" />
+                                    <View key={sub.id} style={styles.moduleRowContainer}>
+                                        <View style={styles.moduleRow}>
+                                            <Text style={styles.moduleName}>{sub.name}</Text>
+                                            <Ionicons name="chevron-forward" size={14} color="#cbd5e1" />
+                                        </View>
+                                        {sub.pdfUrl && (
+                                            <TouchableOpacity 
+                                                style={styles.pdfBadge}
+                                                onPress={() => WebBrowser.openBrowserAsync(sub.pdfUrl.startsWith('/') ? `https://api-v2.dakplus.in${sub.pdfUrl}` : sub.pdfUrl)}
+                                            >
+                                                <Ionicons name="document-text" size={12} color="#2563eb" />
+                                                <Text style={styles.pdfBadgeText}>Study Material</Text>
+                                            </TouchableOpacity>
+                                        )}
                                     </View>
                                 ))
                             ) : (
@@ -96,14 +118,24 @@ export default function SyllabusScreen({ navigation }) {
                             )}
                         </View>
 
-                        <TouchableOpacity 
-                            style={styles.actionBtn}
-                            onPress={() => navigation.navigate('Tests')}
-                        >
-                            <Text style={styles.actionBtnText}>View Related Tests</Text>
-                        </TouchableOpacity>
+                        <View style={styles.cardActions}>
+                            {topic.pdfUrl && (
+                                <TouchableOpacity 
+                                    style={[styles.actionBtn, styles.pdfBtn]}
+                                    onPress={() => WebBrowser.openBrowserAsync(topic.pdfUrl.startsWith('/') ? `https://api-v2.dakplus.in${topic.pdfUrl}` : topic.pdfUrl)}
+                                >
+                                    <Ionicons name="download" size={18} color="#fff" style={{ marginRight: 8 }} />
+                                    <Text style={styles.actionBtnText}>Full Syllabus</Text>
+                                </TouchableOpacity>
+                            )}
+                            <TouchableOpacity 
+                                style={[styles.actionBtn, { flex: 1 }]}
+                                onPress={() => navigation.navigate('Tests')}
+                            >
+                                <Text style={styles.actionBtnText}>View Tests</Text>
+                            </TouchableOpacity>
+                        </View>
                     </View>
-                ))}
                 
                 <View style={{ height: 40 }} />
             </ScrollView>
@@ -172,7 +204,6 @@ const styles = StyleSheet.create({
     topicCard: {
         backgroundColor: '#fff',
         borderRadius: 28,
-        padding: 24,
         marginBottom: 20,
         borderWidth: 1,
         borderColor: '#f1f5f9',
@@ -181,10 +212,29 @@ const styles = StyleSheet.create({
         shadowOpacity: 0.05,
         shadowRadius: 12,
         elevation: 3,
+        overflow: 'hidden',
+    },
+    topicImageContainer: {
+        height: 160,
+        width: '100%',
+        backgroundColor: '#f1f5f9',
+    },
+    topicImage: {
+        width: '100%',
+        height: '100%',
+    },
+    imageOverlay: {
+        position: 'absolute',
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
     },
     topicHeader: {
         flexDirection: 'row',
         alignItems: 'center',
+        paddingHorizontal: 24,
+        paddingTop: 24,
         marginBottom: 12,
     },
     gradIconBg: {
@@ -207,11 +257,13 @@ const styles = StyleSheet.create({
         color: '#64748b',
         lineHeight: 20,
         marginBottom: 20,
+        paddingHorizontal: 24,
     },
     moduleSection: {
         backgroundColor: '#f8fafc',
         borderRadius: 20,
         padding: 16,
+        marginHorizontal: 16,
     },
     moduleHeader: {
         fontSize: 10,
@@ -221,17 +273,35 @@ const styles = StyleSheet.create({
         marginBottom: 12,
         marginLeft: 4,
     },
-    moduleRow: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'between',
-        paddingVertical: 10,
-        paddingHorizontal: 12,
+    moduleRowContainer: {
         backgroundColor: '#fff',
         borderRadius: 12,
         marginBottom: 8,
         borderWidth: 1,
         borderColor: '#f1f5f9',
+        overflow: 'hidden',
+    },
+    moduleRow: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        paddingVertical: 10,
+        paddingHorizontal: 12,
+    },
+    pdfBadge: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        backgroundColor: '#eff6ff',
+        paddingVertical: 6,
+        paddingHorizontal: 10,
+        borderTopWidth: 1,
+        borderTopColor: '#f1f5f9',
+    },
+    pdfBadgeText: {
+        fontSize: 11,
+        fontWeight: '700',
+        color: '#2563eb',
+        marginLeft: 6,
     },
     moduleName: {
         flex: 1,
@@ -246,16 +316,26 @@ const styles = StyleSheet.create({
         textAlign: 'center',
         padding: 10,
     },
+    cardActions: {
+        flexDirection: 'row',
+        padding: 20,
+        gap: 12,
+    },
     actionBtn: {
-        marginTop: 20,
         backgroundColor: '#1e293b',
         paddingVertical: 14,
+        paddingHorizontal: 20,
         borderRadius: 14,
         alignItems: 'center',
+        justifyContent: 'center',
+        flexDirection: 'row',
         shadowColor: '#1e293b',
         shadowOffset: { width: 0, height: 4 },
         shadowOpacity: 0.2,
         shadowRadius: 8,
+    },
+    pdfBtn: {
+        backgroundColor: '#ef4444',
     },
     actionBtnText: {
         color: '#fff',

@@ -29,5 +29,21 @@ export const topicService = {
     deleteSubtopic: async (id) => {
         const response = await api.delete(`topics/subtopics/${id}`);
         return response.data;
+    },
+
+    uploadSyllabusFile: async (fileUri, fileName, mimeType) => {
+        const formData = new FormData();
+        formData.append('file', {
+            uri: fileUri,
+            name: fileName,
+            type: mimeType
+        });
+
+        const response = await api.post('files/upload', formData, {
+            headers: {
+                'Content-Type': 'multipart/form-data',
+            },
+        });
+        return response.data;
     }
 };

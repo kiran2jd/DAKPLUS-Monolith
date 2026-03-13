@@ -32,13 +32,30 @@ export default function TopicManagementPage() {
 
     const handleCreateTopic = async (e) => {
         e.preventDefault();
+        setLoading(true);
         try {
-            await topicService.createTopic(newTopic);
-            setNewTopic({ name: '', description: '' });
+            const topicData = { ...newTopic };
+            
+            // Handle Image Upload
+            if (newTopic.imageFile) {
+                const imgRes = await topicService.uploadSyllabusFile(newTopic.imageFile);
+                topicData.imageUrl = imgRes.url;
+            }
+            
+            // Handle PDF Upload
+            if (newTopic.pdfFile) {
+                const pdfRes = await topicService.uploadSyllabusFile(newTopic.pdfFile);
+                topicData.pdfUrl = pdfRes.url;
+            }
+
+            await topicService.createTopic(topicData);
+            setNewTopic({ name: '', description: '', imageFile: null, pdfFile: null });
             setSuccess('Topic created successfully');
             fetchTopics();
         } catch (err) {
             setError('Failed to create topic');
+        } finally {
+            setLoading(false);
         }
     };
 
@@ -48,13 +65,30 @@ export default function TopicManagementPage() {
             setError('Please select a parent topic');
             return;
         }
+        setLoading(true);
         try {
-            await topicService.createSubtopic(newSubtopic);
-            setNewSubtopic({ name: '', description: '', topicId: '' });
+            const subData = { ...newSubtopic };
+            
+            // Handle Image Upload
+            if (newSubtopic.imageFile) {
+                const imgRes = await topicService.uploadSyllabusFile(newSubtopic.imageFile);
+                subData.imageUrl = imgRes.url;
+            }
+            
+            // Handle PDF Upload
+            if (newSubtopic.pdfFile) {
+                const pdfRes = await topicService.uploadSyllabusFile(newSubtopic.pdfFile);
+                subData.pdfUrl = pdfRes.url;
+            }
+
+            await topicService.createSubtopic(subData);
+            setNewSubtopic({ name: '', description: '', topicId: '', imageFile: null, pdfFile: null });
             setSuccess('Subtopic created successfully');
             fetchTopics();
         } catch (err) {
             setError('Failed to create subtopic');
+        } finally {
+            setLoading(false);
         }
     };
 
@@ -110,8 +144,28 @@ export default function TopicManagementPage() {
                                 onChange={e => setNewTopic({ ...newTopic, description: e.target.value })}
                             />
                         </div>
-                        <button type="submit" className="w-full bg-primary text-white py-2 rounded-md hover:bg-indigo-700 transition">
-                            Add Topic
+                        <div className="grid grid-cols-2 gap-4">
+                            <div>
+                                <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Banner Image</label>
+                                <input 
+                                    type="file" 
+                                    accept="image/*"
+                                    onChange={e => setNewTopic({ ...newTopic, imageFile: e.target.files[0] })}
+                                    className="text-xs text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-xs file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100"
+                                />
+                            </div>
+                            <div>
+                                <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Study PDF</label>
+                                <input 
+                                    type="file" 
+                                    accept=".pdf"
+                                    onChange={e => setNewTopic({ ...newTopic, pdfFile: e.target.files[0] })}
+                                    className="text-xs text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-xs file:font-semibold file:bg-gray-50 file:text-gray-700 hover:file:bg-gray-100"
+                                />
+                            </div>
+                        </div>
+                        <button type="submit" disabled={loading} className="w-full bg-primary text-white py-2 rounded-md hover:bg-indigo-700 transition disabled:opacity-50">
+                            {loading ? 'Uploading...' : 'Add Topic'}
                         </button>
                     </form>
                 </div>
@@ -150,8 +204,28 @@ export default function TopicManagementPage() {
                                 onChange={e => setNewSubtopic({ ...newSubtopic, description: e.target.value })}
                             />
                         </div>
-                        <button type="submit" className="w-full bg-secondary text-white py-2 rounded-md hover:opacity-90 transition">
-                            Add Subtopic
+                        <div className="grid grid-cols-2 gap-4">
+                            <div>
+                                <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Image</label>
+                                <input 
+                                    type="file" 
+                                    accept="image/*"
+                                    onChange={e => setNewSubtopic({ ...newSubtopic, imageFile: e.target.files[0] })}
+                                    className="text-xs text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-xs file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100"
+                                />
+                            </div>
+                            <div>
+                                <label className="block text-xs font-bold text-gray-500 uppercase mb-1">PDF</label>
+                                <input 
+                                    type="file" 
+                                    accept=".pdf"
+                                    onChange={e => setNewSubtopic({ ...newSubtopic, pdfFile: e.target.files[0] })}
+                                    className="text-xs text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-xs file:font-semibold file:bg-gray-50 file:text-gray-700 hover:file:bg-gray-100"
+                                />
+                            </div>
+                        </div>
+                        <button type="submit" disabled={loading} className="w-full bg-secondary text-white py-2 rounded-md hover:opacity-90 transition disabled:opacity-50">
+                            {loading ? 'Uploading...' : 'Add Subtopic'}
                         </button>
                     </form>
                 </div>
