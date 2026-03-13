@@ -1,5 +1,6 @@
 package com.mockanytime.dakplus.assessment.config;
 
+import org.springframework.ai.openai.OpenAiChatOptions;
 import org.springframework.ai.chat.ChatClient;
 import org.springframework.ai.openai.OpenAiChatClient;
 import org.springframework.ai.openai.api.OpenAiApi;
@@ -19,6 +20,12 @@ public class AiConfig {
     @Value("${spring.ai.openai.base-url}")
     private String baseUrl;
 
+    @Value("${spring.ai.openai.chat.options.model}")
+    private String model;
+
+    @Value("${spring.ai.openai.chat.options.max-tokens:8192}")
+    private Integer maxTokens;
+
     @Bean
     @Primary
     public ChatClient chatClient() {
@@ -31,6 +38,12 @@ public class AiConfig {
                 .requestFactory(factory);
 
         OpenAiApi openAiApi = new OpenAiApi(baseUrl, apiKey, builder);
-        return new OpenAiChatClient(openAiApi);
+        
+        OpenAiChatOptions options = OpenAiChatOptions.builder()
+                .withModel(model)
+                .withMaxTokens(maxTokens)
+                .build();
+                
+        return new OpenAiChatClient(openAiApi, options);
     }
 }
