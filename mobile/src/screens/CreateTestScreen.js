@@ -114,7 +114,8 @@ export default function CreateTestScreen({ navigation }) {
                         selectedSubtopic
                     );
                     
-                    if (data && data.questions) {
+                    console.log("Extraction Response:", data);
+                    if (data && data.questions && data.questions.length > 0) {
                         const newQuestions = data.questions.map(q => ({
                             text: q.text || '',
                             options: q.options || ['', '', '', ''],
@@ -126,10 +127,15 @@ export default function CreateTestScreen({ navigation }) {
                         }));
                         
                         setQuestions(prev => {
-                            const filtered = prev.filter(v => v.text.trim() !== '');
-                            return [...filtered, ...newQuestions];
+                            // Keep existing questions that aren't empty, then add new ones
+                            const existing = prev.filter(v => v.text.trim() !== '');
+                            const combined = [...existing, ...newQuestions];
+                            console.log(`Setting ${combined.length} questions total`);
+                            return combined;
                         });
                         Alert.alert('Success', `Extracted ${newQuestions.length} questions!`);
+                    } else {
+                        Alert.alert('Info', 'AI processed the document but found no questions. Please try a clearer format.');
                     }
                 } catch (err) {
                     Alert.alert('Error', 'AI Extraction failed. Please try a different document.');

@@ -41,6 +41,10 @@ export default function PaymentScreen({ navigation }) {
             setUser(data.user);
             if (data.user?.subscriptionTier === 'PREMIUM') {
                 setSuccess(true);
+                // Auto-redirect to Home if user is now Premium
+                setTimeout(() => {
+                    navigation.navigate('Home');
+                }, 1500);
             }
         } catch (err) {
             console.error("Failed to load profile", err);

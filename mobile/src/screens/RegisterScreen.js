@@ -442,6 +442,23 @@ const styles = StyleSheet.create({
         fontSize: 14,
         fontWeight: '600',
     },
+    passwordContainer: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        backgroundColor: 'rgba(255,255,255,0.05)',
+        borderRadius: 14,
+        borderWidth: 1,
+        borderColor: 'rgba(255,255,255,0.1)',
+    },
+    passwordInput: {
+        flex: 1,
+        padding: 16,
+        color: '#fff',
+        fontSize: 16,
+    },
+    eyeIcon: {
+        padding: 12,
+    },
     input: {
         backgroundColor: 'rgba(255,255,255,0.05)',
         borderRadius: 12,
