@@ -46,10 +46,15 @@ export const testService = {
         // If fileName is generic or missing extension, fallback to URI parsing
         if (!finalName.includes('.') || finalName === 'document.pdf') {
             const uriParts = fileUri.split('/');
-            const uriName = uriParts[uriParts.length - 1];
+            const uriName = uriParts[uriParts.length - 1].split('?')[0]; // Remove query params
             if (uriName.includes('.')) {
                 finalName = uriName;
                 console.log("Fallback filename to URI segment:", finalName);
+            } else if (fileType) {
+                // Map common mime types if still no extension
+                if (fileType.includes('pdf')) finalName = 'document.pdf';
+                else if (fileType.includes('word') || fileType.includes('officedocument')) finalName = 'document.docx';
+                else if (fileType.includes('text')) finalName = 'document.txt';
             }
         }
 
@@ -67,10 +72,12 @@ export const testService = {
         if (topicId) formData.append('topicId', topicId);
         if (subtopicId) formData.append('subtopicId', subtopicId);
 
+        console.log(`Sending file: ${finalName} (${fileType}) to ${api.defaults.baseURL}tests/extract-questions`);
         const response = await api.post('tests/extract-questions', formData, {
             headers: {
                 'Content-Type': 'multipart/form-data'
-            }
+            },
+            timeout: 120000 // Match backend AI timeout (2 minutes)
         });
         return response.data;
     }

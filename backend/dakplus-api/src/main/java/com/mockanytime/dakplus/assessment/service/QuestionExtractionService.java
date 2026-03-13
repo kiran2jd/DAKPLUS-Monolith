@@ -1,7 +1,6 @@
 package com.mockanytime.dakplus.assessment.service;
 
 import com.mockanytime.dakplus.assessment.model.Question;
-import lombok.RequiredArgsConstructor;
 import org.springframework.ai.chat.ChatClient;
 import org.springframework.ai.chat.prompt.Prompt;
 import org.springframework.ai.parser.BeanOutputParser;
@@ -89,7 +88,7 @@ public class QuestionExtractionService {
                 3. Clean OCR noise (random symbols, broken words).
                 4. If a question is incomplete, skip it rather than guessing.
                 5. Use professional Hindi terminology relevant to Indian postal exams.
-                6. IMPORTANT: DO NOT SKIP QUESTIONS. If the response is truncated, I will handle it. Just provide as many as possible in the JSON format.
+                6. IMPORTANT: Extract EVERY question found in the text. Aim for 25 to 100 questions per request if present. Do not stop until you have processed the entire text. If the response is truncated, I will handle it.
 
                 FORMAT:
                 {
@@ -116,43 +115,75 @@ public class QuestionExtractionService {
 
         Prompt prompt = new Prompt(promptString.replace("{text}", text));
         long startTime = System.currentTimeMillis();
-        System.out.println("Sending extraction prompt to Groq (Doc Length: " + text.length() + " chars)...");
+        System.out.println("Sending extraction prompt to Groq...");
+        System.out.println("Text Preview (500 chars): " + (text.length() > 500 ? text.substring(0, 500) : text));
+        System.out.println("Total Text Length: " + text.length());
 
         String response;
         try {
             response = chatClient.call(prompt).getResult().getOutput().getContent();
-            long duration = System.currentTimeMillis() - startTime;
-            System.out.println("AI Response received in " + duration + "ms. Response Length: " + response.length());
+            System.out.println("Groq Response received in " + (System.currentTimeMillis() - startTime) + "ms");
         } catch (Exception e) {
-            System.err.println(
-                    "API Call failed after " + (System.currentTimeMillis() - startTime) + "ms: " + e.getMessage());
-            throw e;
+            System.err.println("ChatClient call failed: " + e.getMessage());
+            return List.of();
         }
 
         // Robust cleanup of response
         response = response.trim();
-        if (response.contains("```json")) {
-            response = response.substring(response.indexOf("```json") + 7);
-        } else if (response.contains("```")) {
-            response = response.substring(response.indexOf("```") + 3);
-        }
-
+        System.out.println("RAW AI RESPONSE PREVIEW: " + (response.length() > 200 ? response.substring(0, 200) : response));
+        
+        // Remove markdown code blocks if present
         if (response.contains("```")) {
-            response = response.substring(0, response.indexOf("```"));
+            int firstBlock = response.indexOf("```");
+            int lastBlock = response.lastIndexOf("```");
+            
+            if (firstBlock != -1 && lastBlock != -1 && firstBlock != lastBlock) {
+                // Try to extract content between backticks
+                String content = response.substring(firstBlock);
+                if (content.startsWith("```json")) {
+                    content = content.substring(7);
+                } else if (content.startsWith("```")) {
+                    content = content.substring(3);
+                }
+                
+                if (content.contains("```")) {
+                    response = content.substring(0, content.lastIndexOf("```")).trim();
+                } else {
+                    response = content.trim();
+                }
+            } else if (firstBlock != -1) {
+                // Only one backtick block start, strip it
+                response = response.substring(firstBlock);
+                if (response.startsWith("```json")) response = response.substring(7);
+                else if (response.startsWith("```")) response = response.substring(3);
+            }
         }
+        
         response = response.trim();
 
-        // Handle Truncation: If the response ends abruptly, try to close the JSON
-        // structure
-                if (response.lastIndexOf("}") < response.lastIndexOf("{")) {
-                     response += "}";
-                }
-                if (response.contains("[") && !response.endsWith("]}")) {
-                    if (response.endsWith(",")) {
-                        response = response.substring(0, response.length() - 1);
-                    }
-                    response += "]}";
-                }
+        // Handle Truncation or invalid ending:
+        // Case 1: Doesn't end with }
+        if (!response.endsWith("}")) {
+            System.out.println("Response does not end with '}'. Attempting recovery.");
+            // Find last closed object
+            int lastObjectEnd = response.lastIndexOf("}");
+            if (lastObjectEnd != -1) {
+                 // Check if we are inside a list []
+                 int lastListStart = response.lastIndexOf("[");
+                 int lastListEnd = response.lastIndexOf("]");
+                 
+                 if (lastListStart > lastListEnd) {
+                     // We are inside an unfinished list
+                     response = response.substring(0, response.lastIndexOf("}") + 1) + "]}";
+                 } else {
+                     response = response.substring(0, lastObjectEnd + 1);
+                 }
+            } else {
+                // Extremely truncated, let's try to just close it if it has [
+                if (response.contains("[") && !response.contains("]")) response += "]}";
+                else if (!response.endsWith("}")) response += "}";
+            }
+        }
 
         try {
             // Using simple structure for the output parser or manual mapping if needed.
