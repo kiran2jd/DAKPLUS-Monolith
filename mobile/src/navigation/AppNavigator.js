@@ -22,6 +22,7 @@ import TopicManagementScreen from '../screens/TopicManagementScreen';
 import SideMenu from '../components/SideMenu';
 import HelpScreen from '../screens/HelpScreen';
 import NotificationsScreen from '../screens/NotificationsScreen';
+import SyllabusScreen from '../screens/SyllabusScreen';
 import { authService } from '../services/auth';
 
 const Stack = createNativeStackNavigator();
@@ -41,6 +42,7 @@ function TabNavigator() {
                     let iconName;
                     if (route.name === 'Home') iconName = focused ? 'grid' : 'grid-outline';
                     else if (route.name === 'Tests') iconName = focused ? 'book' : 'book-outline';
+                    else if (route.name === 'Syllabus') iconName = focused ? 'list' : 'list-outline';
                     else if (route.name === 'Performance') iconName = focused ? 'analytics' : 'analytics-outline';
                     else if (route.name === 'Help') iconName = focused ? 'help-circle' : 'help-circle-outline';
                     return <Ionicons name={iconName} size={size} color={color} />;
@@ -57,6 +59,7 @@ function TabNavigator() {
         >
             <Tab.Screen name="Home" component={DashboardScreen} />
             <Tab.Screen name="Tests" component={TestLibraryScreen} />
+            <Tab.Screen name="Syllabus" component={SyllabusScreen} />
             <Tab.Screen name="Performance" component={AnalyticsScreen} />
             <Tab.Screen name="Help" component={HelpScreen} />
         </Tab.Navigator>
@@ -135,6 +138,7 @@ export default function AppNavigator() {
                 <Stack.Screen name="CreateTest" component={CreateTestScreen} />
                 <Stack.Screen name="EditTest" component={EditTestScreen} />
                 <Stack.Screen name="Notifications" component={NotificationsScreen} />
+                <Stack.Screen name="Syllabus" component={SyllabusScreen} />
             </Stack.Navigator>
         </NavigationContainer>
     );

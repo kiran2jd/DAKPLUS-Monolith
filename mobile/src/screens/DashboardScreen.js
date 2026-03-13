@@ -45,9 +45,9 @@ export default function DashboardScreen({ navigation }) {
     const isStudent = role === 'STUDENT';
 
     const banners = [
-        { title: "GDS to MTS Exam", subtitle: "TARGET 2024 BATCH", colors: ['#dc2626', '#b91c1c'], icon: 'mail-outline' },
+        { title: "GDS to MTS Exam", subtitle: "TARGET 2026 BATCH", colors: ['#dc2626', '#b91c1c'], icon: 'mail-outline' },
         { title: "Postman & Mail Guard", subtitle: "COMPLETE PAPER 1 & 2", colors: ['#1e3a8a', '#1d4ed8'], icon: 'cube-outline' },
-        { title: "PA/SA Special Classes", subtitle: "LIVE & RECORDED SESSIONS", colors: ['#7c3aed', '#5b21b6'], icon: 'school-outline' }
+        { title: "PA/SA Special Classes", subtitle: "TARGET 2026 BATCH", colors: ['#7c3aed', '#5b21b6'], icon: 'school-outline' }
     ];
 
     // 1. BACK BUTTON GUARD
@@ -129,7 +129,7 @@ export default function DashboardScreen({ navigation }) {
     }
 
     const accuracy = results.length > 0 
-        ? Math.round(results.reduce((acc, r) => acc + (r.score / r.totalQuestions) * 100, 0) / results.length) 
+        ? (Math.round(results.reduce((acc, r) => acc + (r.score / r.totalQuestions) * 100, 0) / results.length) || 0)
         : 0;
 
     return (
@@ -209,7 +209,7 @@ export default function DashboardScreen({ navigation }) {
                             ...(isStaff ? [{ label: 'Manage All', icon: 'layers', route: 'ManageTests', color: '#3b82f6', sub: 'Edit Exams' }] : [{ label: 'Unlock PRO', icon: 'card', route: 'Payment', color: '#10b981', sub: 'Upgrade Now' }]),
                             { label: 'Analytics', icon: 'stats-chart', route: 'Performance', color: '#8b5cf6', sub: 'Score Reports' },
                             ...(isStaff ? [{ label: 'Topics', icon: 'apps', route: 'TopicManagement', color: '#10b981', sub: 'Syllabus Map' }] : [{ label: 'Classes', icon: 'play-circle', route: 'Tests', color: '#f59e0b', sub: 'Video Portal' }]),
-                            { label: 'Syllabus', icon: 'list', route: 'Help', color: '#64748b', sub: 'Detailed PDF' },
+                            { label: 'Syllabus', icon: 'list', route: 'Syllabus', color: '#64748b', sub: 'Detailed PDF' },
                         ].map((item, idx) => (
                             <View key={idx} style={styles.gridSlot}>
                                 <TouchableOpacity

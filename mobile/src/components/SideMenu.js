@@ -69,7 +69,7 @@ const SideMenu = (props) => {
     ];
 
     const handleNavigation = (route) => {
-        if (['Home', 'Tests', 'Performance', 'Help'].includes(route)) {
+        if (['Home', 'Tests', 'Performance', 'Help', 'Syllabus'].includes(route)) {
             navigation.navigate('Tabs', { screen: route });
         } else {
             navigation.navigate(route);
