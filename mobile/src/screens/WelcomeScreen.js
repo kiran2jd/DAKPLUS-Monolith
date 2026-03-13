@@ -19,7 +19,7 @@ export default function WelcomeScreen({ navigation }) {
         <SafeAreaView style={styles.container}>
             <StatusBar barStyle="light-content" />
             <LinearGradient
-                colors={['#dc2626', '#1e3a8a']}
+                colors={['#0f172a', '#1e293b', '#0f172a']}
                 style={StyleSheet.absoluteFillObject}
                 pointerEvents="none"
             />

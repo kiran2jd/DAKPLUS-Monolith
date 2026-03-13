@@ -89,6 +89,53 @@ export default function CreateTestScreen({ navigation }) {
         }
     };
 
+    const handleDocumentPick = async () => {
+        try {
+            const result = await DocumentPicker.getDocumentAsync({
+                type: ['application/pdf', 'image/*'],
+                copyToCacheDirectory: true
+            });
+
+            if (!result.canceled && result.assets && result.assets.length > 0) {
+                const asset = result.assets[0];
+                setExtracting(true);
+                try {
+                    const data = await testService.extractQuestions(
+                        asset.uri,
+                        asset.name,
+                        asset.mimeType,
+                        selectedTopic,
+                        selectedSubtopic
+                    );
+                    
+                    if (data && data.questions) {
+                        const newQuestions = data.questions.map(q => ({
+                            text: q.text || '',
+                            options: q.options || ['', '', '', ''],
+                            correctAnswer: q.correctAnswer || '',
+                            explanation: q.explanation || '',
+                            points: q.points || 1,
+                            imageUrl: q.imageUrl || '',
+                            isUploading: false
+                        }));
+                        
+                        setQuestions(prev => {
+                            const filtered = prev.filter(v => v.text.trim() !== '');
+                            return [...filtered, ...newQuestions];
+                        });
+                        Alert.alert('Success', `Extracted ${newQuestions.length} questions!`);
+                    }
+                } catch (err) {
+                    Alert.alert('Error', 'AI Extraction failed. Please try a different document.');
+                } finally {
+                    setExtracting(false);
+                }
+            }
+        } catch (err) {
+            Alert.alert('Error', 'Failed to pick document');
+        }
+    };
+
     const addQuestion = () => {
         setQuestions([...questions, { text: '', options: ['', '', '', ''], correctAnswer: '', explanation: '', points: 1, imageUrl: '', isUploading: false }]);
     };
@@ -109,6 +156,7 @@ export default function CreateTestScreen({ navigation }) {
             return;
         }
 
+        setLoading(true);
         try {
             await testService.createTest({
                 title,

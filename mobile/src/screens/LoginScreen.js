@@ -15,6 +15,7 @@ import {
     TouchableWithoutFeedback,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { LinearGradient } from 'expo-linear-gradient';
 import { authService } from '../services/auth';
 import logo from '../../assets/logo.jpg';
 
@@ -184,6 +185,10 @@ export default function LoginScreen({ navigation }) {
                 behavior={Platform.OS === 'ios' ? 'padding' : undefined}
                 style={styles.container}
             >
+                <LinearGradient
+                    colors={['#0f172a', '#1e293b', '#0f172a']}
+                    style={StyleSheet.absoluteFillObject}
+                />
                 <ScrollView
                     contentContainerStyle={styles.scrollContainer}
                     keyboardShouldPersistTaps="handled"
@@ -332,7 +337,7 @@ export default function LoginScreen({ navigation }) {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: '#f8fafc',
+        backgroundColor: '#0f172a',
     },
     scrollContainer: {
         flexGrow: 1,
@@ -351,29 +356,28 @@ const styles = StyleSheet.create({
     title: {
         fontSize: 32,
         fontWeight: 'bold',
-        color: '#dc2626', // Postal Red
+        color: '#fff',
         letterSpacing: 2,
     },
     subtitle: {
         fontSize: 14,
-        color: '#64748b',
+        color: '#94a3b8',
         marginTop: 5,
     },
     card: {
-        backgroundColor: '#ffffff',
+        backgroundColor: 'rgba(255,255,255,0.03)',
         borderRadius: 24,
         padding: 28,
+        borderWidth: 1,
+        borderColor: 'rgba(255,255,255,0.08)',
         shadowColor: '#000',
         shadowOffset: { width: 0, height: 12 },
         shadowOpacity: 0.1,
         shadowRadius: 24,
-        elevation: 12,
-        borderWidth: 1,
-        borderColor: '#e2e8f0',
     },
     tabContainer: {
         flexDirection: 'row',
-        backgroundColor: '#f1f5f9',
+        backgroundColor: 'rgba(255,255,255,0.05)',
         borderRadius: 12,
         padding: 4,
         marginBottom: 24,
@@ -385,49 +389,48 @@ const styles = StyleSheet.create({
         borderRadius: 8,
     },
     activeTab: {
-        backgroundColor: '#ffffff',
+        backgroundColor: 'rgba(255,255,255,0.1)',
         shadowColor: '#000',
         shadowOffset: { width: 0, height: 2 },
         shadowOpacity: 0.05,
         shadowRadius: 4,
-        elevation: 2,
     },
     tabText: {
-        color: '#64748b',
+        color: '#94a3b8',
         fontWeight: '600',
     },
     activeTabText: {
-        color: '#dc2626',
+        color: '#fff',
     },
     form: {
         gap: 16,
     },
     label: {
-        color: '#475569',
+        color: '#94a3b8',
         textAlign: 'center',
         marginBottom: 8,
     },
     input: {
-        backgroundColor: '#f8fafc',
+        backgroundColor: 'rgba(255,255,255,0.05)',
         borderRadius: 14,
         padding: 16,
-        color: '#1e293b',
+        color: '#fff',
         fontSize: 16,
         borderWidth: 1,
-        borderColor: '#e2e8f0',
+        borderColor: 'rgba(255,255,255,0.1)',
     },
     passwordContainer: {
         flexDirection: 'row',
         alignItems: 'center',
-        backgroundColor: '#f8fafc',
+        backgroundColor: 'rgba(255,255,255,0.05)',
         borderRadius: 14,
         borderWidth: 1,
-        borderColor: '#e2e8f0',
+        borderColor: 'rgba(255,255,255,0.1)',
     },
     passwordInput: {
         flex: 1,
         padding: 16,
-        color: '#1e293b',
+        color: '#fff',
         fontSize: 16,
     },
     eyeIcon: {
@@ -455,7 +458,7 @@ const styles = StyleSheet.create({
         marginTop: 12,
     },
     secondaryButtonText: {
-        color: '#64748b',
+        color: '#94a3b8',
         fontSize: 14,
     },
     footer: {
@@ -464,16 +467,17 @@ const styles = StyleSheet.create({
         marginTop: 24,
         paddingTop: 20,
         borderTopWidth: 1,
-        borderTopColor: '#f1f5f9',
+        borderTopColor: 'rgba(255,255,255,0.05)',
     },
     footerText: {
-        color: '#64748b',
+        color: '#94a3b8',
         fontSize: 14,
     },
     footerLink: {
-        color: '#dc2626',
+        color: '#fff',
         fontSize: 14,
         fontWeight: 'bold',
+        textDecorationLine: 'underline',
     },
     clearBtn: {
         padding: 12,
@@ -527,6 +531,6 @@ const styles = StyleSheet.create({
     },
     checkboxLabel: {
         fontSize: 14,
-        color: '#475569',
+        color: '#94a3b8',
     },
 });

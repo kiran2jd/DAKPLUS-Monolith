@@ -16,6 +16,7 @@ import {
     TouchableWithoutFeedback,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { LinearGradient } from 'expo-linear-gradient';
 import { authService } from '../services/auth';
 
 const circles = ["Andhra Pradesh", "Telangana", "Karnataka", "Tamil Nadu", "Kerala", "Others"];
@@ -171,10 +172,14 @@ export default function RegisterScreen({ navigation, route }) {
         <Modal visible={modalVisible} animationType="slide" transparent={true}>
             <View style={styles.modalOverlay}>
                 <View style={styles.modalContent}>
+                    <LinearGradient
+                        colors={['#0f172a', '#1e293b']}
+                        style={StyleSheet.absoluteFillObject}
+                    />
                     <View style={styles.modalHeader}>
                         <Text style={styles.modalTitle}>Select {currentField === 'circle' ? 'Postal Circle' : currentField === 'cadre' ? 'Cadre' : 'Target Exam'}</Text>
                         <TouchableOpacity onPress={() => setModalVisible(false)}>
-                            <Ionicons name="close" size={28} color="#1e293b" />
+                            <Ionicons name="close" size={28} color="#fff" />
                         </TouchableOpacity>
                     </View>
 
@@ -211,6 +216,10 @@ export default function RegisterScreen({ navigation, route }) {
                 behavior={Platform.OS === 'ios' ? 'padding' : undefined}
                 style={styles.container}
             >
+                <LinearGradient
+                    colors={['#0f172a', '#1e293b', '#0f172a']}
+                    style={StyleSheet.absoluteFillObject}
+                />
                 <ScrollView
                     contentContainerStyle={styles.scrollContainer}
                     keyboardShouldPersistTaps="handled"
@@ -378,7 +387,7 @@ export default function RegisterScreen({ navigation, route }) {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: '#f8fafc',
+        backgroundColor: '#0f172a',
     },
     scrollContainer: {
         flexGrow: 1,
@@ -392,56 +401,55 @@ const styles = StyleSheet.create({
     title: {
         fontSize: 28,
         fontWeight: 'bold',
-        color: '#dc2626',
+        color: '#fff',
         letterSpacing: 1,
     },
     subtitle: {
         fontSize: 14,
-        color: '#64748b',
+        color: '#94a3b8',
         marginTop: 5,
     },
     card: {
-        backgroundColor: '#ffffff',
+        backgroundColor: 'rgba(255,255,255,0.03)',
         borderRadius: 24,
         padding: 24,
+        borderWidth: 1,
+        borderColor: 'rgba(255,255,255,0.08)',
         shadowColor: '#000',
         shadowOffset: { width: 0, height: 8 },
         shadowOpacity: 0.05,
         shadowRadius: 16,
-        elevation: 8,
-        borderWidth: 1,
-        borderColor: '#e2e8f0',
     },
     form: {
         gap: 16,
     },
     divider: {
         height: 1,
-        backgroundColor: '#e2e8f0',
+        backgroundColor: 'rgba(255,255,255,0.05)',
         marginVertical: 10,
     },
     sectionTitle: {
         fontSize: 16,
         fontWeight: 'bold',
-        color: '#1e293b',
+        color: '#fff',
         marginBottom: 8,
     },
     inputGroup: {
         gap: 8,
     },
     label: {
-        color: '#475569',
+        color: '#94a3b8',
         fontSize: 14,
         fontWeight: '600',
     },
     input: {
-        backgroundColor: '#f8fafc',
+        backgroundColor: 'rgba(255,255,255,0.05)',
         borderRadius: 12,
         padding: 14,
-        color: '#1e293b',
+        color: '#fff',
         fontSize: 16,
         borderWidth: 1,
-        borderColor: '#e2e8f0',
+        borderColor: 'rgba(255,255,255,0.1)',
     },
     disabledInput: {
         opacity: 0.6,
@@ -488,7 +496,7 @@ const styles = StyleSheet.create({
         marginTop: 12,
     },
     secondaryButtonText: {
-        color: '#64748b',
+        color: '#94a3b8',
         fontSize: 14,
     },
     checkboxContainer: {
@@ -517,7 +525,7 @@ const styles = StyleSheet.create({
     checkboxLabel: {
         flex: 1,
         fontSize: 14,
-        color: '#475569',
+        color: '#94a3b8',
     },
     pickerContainer: {
         marginBottom: 10,
@@ -544,21 +552,21 @@ const styles = StyleSheet.create({
         fontWeight: 'bold',
     },
     selector: {
-        backgroundColor: '#f8fafc',
+        backgroundColor: 'rgba(255,255,255,0.05)',
         borderRadius: 12,
         padding: 14,
         flexDirection: 'row',
         justifyContent: 'space-between',
         alignItems: 'center',
         borderWidth: 1,
-        borderColor: '#e2e8f0',
+        borderColor: 'rgba(255,255,255,0.1)',
     },
     selectorText: {
         fontSize: 16,
-        color: '#1e293b',
+        color: '#fff',
     },
     placeholder: {
-        color: '#999',
+        color: '#555',
     },
     modalOverlay: {
         flex: 1,
@@ -566,11 +574,12 @@ const styles = StyleSheet.create({
         justifyContent: 'flex-end',
     },
     modalContent: {
-        backgroundColor: '#fff',
+        backgroundColor: '#0f172a',
         borderTopLeftRadius: 32,
         borderTopRightRadius: 32,
         maxHeight: '80%',
         padding: 24,
+        overflow: 'hidden',
     },
     modalHeader: {
         flexDirection: 'row',
@@ -581,15 +590,17 @@ const styles = StyleSheet.create({
     modalTitle: {
         fontSize: 20,
         fontWeight: 'bold',
-        color: '#1e293b',
+        color: '#fff',
     },
     searchInput: {
-        backgroundColor: '#f1f5f9',
+        backgroundColor: 'rgba(255,255,255,0.05)',
         borderRadius: 12,
         padding: 12,
         fontSize: 16,
-        color: '#1e293b',
+        color: '#fff',
         marginBottom: 20,
+        borderWidth: 1,
+        borderColor: 'rgba(255,255,255,0.1)',
     },
     modalItem: {
         flexDirection: 'row',
@@ -599,11 +610,11 @@ const styles = StyleSheet.create({
     },
     modalItemText: {
         fontSize: 16,
-        color: '#475569',
+        color: '#e2e8f0',
     },
     modalSeparator: {
         height: 1,
-        backgroundColor: '#f1f5f9',
+        backgroundColor: 'rgba(255,255,255,0.05)',
     },
     clearBtn: {
         padding: 12,
