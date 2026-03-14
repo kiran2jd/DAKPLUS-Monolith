@@ -26,7 +26,8 @@ export default function SyllabusScreen({ navigation, route }) {
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-        const courseId = route.params?.courseId;
+        const rawCourseId = route.params?.courseId;
+        const courseId = rawCourseId === 'COMBINED' ? null : rawCourseId;
         fetchSyllabus(courseId);
     }, [route.params?.courseId]);
 

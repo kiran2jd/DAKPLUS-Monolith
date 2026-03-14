@@ -4,7 +4,7 @@ import { topicService } from '../services/topic';
 export default function TopicManagementPage() {
     const [topics, setTopics] = useState([]);
     const [loading, setLoading] = useState(false);
-    const [newTopic, setNewTopic] = useState({ name: '', description: '' });
+    const [newTopic, setNewTopic] = useState({ name: '', description: '', courseIds: [] });
     const [newSubtopic, setNewSubtopic] = useState({ name: '', description: '', topicId: '' });
     const [error, setError] = useState('');
     const [success, setSuccess] = useState('');
@@ -42,6 +42,7 @@ export default function TopicManagementPage() {
             const topicData = { 
                 name: dataObj.name, 
                 description: dataObj.description,
+                courseIds: dataObj.courseIds || [],
                 imageUrl: editingTopic?.imageUrl || null,
                 pdfUrl: editingTopic?.pdfUrl || null
             };
@@ -64,7 +65,7 @@ export default function TopicManagementPage() {
                 setEditingTopic(null);
             } else {
                 await topicService.createTopic(topicData);
-                setNewTopic({ name: '', description: '', imageFile: null, pdfFile: null });
+                setNewTopic({ name: '', description: '', courseIds: [], imageFile: null, pdfFile: null });
                 setSuccess('Topic created successfully');
             }
             fetchTopics();
@@ -179,6 +180,32 @@ export default function TopicManagementPage() {
                                 }}
                             />
                         </div>
+
+                        <div className="mb-4">
+                            <label className="block text-sm font-medium mb-1 dark:text-gray-300">Available In Courses</label>
+                            <div className="flex gap-4">
+                                {['MTS', 'PMMG', 'PASA'].map(cid => (
+                                    <label key={cid} className="flex items-center space-x-2 text-sm text-gray-700 dark:text-gray-300">
+                                        <input
+                                            type="checkbox"
+                                            className="rounded border-gray-300 text-primary focus:ring-primary dark:bg-gray-700 dark:border-gray-600 h-4 w-4"
+                                            checked={(editingTopic ? (editingTopic.courseIds || []) : (newTopic.courseIds || [])).includes(cid)}
+                                            onChange={(e) => {
+                                                const currentIds = editingTopic ? (editingTopic.courseIds || []) : (newTopic.courseIds || []);
+                                                const newIds = e.target.checked 
+                                                    ? [...currentIds, cid] 
+                                                    : currentIds.filter(id => id !== cid);
+                                                
+                                                if (editingTopic) setEditingTopic({ ...editingTopic, courseIds: newIds });
+                                                else setNewTopic({ ...newTopic, courseIds: newIds });
+                                            }}
+                                        />
+                                        <span>{cid}</span>
+                                    </label>
+                                ))}
+                            </div>
+                        </div>
+
                         <div className="grid grid-cols-2 gap-4">
                             <div>
                                 <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Banner Image</label>
@@ -318,7 +345,18 @@ export default function TopicManagementPage() {
                         {topics.map(topic => (
                             <>
                                 <tr key={topic.id} className="bg-gray-50/50 dark:bg-gray-800/50 hover:bg-white dark:hover:bg-gray-700/50 transition-colors">
-                                    <td className="px-6 py-4 font-bold text-primary dark:text-blue-400">{topic.name}</td>
+                                    <td className="px-6 py-4 font-bold text-primary dark:text-blue-400">
+                                        {topic.name}
+                                        {topic.courseIds && topic.courseIds.length > 0 && (
+                                            <div className="flex gap-1 mt-1">
+                                                {topic.courseIds.map(cid => (
+                                                    <span key={cid} className="px-2 py-0.5 bg-indigo-100 text-indigo-800 dark:bg-indigo-900 dark:text-indigo-200 text-xs rounded-full">
+                                                        {cid}
+                                                    </span>
+                                                ))}
+                                            </div>
+                                        )}
+                                    </td>
                                     <td className="px-6 py-4 text-sm text-gray-600 dark:text-gray-400">{topic.description}</td>
                                     <td className="px-6 py-4 text-right">
                                         <button onClick={() => setEditingTopic(topic)} className="text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 mr-4 font-semibold">

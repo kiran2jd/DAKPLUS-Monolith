@@ -41,7 +41,8 @@ export default function TestLibraryScreen({ navigation, route }) {
             const userData = await authService.getUser();
             setUser(userData);
 
-            const courseId = route.params?.courseId;
+            const rawCourseId = route.params?.courseId;
+            const courseId = rawCourseId === 'COMBINED' ? null : rawCourseId;
             console.log("Loading Library for course:", courseId);
 
             const [topicsData, testsData] = await Promise.all([

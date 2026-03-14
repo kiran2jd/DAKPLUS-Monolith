@@ -20,7 +20,8 @@ export default function CreateTestPage() {
         isPremium: false,
         price: 0,
         topicId: '',
-        subtopicId: ''
+        subtopicId: '',
+        courseIds: []
     });
 
     const [topics, setTopics] = useState([]);
@@ -231,6 +232,28 @@ export default function CreateTestPage() {
                                 <label htmlFor="isPremium" className="text-sm font-bold text-gray-700 dark:text-gray-200">
                                     Premium Test (Locked for free users)
                                 </label>
+                            </div>
+
+                            <div className="col-span-2 mt-2">
+                                <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-2">Available In Courses</label>
+                                <div className="flex gap-6">
+                                    {['MTS', 'PMMG', 'PASA'].map(cid => (
+                                        <label key={cid} className="flex items-center space-x-2 text-sm text-gray-700 dark:text-gray-300">
+                                            <input
+                                                type="checkbox"
+                                                className="rounded border-gray-300 text-primary focus:ring-primary dark:bg-gray-700 dark:border-gray-600 h-5 w-5"
+                                                checked={testData.courseIds.includes(cid)}
+                                                onChange={(e) => {
+                                                    const newIds = e.target.checked 
+                                                        ? [...testData.courseIds, cid] 
+                                                        : testData.courseIds.filter(id => id !== cid);
+                                                    setTestData({ ...testData, courseIds: newIds });
+                                                }}
+                                            />
+                                            <span>{cid}</span>
+                                        </label>
+                                    ))}
+                                </div>
                             </div>
                         </div>
                     </div>
