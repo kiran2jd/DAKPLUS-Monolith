@@ -23,6 +23,7 @@ import SideMenu from '../components/SideMenu';
 import HelpScreen from '../screens/HelpScreen';
 import NotificationsScreen from '../screens/NotificationsScreen';
 import SyllabusScreen from '../screens/SyllabusScreen';
+import AnalyticsScreen from '../screens/AnalyticsScreen';
 import { authService } from '../services/auth';
 
 const Stack = createNativeStackNavigator();
