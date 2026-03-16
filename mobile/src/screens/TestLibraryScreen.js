@@ -53,6 +53,20 @@ export default function TestLibraryScreen({ navigation, route }) {
             setTopics(topicsData);
             setTests(testsData);
 
+            if (topicsData && topicsData.length > 0) {
+                const firstTopic = topicsData[0];
+                setSelectedTopic(firstTopic.id);
+                try {
+                    const subData = await topicService.getSubtopics(firstTopic.id);
+                    setSubtopics(subData);
+                    if (subData && subData.length > 0) {
+                        setSelectedSubtopic(subData[0].id);
+                    }
+                } catch (subErr) {
+                    console.error("Auto load subtopics failed", subErr);
+                }
+            }
+
             try {
                 const response = await api.get(`/payments/user-purchases?userId=${userData.id || userData._id}`);
                 setPurchases(response.data || []);
@@ -75,7 +89,11 @@ export default function TestLibraryScreen({ navigation, route }) {
             setSelectedTopic(topicId);
             const sub = await topicService.getSubtopics(topicId);
             setSubtopics(sub);
-            setSelectedSubtopic(null);
+            if (sub && sub.length > 0) {
+                setSelectedSubtopic(sub[0].id);
+            } else {
+                setSelectedSubtopic(null);
+            }
         }
     };
 

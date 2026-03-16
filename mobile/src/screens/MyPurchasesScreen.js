@@ -79,17 +79,17 @@ export default function MyPurchasesScreen({ navigation }) {
                         </View>
                     ))
                 ) : (
-                    <View style={styles.emptyState}>
-                        <Ionicons name="card-outline" size={64} color="#cbd5e1" />
-                        <Text style={styles.emptyTitle}>No Transactions Yet</Text>
-                        <Text style={styles.emptySub}>Your purchased courses and tests will appear here.</Text>
-                        <TouchableOpacity 
-                            style={styles.browseBtn}
-                            onPress={() => navigation.navigate('Home')}
-                        >
-                            <Text style={styles.browseBtnText}>Explore Courses</Text>
-                        </TouchableOpacity>
-                    </View>
+                <View style={styles.emptyState}>
+                    <Ionicons name="card-outline" size={64} color="#cbd5e1" />
+                    <Text style={styles.emptyTitle}>No Transactions Yet</Text>
+                    <Text style={styles.emptySub}>Your purchased courses and tests will appear here.</Text>
+                    <TouchableOpacity 
+                        style={styles.browseBtn}
+                        onPress={() => navigation.navigate('Main')}
+                    >
+                        <Text style={styles.browseBtnText}>Explore Courses</Text>
+                    </TouchableOpacity>
+                </View>
                 )}
             </ScrollView>
         </SafeAreaView>

@@ -52,16 +52,38 @@ export default function PaymentScreen({ navigation }) {
     };
 
     const pricing = {
-        'MTS': 10,
-        'PMMG': 30,
-        'PASA': 30,
-        'COMBINED': 70
+        'MTS': {
+            price: 10,
+            title: 'MTS Exam',
+            subtitle: 'TARGET 2026 BATCH',
+            features: ['✓ Complete Paper 1 Syllabus', '✓ Detailed AI Training Access', '✓ Unlimited Practice Tests', '✓ One-time Payment']
+        },
+        'PMMG': {
+            price: 30,
+            title: 'Postman & Mail Guard',
+            subtitle: 'COMPLETE PAPER 1 & 2',
+            features: ['✓ Complete Paper 1 & 2 Syllabus', '✓ Detailed AI Training Access', '✓ Unlimited Practice Tests', '✓ One-time Payment']
+        },
+        'PASA': {
+            price: 30,
+            title: 'PA/SA Special Classes',
+            subtitle: 'TARGET 2026 BATCH',
+            features: ['✓ Complete Paper 1 & 2 Syllabus', '✓ Detailed AI Training Access', '✓ Unlimited Practice Tests', '✓ One-time Payment']
+        },
+        'COMBINED': {
+            price: 70,
+            title: 'Combined Course',
+            subtitle: 'PA/SA, PM/MG, MTS',
+            features: ['✓ Access to EVERYTHING', '✓ Detailed AI Training Access', '✓ Unlimited Practice Tests', '✓ Best Value Package']
+        }
     };
 
     // Get courseId from navigation params if available
     const routeParams = navigation.getState()?.routes?.find(r => r.name === 'Payment')?.params || {};
     const selectedCourseId = routeParams.courseId || user?.examType || 'COMBINED';
-    const currentPrice = pricing[selectedCourseId] || pricing[user?.examType] || 70;
+    
+    const details = pricing[selectedCourseId] || pricing[user?.examType] || pricing['COMBINED'];
+    const currentPrice = details.price;
 
     const handlePayment = async () => {
         const token = await SecureStore.getItemAsync('access_token');
@@ -75,7 +97,8 @@ export default function PaymentScreen({ navigation }) {
             
             // Explicitly reload profile when browser is closed
             const updatedProfile = await api.get('/auth/profile');
-            if (updatedProfile.user?.subscriptionTier === 'PREMIUM' || (updatedProfile.user?.unlockedExams && updatedProfile.user.unlockedExams.length > 0)) {
+            const unlocked = updatedProfile.user?.unlockedExams || [];
+            if (updatedProfile.user?.subscriptionTier === 'PREMIUM' || unlocked.includes(selectedCourseId) || unlocked.includes('COMBINED')) {
                 setSuccess(true);
                 Alert.alert("Success", "Your course has been unlocked!");
                 navigation.navigate('Main');
@@ -109,8 +132,8 @@ export default function PaymentScreen({ navigation }) {
                     <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
                         <Text style={styles.backText}>← Back</Text>
                     </TouchableOpacity>
-                    <Text style={styles.title}>Unlock Exam</Text>
-                    <Text style={styles.subtitle}>{user?.examType || 'Professional Exam'} Preparation</Text>
+                    <Text style={styles.title}>Unlock {details.title}</Text>
+                    <Text style={styles.subtitle}>{details.subtitle}</Text>
                 </LinearGradient>
 
                 <View style={styles.content}>
@@ -126,10 +149,9 @@ export default function PaymentScreen({ navigation }) {
                             <Text style={styles.period}>/exam</Text>
                         </View>
                         <View style={styles.benefits}>
-                            <Text style={styles.benefit}>✓ Complete Paper 1 & 2 Syllabus</Text>
-                            <Text style={styles.benefit}>✓ Detailed AI Training Access</Text>
-                            <Text style={styles.benefit}>✓ Unlimited Practice Tests</Text>
-                            <Text style={styles.benefit}>✓ One-time Payment</Text>
+                            {details.features.map((feat, idx) => (
+                                <Text key={idx} style={styles.benefit}>{feat}</Text>
+                            ))}
                         </View>
                     </View>
 

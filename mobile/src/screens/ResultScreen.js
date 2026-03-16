@@ -136,20 +136,22 @@ export default function ResultScreen({ navigation, route }) {
 
                 <View style={styles.content}>
                     <View style={styles.statsGrid}>
+                    <View style={styles.statsGrid}>
                         <View style={styles.statCard}>
-                            <Text style={styles.statLabel}>Attempted</Text>
+                            <Text style={styles.statLabel}>{language === 'hi' ? 'प्रयास किया गया' : 'Attempted'}</Text>
                             <Text style={styles.statValue}>
                                 {Object.values(result.answers || {}).filter(a => a !== null && a !== 'Not Answered').length}
                             </Text>
                         </View>
                         <View style={styles.statCard}>
-                            <Text style={styles.statLabel}>Correct</Text>
+                            <Text style={styles.statLabel}>{language === 'hi' ? 'सही' : 'Correct'}</Text>
                             <Text style={[styles.statValue, { color: '#059669' }]}>{result.correctAnswers || 0}</Text>
                         </View>
                         <View style={styles.statCard}>
-                            <Text style={styles.statLabel}>Wrong</Text>
+                            <Text style={styles.statLabel}>{language === 'hi' ? 'ग़लत' : 'Wrong'}</Text>
                             <Text style={[styles.statValue, { color: '#dc2626' }]}>{result.wrongAnswers || 0}</Text>
                         </View>
+                    </View>
                     </View>
 
                     <TouchableOpacity
@@ -166,7 +168,7 @@ export default function ResultScreen({ navigation, route }) {
                             style={styles.homeBtnGradient}
                         >
                             <Ionicons name="home-outline" size={20} color="#fff" style={{ marginRight: 8 }} />
-                            <Text style={styles.homeButtonText}>Back to Dashboard</Text>
+                            <Text style={styles.homeButtonText}>{language === 'hi' ? 'डैशबोर्ड पर वापस' : 'Back to Dashboard'}</Text>
                         </LinearGradient>
                     </TouchableOpacity>
 
@@ -193,7 +195,7 @@ export default function ResultScreen({ navigation, route }) {
                         </TouchableOpacity>
                     )}
 
-                    <Text style={styles.sectionTitle}>Detailed Review</Text>
+                    <Text style={styles.sectionTitle}>{language === 'hi' ? 'विस्तृत समीक्षा' : 'Detailed Review'}</Text>
 
                     {/* Filter Tabs */}
                     <View style={styles.filterTabs}>
@@ -201,19 +203,19 @@ export default function ResultScreen({ navigation, route }) {
                             style={[styles.filterTab, filter === 'all' && styles.activeFilterTab]}
                             onPress={() => setFilter('all')}
                         >
-                            <Text style={[styles.filterTabText, filter === 'all' && styles.activeFilterTabText]}>All</Text>
+                            <Text style={[styles.filterTabText, filter === 'all' && styles.activeFilterTabText]}>{language === 'hi' ? 'सभी' : 'All'}</Text>
                         </TouchableOpacity>
                         <TouchableOpacity
                             style={[styles.filterTab, filter === 'correct' && styles.activeCorrectTab]}
                             onPress={() => setFilter('correct')}
                         >
-                            <Text style={[styles.filterTabText, filter === 'correct' && styles.activeFilterTabText]}>Correct</Text>
+                            <Text style={[styles.filterTabText, filter === 'correct' && styles.activeFilterTabText]}>{language === 'hi' ? 'सही' : 'Correct'}</Text>
                         </TouchableOpacity>
                         <TouchableOpacity
                             style={[styles.filterTab, filter === 'incorrect' && styles.activeWrongTab]}
                             onPress={() => setFilter('incorrect')}
                         >
-                            <Text style={[styles.filterTabText, filter === 'incorrect' && styles.activeFilterTabText]}>Wrong</Text>
+                            <Text style={[styles.filterTabText, filter === 'incorrect' && styles.activeFilterTabText]}>{language === 'hi' ? 'ग़लत' : 'Wrong'}</Text>
                         </TouchableOpacity>
                     </View>
 

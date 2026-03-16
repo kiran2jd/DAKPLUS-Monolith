@@ -75,8 +75,9 @@ export const testService = {
 
         console.log(`Sending file: ${finalName} (${fileType}) to ${api.defaults.baseURL}tests/extract-questions`);
         const response = await api.post('tests/extract-questions', formData, {
+            // Do not override Content-Type; let axios set the boundary automatically
             headers: {
-                'Content-Type': 'multipart/form-data'
+                Accept: 'application/json'
             },
             timeout: 120000 // Match backend AI timeout (2 minutes)
         });

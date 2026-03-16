@@ -251,7 +251,7 @@ export default function DashboardScreen({ navigation }) {
                     )}
 
                     {/* DYNAMIC BUY BANNER (FOR LOCKED COURSES) */}
-                    {isStudent && !user?.unlockedExams?.includes(banners[currentSlide].id) && user?.subscriptionTier !== 'PREMIUM' && (
+                    {isStudent && !user?.unlockedExams?.includes(banners[currentSlide].id) && !user?.unlockedExams?.includes('COMBINED') && user?.subscriptionTier !== 'PREMIUM' && (
                         <TouchableOpacity 
                             style={styles.buyBanner}
                             onPress={() => navigation.navigate('Payment', { courseId: banners[currentSlide].id })}

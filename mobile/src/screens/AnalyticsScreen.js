@@ -184,9 +184,9 @@ export default function AnalyticsScreen({ navigation }) {
                             </View>
                             <View style={styles.insightCard}>
                                 <LinearGradient colors={['rgba(56, 189, 248, 0.15)', 'rgba(255, 255, 255, 0.05)']} style={styles.insightGradient} />
-                                <Ionicons name="flash-outline" size={24} color="#38bdf8" />
-                                <Text style={styles.insightLabel}>Focus Area</Text>
-                                <Text style={styles.insightValue}>Speed</Text>
+                                <Ionicons name="bar-chart-outline" size={24} color="#38bdf8" />
+                                <Text style={styles.insightLabel}>Consistency</Text>
+                                <Text style={styles.insightValue}>{stats.totalTests >= 5 ? 'High' : 'Needs Practice'}</Text>
                             </View>
                         </View>
                     </View>
