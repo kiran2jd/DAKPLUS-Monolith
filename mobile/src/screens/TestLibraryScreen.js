@@ -37,7 +37,10 @@ export default function TestLibraryScreen({ navigation, route }) {
 
     const loadInitialData = async () => {
         try {
-            setLoading(true);
+            // Only show full-screen loader if we have no topics or tests loaded yet
+            if (topics.length === 0 || tests.length === 0) {
+                setLoading(true);
+            }
             const userData = await authService.getUser();
             setUser(userData);
 
@@ -59,9 +62,9 @@ export default function TestLibraryScreen({ navigation, route }) {
                 try {
                     const subData = await topicService.getSubtopics(firstTopic.id);
                     setSubtopics(subData);
-                    if (subData && subData.length > 0) {
-                        setSelectedSubtopic(subData[0].id);
-                    }
+                    // Crucial Fix: We do NOT auto-select the first subtopic.
+                    // Doing so hides tests that belong to the Topic but don't belong strictly to the first subtopic.
+                    setSelectedSubtopic(null); 
                 } catch (subErr) {
                     console.error("Auto load subtopics failed", subErr);
                 }
@@ -89,11 +92,8 @@ export default function TestLibraryScreen({ navigation, route }) {
             setSelectedTopic(topicId);
             const sub = await topicService.getSubtopics(topicId);
             setSubtopics(sub);
-            if (sub && sub.length > 0) {
-                setSelectedSubtopic(sub[0].id);
-            } else {
-                setSelectedSubtopic(null);
-            }
+            // Crucial Fix: Always default to 'All Subtopics' when changing Topics
+            setSelectedSubtopic(null);
         }
     };
 
@@ -158,13 +158,7 @@ export default function TestLibraryScreen({ navigation, route }) {
         );
     };
 
-    if (loading) {
-        return (
-            <View style={[styles.container, styles.center]}>
-                <ActivityIndicator size="large" color="#dc2626" />
-            </View>
-        );
-    }
+    // Removed full-screen loading to allow header shell to mount instantly
 
     const purchasedIds = purchases.map(p => p.itemId);
 
@@ -294,10 +288,17 @@ export default function TestLibraryScreen({ navigation, route }) {
                         ) : null
                     }
                     ListEmptyComponent={
-                        <View style={styles.emptyContainer}>
-                            <Ionicons name="search-outline" size={64} color="rgba(255,255,255,0.05)" />
-                            <Text style={styles.emptyText}>No matching tests found.</Text>
-                        </View>
+                        loading ? (
+                            <View style={styles.emptyContainer}>
+                                <ActivityIndicator size="large" color="#dc2626" />
+                                <Text style={styles.emptyText}>Loading Library...</Text>
+                            </View>
+                        ) : (
+                            <View style={styles.emptyContainer}>
+                                <Ionicons name="search-outline" size={64} color="rgba(255,255,255,0.05)" />
+                                <Text style={styles.emptyText}>No matching tests found.</Text>
+                            </View>
+                        )
                     }
                 />
             </View>

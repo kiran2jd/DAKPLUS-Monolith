@@ -121,13 +121,7 @@ export default function DashboardScreen({ navigation }) {
         };
     }, [currentSlide]);
 
-    if (loading) {
-        return (
-            <View style={[styles.container, styles.center, { backgroundColor: '#0f172a' }]}>
-                <ActivityIndicator size="large" color="#dc2626" />
-            </View>
-        );
-    }
+    // Removed full screen loading back block to allow Progressive UI Rendering component lifecycle
 
     const accuracy = results.length > 0 
         ? (Math.round(results.reduce((acc, r) => acc + (r.totalQuestions > 0 ? (r.score / r.totalQuestions) * 100 : 0), 0) / results.length) || 0)
@@ -144,9 +138,9 @@ export default function DashboardScreen({ navigation }) {
                 <View style={[styles.headerWrapperPadding, { paddingTop: 10 }]}>
                     <View style={styles.welcomeTextSection}>
                         <Text style={styles.greetingText}>Welcome back,</Text>
-                        <Text style={styles.nameHeader}>{user?.fullName || 'Dakplus Aspirant'}</Text>
+                        <Text style={styles.nameHeader}>{user ? user.fullName || 'Dakplus Aspirant' : 'Loading Profile...'}</Text>
                         <View style={styles.roleRow}>
-                            <Text style={styles.roleBadge}>{role}</Text>
+                            <Text style={styles.roleBadge}>{user ? role : '...'}</Text>
                             {user?.subscriptionTier === 'PREMIUM' && <Text style={styles.proBadge}>PRO</Text>}
                         </View>
                     </View>

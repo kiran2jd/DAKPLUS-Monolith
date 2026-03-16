@@ -11,19 +11,27 @@ const api = axios.create({
 api.interceptors.request.use((config) => {
     const token = localStorage.getItem('token');
     const userStr = localStorage.getItem('user');
-    const user = JSON.parse(userStr || '{}');
+    let user = {};
+
+    try {
+        if (userStr && userStr !== 'undefined' && userStr !== 'null') {
+            user = JSON.parse(userStr);
+        }
+    } catch (e) {
+        console.warn("Failed to parse user from localStorage", e);
+    }
 
     if (token) {
         config.headers.Authorization = `Bearer ${token}`;
     }
 
     // Inject user ID and Session ID for backend identification & security
-    const userId = user.id || user._id || user.userId;
+    const userId = user?.id || user?._id || user?.userId;
     if (userId) {
         config.headers['X-User-Id'] = userId;
     }
 
-    const sessionId = user.activeSessionId || user.sessionId;
+    const sessionId = user?.activeSessionId || user?.sessionId;
     if (sessionId) {
         config.headers['X-Session-Id'] = sessionId;
     }

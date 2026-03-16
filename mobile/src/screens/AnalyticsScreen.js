@@ -100,13 +100,7 @@ export default function AnalyticsScreen({ navigation }) {
         }, [])
     );
 
-    if (loading) {
-        return (
-            <View style={[styles.container, styles.center]}>
-                <ActivityIndicator size="large" color="#dc2626" />
-            </View>
-        );
-    }
+    // Removed full-screen loading block to allow Progressive UI Rendering
 
     return (
         <View style={styles.container}>
@@ -191,33 +185,40 @@ export default function AnalyticsScreen({ navigation }) {
                         </View>
                     </View>
 
-                    <View style={styles.section}>
-                        <Text style={styles.sectionTitle}>Recent Progress</Text>
-                        {stats.recentPerformance.length > 0 ? (
-                            stats.recentPerformance.map((res, i) => (
-                                <View key={i} style={styles.historyRow}>
-                                    <View style={styles.historyInfo}>
-                                        <Text style={styles.historyTitle} numberOfLines={1}>
-                                            {res.testTitle || 'Mock Exam'}
-                                        </Text>
-                                        <Text style={styles.historyDate}>
-                                            {new Date(res.createdAt).toLocaleDateString()}
-                                        </Text>
+                    {loading ? (
+                        <View style={{ padding: 40, alignItems: 'center' }}>
+                            <ActivityIndicator size="large" color="#dc2626" />
+                            <Text style={{ color: '#94a3b8', marginTop: 10 }}>Loading your insights...</Text>
+                        </View>
+                    ) : (
+                        <View style={styles.section}>
+                            <Text style={styles.sectionTitle}>Recent Progress</Text>
+                            {stats.recentPerformance.length > 0 ? (
+                                stats.recentPerformance.map((res, i) => (
+                                    <View key={i} style={styles.historyRow}>
+                                        <View style={styles.historyInfo}>
+                                            <Text style={styles.historyTitle} numberOfLines={1}>
+                                                {res.testTitle || 'Mock Exam'}
+                                            </Text>
+                                            <Text style={styles.historyDate}>
+                                                {new Date(res.createdAt).toLocaleDateString()}
+                                            </Text>
+                                        </View>
+                                        <View style={[styles.scoreBadge, { backgroundColor: (res.percentage || 0) >= 40 ? 'rgba(34, 197, 94, 0.1)' : 'rgba(239, 68, 68, 0.1)' }]}>
+                                            <Text style={[styles.scoreText, { color: (res.percentage || 0) >= 40 ? '#22c55e' : '#ef4444' }]}>
+                                                {res.percentage}%
+                                            </Text>
+                                        </View>
                                     </View>
-                                    <View style={[styles.scoreBadge, { backgroundColor: (res.percentage || 0) >= 40 ? 'rgba(34, 197, 94, 0.1)' : 'rgba(239, 68, 68, 0.1)' }]}>
-                                        <Text style={[styles.scoreText, { color: (res.percentage || 0) >= 40 ? '#22c55e' : '#ef4444' }]}>
-                                            {res.percentage}%
-                                        </Text>
-                                    </View>
+                                ))
+                            ) : (
+                                <View style={styles.emptyBox}>
+                                    <Ionicons name="bar-chart-outline" size={48} color="rgba(255,255,255,0.05)" />
+                                    <Text style={styles.emptyText}>No recent tests found.</Text>
                                 </View>
-                            ))
-                        ) : (
-                            <View style={styles.emptyBox}>
-                                <Ionicons name="bar-chart-outline" size={48} color="rgba(255,255,255,0.05)" />
-                                <Text style={styles.emptyText}>No recent tests found.</Text>
-                            </View>
-                        )}
-                    </View>
+                            )}
+                        </View>
+                    )}
                 </ScrollView>
             </View>
         </View>

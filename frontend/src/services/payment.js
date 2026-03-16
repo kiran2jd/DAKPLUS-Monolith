@@ -6,11 +6,12 @@ export const paymentService = {
      * @param {number} amount - Amount in INR
      * @returns {Promise<Object>} - Order details including orderId
      */
-    async createOrder(amount, itemId = 'SUBSCRIPTION_PRO', itemType = 'SUBSCRIPTION') {
+    async createOrder(amount, itemId = 'SUBSCRIPTION_PRO', itemType = 'SUBSCRIPTION', targetUserId = null) {
         const user = JSON.parse(localStorage.getItem('user'));
+        const finalUserId = targetUserId || user?.id || user?._id;
         const response = await api.post('/payments/create-order', {
             amount,
-            userId: user?.id || user?._id,
+            userId: finalUserId,
             itemId,
             itemType
         });

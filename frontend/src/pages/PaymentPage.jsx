@@ -32,13 +32,15 @@ export default function PaymentPage() {
         const token = searchParams.get('token');
 
         // If coming from mobile and we have a token, restore it
-        if (source === 'mobile' && token && !localStorage.getItem('access_token')) {
-            localStorage.setItem('access_token', token);
+        if (source === 'mobile' && token && !localStorage.getItem('token')) {
+            localStorage.setItem('token', token);
             // Optionally fetch profile if user object is missing
             if (!localStorage.getItem('user')) {
                 authService.getProfile().then(profile => {
                     localStorage.setItem('user', JSON.stringify(profile));
                     setUser(profile);
+                }).catch(err => {
+                    console.log("Profile sync failed, continuing:", err);
                 });
             }
         }
@@ -104,19 +106,22 @@ export default function PaymentPage() {
             const itemId = testId || selectedPlan.id;
             // FIX: Plans should be treated as EXAM to trigger unlockExam in backend
             const itemType = testId ? 'TEST' : 'EXAM';
+            
+            // Extract explicitly passed userId from URL if available
+            const urlUserId = searchParams.get('userId');
+            const targetUserId = urlUserId || user?.id || user?._id;
 
-            const orderData = await paymentService.createOrder(amount, itemId, itemType);
+            const orderData = await paymentService.createOrder(amount, itemId, itemType, targetUserId);
 
             // 2.5 Handle Dummy Mode Simulation (Bypass Razorpay SDK)
             if (orderData.orderId && (orderData.orderId.startsWith('order_dummy_') || import.meta.env.VITE_RAZORPAY_KEY_ID === '')) {
                 console.log('Dummy mode detected. Simulating payment success...');
                 setTimeout(async () => {
-                    const userId = user?.id || user?._id;
                     const dummyResponse = {
                         razorpay_order_id: orderData.orderId,
                         razorpay_payment_id: "pay_dummy_" + Date.now(),
                         razorpay_signature: "sig_dummy_" + Date.now(),
-                        userId: userId
+                        userId: targetUserId
                     };
 
                     try {
@@ -150,10 +155,11 @@ export default function PaymentPage() {
                 order_id: orderData.orderId,
                 handler: async function (response) {
                     // 4. Verify Payment on Backend
-                    const userId = user?.id || user?._id;
+                    const urlUserId = searchParams.get('userId');
+                    const targetUserId = urlUserId || user?.id || user?._id;
                     const verifyData = {
                         ...response,
-                        userId: userId
+                        userId: targetUserId
                     };
 
                     try {

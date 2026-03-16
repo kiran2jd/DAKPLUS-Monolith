@@ -87,25 +87,22 @@ export default function PaymentScreen({ navigation }) {
 
     const handlePayment = async () => {
         const token = await SecureStore.getItemAsync('access_token');
-        // Include source=mobile and itemId to let the web app know what they are buying
-        const webPaymentUrl = `https://dakplus.in/payment?source=mobile&token=${encodeURIComponent(token)}&itemId=${selectedCourseId}`;
+        const userId = user?.id || user?._id || user?.userId;
+        // Include source=mobile, itemId, and explicit userId to let the web app know exactly what they are buying and bypass race conditions
+        const webPaymentUrl = `https://dakplus.in/payment?source=mobile&token=${encodeURIComponent(token)}&userId=${encodeURIComponent(userId)}&itemId=${selectedCourseId}`;
         
         setLoading(true);
         try {
-            // Using openBrowserAsync as a standard, but the focus listener will handle the return.
-            const result = await WebBrowser.openBrowserAsync(webPaymentUrl);
+            // Use Linking to cleanly open the system browser/PWA which can easily redirect back to dakplus://
+            import('react-native').then(({ Linking }) => {
+                Linking.openURL(webPaymentUrl);
+            });
             
-            // Explicitly reload profile when browser is closed
-            const updatedProfile = await api.get('/auth/profile');
-            const unlocked = updatedProfile.user?.unlockedExams || [];
-            if (updatedProfile.user?.subscriptionTier === 'PREMIUM' || unlocked.includes(selectedCourseId) || unlocked.includes('COMBINED')) {
-                setSuccess(true);
-                Alert.alert("Success", "Your course has been unlocked!");
-                navigation.navigate('Main');
-            } else {
-                // If not yet premium, maybe they just closed the browser without finishing
-                loadProfile();
-            }
+            // We tell the user to return to the app manually if the deep link gets blocked
+            Alert.alert(
+                "Secure Payment", 
+                "You are being redirected to our secure payment portal. Once you complete the payment, return to this app and it will automatically refresh."
+            );
         } catch (err) {
             console.error("Browser Error:", err);
             Alert.alert('Technical Error', 'Temporary failure in opening the secure portal.');
