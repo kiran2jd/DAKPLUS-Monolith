@@ -191,38 +191,45 @@ export default function TestLibraryScreen({ navigation, route }) {
                 style={StyleSheet.absoluteFillObject}
             />
             <View style={{ flex: 1 }}>
-                {/* STICKY HEADER */}
-                <View style={[styles.topBarSticky, { paddingTop: Math.max(insets.top, 15) }]}>
-                    <TouchableOpacity 
-                        onPress={() => {
-                            if (selectedCourseId !== null && route.params?.courseId === undefined) {
-                                setSelectedCourseId(null);
-                            } else {
-                                navigation.goBack();
-                            }
-                        }} 
-                        style={styles.backBtn} 
-                        hitSlop={{ top: 15, bottom: 15, left: 15, right: 15 }}
-                        activeOpacity={0.7}
-                    >
-                        <Ionicons name="chevron-back" size={24} color="#1e293b" />
-                    </TouchableOpacity>
-                    <Text style={styles.headerTitle}>Exam Vault</Text>
-                    <TouchableOpacity 
-                        onPress={() => {
-                            try {
-                                navigation.openDrawer();
-                            } catch (e) {
-                                navigation.dispatch(DrawerActions.openDrawer());
-                            }
-                        }} 
-                        style={styles.backBtn}
-                        hitSlop={{ top: 15, bottom: 15, left: 15, right: 15 }}
-                        activeOpacity={0.7}
-                    >
-                        <Ionicons name="menu-outline" size={32} color="#1e293b" />
-                    </TouchableOpacity>
-                </View>
+                {/* PREMIUM STICKY HEADER */}
+                <LinearGradient 
+                    colors={['#dc2626', '#b91c1c']} 
+                    start={{ x: 0, y: 0 }}
+                    end={{ x: 1, y: 1 }}
+                    style={[styles.premiumHeaderSticky, { paddingTop: Math.max(insets.top, 15) }]}
+                >
+                    <View style={styles.headerRowSticky}>
+                        <TouchableOpacity 
+                            onPress={() => {
+                                if (selectedCourseId !== null && route.params?.courseId === undefined) {
+                                    setSelectedCourseId(null);
+                                } else {
+                                    navigation.goBack();
+                                }
+                            }} 
+                            style={styles.headerIconButtonPremium} 
+                            hitSlop={{ top: 15, bottom: 15, left: 15, right: 15 }}
+                            activeOpacity={0.7}
+                        >
+                            <Ionicons name="chevron-back" size={24} color="#fff" />
+                        </TouchableOpacity>
+                        <Text style={styles.headerTitlePremium}>EXAM VAULT</Text>
+                        <TouchableOpacity 
+                            onPress={() => {
+                                try {
+                                    navigation.openDrawer();
+                                } catch (e) {
+                                    navigation.dispatch(DrawerActions.openDrawer());
+                                }
+                            }} 
+                            style={styles.headerIconButtonPremium}
+                            hitSlop={{ top: 15, bottom: 15, left: 15, right: 15 }}
+                            activeOpacity={0.7}
+                        >
+                            <Ionicons name="menu-outline" size={32} color="#fff" />
+                        </TouchableOpacity>
+                    </View>
+                </LinearGradient>
 
                 {selectedCourseId !== null && (
                     <>
@@ -359,34 +366,33 @@ const styles = StyleSheet.create({
         justifyContent: 'center',
         alignItems: 'center',
     },
-    topBarSticky: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'space-between',
+    premiumHeaderSticky: {
+        paddingBottom: 20,
         paddingHorizontal: 20,
-        paddingBottom: 15,
-        backgroundColor: 'transparent',
+        borderBottomLeftRadius: 24,
+        borderBottomRightRadius: 24,
+        elevation: 8,
+        shadowColor: '#dc2626',
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.2,
+        shadowRadius: 10,
         zIndex: 1000,
     },
-    backBtn: {
-        width: 44,
-        height: 44,
-        borderRadius: 12,
-        backgroundColor: '#ffffff',
-        justifyContent: 'center',
+    headerRowSticky: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
+    headerIconButtonPremium: { 
+        width: 44, 
+        height: 44, 
+        borderRadius: 12, 
+        backgroundColor: 'rgba(255,255,255,0.2)', 
+        justifyContent: 'center', 
         alignItems: 'center',
-        borderWidth: 1,
-        borderColor: '#e2e8f0',
-        elevation: 1,
-        shadowColor: '#000',
-        shadowOpacity: 0.05,
-        shadowOffset: { width: 0, height: 1 }
     },
-    headerTitle: {
-        fontSize: 20,
-        fontWeight: '900',
-        color: '#1e293b',
-        letterSpacing: 0.5,
+    headerTitlePremium: { 
+        color: '#fff', 
+        fontSize: 18, 
+        fontWeight: '900', 
+        letterSpacing: 1.5,
+        textTransform: 'uppercase',
     },
     tabContainer: {
         flexDirection: 'row',

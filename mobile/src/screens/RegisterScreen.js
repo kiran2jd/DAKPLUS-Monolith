@@ -224,9 +224,18 @@ export default function RegisterScreen({ navigation, route }) {
                     contentContainerStyle={styles.scrollContainer}
                     keyboardShouldPersistTaps="handled"
                 >
+                    <View style={styles.topVector}>
+                        <LinearGradient 
+                            colors={['#dc2626', '#991b1b']} 
+                            style={styles.vectorCircle}
+                            start={{ x: 0, y: 0 }}
+                            end={{ x: 1, y: 1 }}
+                        />
+                    </View>
+
                     <View style={styles.header}>
-                        <Text style={styles.title}>Welcome to DAK Plus</Text>
-                        <Text style={styles.subtitle}>Complete your profile to get started</Text>
+                        <Text style={styles.title}>JOIN DAK PLUS</Text>
+                        <Text style={styles.subtitle}>Start your premium journey today</Text>
                     </View>
 
                     <View style={styles.card}>
@@ -396,18 +405,34 @@ const styles = StyleSheet.create({
     },
     header: {
         alignItems: 'center',
-        marginBottom: 30,
+        marginBottom: 35,
+        zIndex: 10,
+    },
+    topVector: {
+        position: 'absolute',
+        top: -120,
+        left: -80,
+        zIndex: 0,
+    },
+    vectorCircle: {
+        width: 250,
+        height: 250,
+        borderRadius: 125,
+        opacity: 0.1,
     },
     title: {
-        fontSize: 28,
-        fontWeight: 'bold',
+        fontSize: 30,
+        fontWeight: '900',
         color: '#1e293b',
-        letterSpacing: 1,
+        letterSpacing: 2,
+        textTransform: 'uppercase',
     },
     subtitle: {
-        fontSize: 14,
-        color: '#94a3b8',
-        marginTop: 5,
+        fontSize: 13,
+        color: '#64748b',
+        marginTop: 4,
+        fontWeight: '700',
+        letterSpacing: 1,
     },
     card: {
         backgroundColor: '#ffffff',

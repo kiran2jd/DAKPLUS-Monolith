@@ -12,6 +12,7 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import * as WebBrowser from 'expo-web-browser';
 import { topicService } from '../services/topic';
 
@@ -22,6 +23,7 @@ const { width } = Dimensions.get('window');
  * Aligned with Frontend Course Syllabus.
  */
 export default function SyllabusScreen({ navigation, route }) {
+    const insets = useSafeAreaInsets();
     const [topics, setTopics] = useState([]);
     const [loading, setLoading] = useState(true);
 
@@ -62,18 +64,32 @@ export default function SyllabusScreen({ navigation, route }) {
 
     return (
         <SafeAreaView style={styles.container}>
-            <View style={styles.header}>
-                <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
-                    <Ionicons name="arrow-back" size={24} color="#1e293b" />
-                </TouchableOpacity>
-                <View style={styles.headerTextContainer}>
-                    <Text style={styles.title}>Course Syllabus</Text>
-                    <Text style={styles.subtitle}>Explore topics covered in mock exams</Text>
+            <LinearGradient 
+                colors={['#f59e0b', '#d97706']} 
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 1 }}
+                style={[styles.premiumHeader, { paddingTop: Math.max(insets.top, 15) }]}
+            >
+                <View style={styles.headerRow}>
+                    <TouchableOpacity 
+                        onPress={() => navigation.goBack()} 
+                        style={styles.headerIconButtonPremium}
+                        activeOpacity={0.7}
+                    >
+                        <Ionicons name="chevron-back" size={24} color="#fff" />
+                    </TouchableOpacity>
+                    <Text style={styles.headerTitlePremium}>SYLLABUS HUB</Text>
+                    <View style={styles.headerIconButtonPremium}>
+                        <Ionicons name="book-outline" size={24} color="#fff" />
+                    </View>
                 </View>
-                <View style={styles.headerIconBg}>
-                    <Ionicons name="book" size={24} color="#dc2626" />
+                <View style={styles.headerBottomRow}>
+                    <View style={{ flex: 1 }}>
+                        <Text style={styles.headerSubtitlePremium}>Study Navigator</Text>
+                        <Text style={styles.headerStatsPremium}>{topics.length} Expert Modules</Text>
+                    </View>
                 </View>
-            </View>
+            </LinearGradient>
 
             <ScrollView contentContainerStyle={styles.scrollContainer} showsVerticalScrollIndicator={false}>
                 {topics && topics.length > 0 ? (
@@ -159,60 +175,42 @@ export default function SyllabusScreen({ navigation, route }) {
 }
 
 const styles = StyleSheet.create({
-    container: {
-        flex: 1,
-        backgroundColor: '#fcf9f2',
-    },
-    center: {
-        justifyContent: 'center',
-        alignItems: 'center',
-    },
-    loadingText: {
-        marginTop: 12,
-        color: '#64748b',
-        fontSize: 14,
-        fontWeight: '600',
-    },
-    header: {
-        flexDirection: 'row',
-        alignItems: 'center',
+    container: { flex: 1, backgroundColor: '#fcf9f2' },
+    premiumHeader: {
+        paddingBottom: 30,
         paddingHorizontal: 20,
-        paddingTop: 20,
-        paddingBottom: 24,
-        backgroundColor: '#fff',
-        borderBottomWidth: 1,
-        borderBottomColor: '#f1f5f9',
+        borderBottomLeftRadius: 32,
+        borderBottomRightRadius: 32,
+        elevation: 8,
+        shadowColor: '#d97706',
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.3,
+        shadowRadius: 10,
     },
-    backBtn: {
-        width: 40,
-        height: 40,
-        borderRadius: 20,
-        backgroundColor: '#f1f5f9',
-        justifyContent: 'center',
-        alignItems: 'center',
-        marginRight: 16,
-    },
-    headerTextContainer: {
-        flex: 1,
-    },
-    title: {
-        fontSize: 24,
-        fontWeight: '900',
-        color: '#1e293b',
-    },
-    subtitle: {
-        fontSize: 12,
-        color: '#64748b',
-        marginTop: 2,
-    },
-    headerIconBg: {
-        width: 48,
-        height: 48,
-        borderRadius: 16,
-        backgroundColor: '#fef2f2',
-        justifyContent: 'center',
+    headerRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
+    headerIconButtonPremium: { 
+        width: 44, 
+        height: 44, 
+        borderRadius: 12, 
+        backgroundColor: 'rgba(255,255,255,0.2)', 
+        justifyContent: 'center', 
         alignItems: 'center',
     },
+    headerTitlePremium: { 
+        color: '#fff', 
+        fontSize: 16, 
+        fontWeight: '900', 
+        letterSpacing: 2,
+        textTransform: 'uppercase',
+    },
+    headerBottomRow: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        marginTop: 25,
+    },
+    headerSubtitlePremium: { color: 'rgba(255,255,255,0.7)', fontSize: 11, fontWeight: '800', textTransform: 'uppercase', letterSpacing: 0.5 },
+    headerStatsPremium: { color: '#fff', fontSize: 24, fontWeight: '900', marginTop: 2 },
     scrollContainer: {
         padding: 20,
     },

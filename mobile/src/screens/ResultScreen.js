@@ -136,20 +136,51 @@ export default function ResultScreen({ navigation, route }) {
 
                 <View style={styles.content}>
                     <View style={styles.statsGrid}>
-                        <View style={styles.statCard}>
-                            <Text style={styles.statLabel}>{language === 'hi' ? 'प्रयास किया गया' : 'Attempted'}</Text>
-                            <Text style={styles.statValue}>
-                                {Object.values(result.answers || {}).filter(a => a !== null && a !== 'Not Answered').length}
+                        <TouchableOpacity 
+                            style={[styles.statCard, filter === 'all' && styles.activeStatCard]}
+                            onPress={() => setFilter('all')}
+                            activeOpacity={0.7}
+                        >
+                            <Text style={[styles.statLabel, filter === 'all' && styles.activeStatLabel]}>
+                                {language === 'hi' ? 'कुल प्रश्न' : 'Total Qns'}
                             </Text>
-                        </View>
-                        <View style={styles.statCard}>
-                            <Text style={styles.statLabel}>{language === 'hi' ? 'सही' : 'Correct'}</Text>
-                            <Text style={[styles.statValue, { color: '#059669' }]}>{result.correctAnswers || 0}</Text>
-                        </View>
-                        <View style={styles.statCard}>
-                            <Text style={styles.statLabel}>{language === 'hi' ? 'ग़लत' : 'Wrong'}</Text>
-                            <Text style={[styles.statValue, { color: '#dc2626' }]}>{result.wrongAnswers || 0}</Text>
-                        </View>
+                            <Text style={[styles.statValue, filter === 'all' && styles.activeStatValue]}>
+                                {result.totalPoints || 0}
+                            </Text>
+                        </TouchableOpacity>
+                        
+                        <TouchableOpacity 
+                            style={[styles.statCard, filter === 'correct' && styles.activeStatCardCorrect]}
+                            onPress={() => setFilter('correct')}
+                            activeOpacity={0.7}
+                        >
+                            <Text style={[styles.statLabel, filter === 'correct' && styles.activeStatLabel]}>
+                                {language === 'hi' ? 'सही' : 'Correct'}
+                            </Text>
+                            <Text style={[styles.statValue, { color: '#059669' }, filter === 'correct' && styles.activeStatValue]}>
+                                {result.correctAnswers || 0}
+                            </Text>
+                        </TouchableOpacity>
+
+                        <TouchableOpacity 
+                            style={[styles.statCard, filter === 'incorrect' && styles.activeStatCardWrong]}
+                            onPress={() => setFilter('incorrect')}
+                            activeOpacity={0.7}
+                        >
+                            <Text style={[styles.statLabel, filter === 'incorrect' && styles.activeStatLabel]}>
+                                {language === 'hi' ? 'ग़लत' : 'Wrong'}
+                            </Text>
+                            <Text style={[styles.statValue, { color: '#dc2626' }, filter === 'incorrect' && styles.activeStatValue]}>
+                                {result.wrongAnswers || 0}
+                            </Text>
+                        </TouchableOpacity>
+                    </View>
+
+                    <View style={styles.attemptedInfo}>
+                         <Ionicons name="information-circle-outline" size={16} color="#64748b" />
+                         <Text style={styles.attemptedText}>
+                            {language === 'hi' ? 'प्रयास किया गया:' : 'Attempted:'} {Object.values(result.answers || {}).filter(a => a !== null && a !== 'Not Answered').length} / {result.totalPoints}
+                         </Text>
                     </View>
 
                     <TouchableOpacity
@@ -197,24 +228,38 @@ export default function ResultScreen({ navigation, route }) {
 
                     {/* Filter Tabs */}
                     <View style={styles.filterTabs}>
-                        <TouchableOpacity
-                            style={[styles.filterTab, filter === 'all' && styles.activeFilterTab]}
-                            onPress={() => setFilter('all')}
-                        >
-                            <Text style={[styles.filterTabText, filter === 'all' && styles.activeFilterTabText]}>{language === 'hi' ? 'सभी' : 'All'}</Text>
-                        </TouchableOpacity>
-                        <TouchableOpacity
-                            style={[styles.filterTab, filter === 'correct' && styles.activeCorrectTab]}
-                            onPress={() => setFilter('correct')}
-                        >
-                            <Text style={[styles.filterTabText, filter === 'correct' && styles.activeFilterTabText]}>{language === 'hi' ? 'सही' : 'Correct'}</Text>
-                        </TouchableOpacity>
-                        <TouchableOpacity
-                            style={[styles.filterTab, filter === 'incorrect' && styles.activeWrongTab]}
-                            onPress={() => setFilter('incorrect')}
-                        >
-                            <Text style={[styles.filterTabText, filter === 'incorrect' && styles.activeFilterTabText]}>{language === 'hi' ? 'ग़लत' : 'Wrong'}</Text>
-                        </TouchableOpacity>
+                        <View style={styles.filterHeader}>
+                            <Ionicons name="funnel-outline" size={16} color="#475569" />
+                            <Text style={styles.filterTitle}>{language === 'hi' ? 'फिल्टर' : 'Quick Filter'}</Text>
+                        </View>
+                        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.filterTabsScroll}>
+                            <TouchableOpacity
+                                style={[styles.filterTab, filter === 'all' && styles.activeFilterTab]}
+                                onPress={() => setFilter('all')}
+                            >
+                                <Text style={[styles.filterTabText, filter === 'all' && styles.activeFilterTabText]}>
+                                    {language === 'hi' ? 'सभी' : 'All Review'}
+                                </Text>
+                            </TouchableOpacity>
+                            <TouchableOpacity
+                                style={[styles.filterTab, filter === 'correct' && styles.activeCorrectTab]}
+                                onPress={() => setFilter('correct')}
+                            >
+                                <Ionicons name="checkmark-circle" size={14} color={filter === 'correct' ? "#fff" : "#059669"} style={{marginRight: 4}} />
+                                <Text style={[styles.filterTabText, filter === 'correct' && styles.activeFilterTabText]}>
+                                    {language === 'hi' ? 'केवल सही' : 'Only Correct'}
+                                </Text>
+                            </TouchableOpacity>
+                            <TouchableOpacity
+                                style={[styles.filterTab, filter === 'incorrect' && styles.activeWrongTab]}
+                                onPress={() => setFilter('incorrect')}
+                            >
+                                <Ionicons name="close-circle" size={14} color={filter === 'incorrect' ? "#fff" : "#dc2626"} style={{marginRight: 4}} />
+                                <Text style={[styles.filterTabText, filter === 'incorrect' && styles.activeFilterTabText]}>
+                                    {language === 'hi' ? 'केवल गलत' : 'Only Incorrect'}
+                                </Text>
+                            </TouchableOpacity>
+                        </ScrollView>
                     </View>
 
                     {filteredAnswers.length > 0 ? filteredAnswers.map((detail, idx) => (
@@ -340,8 +385,28 @@ const styles = StyleSheet.create({
     },
     statValue: {
         color: '#1e293b',
-        fontSize: 20,
+        fontSize: 22,
         fontWeight: '900',
+    },
+    activeStatCard: { backgroundColor: '#1e293b', borderColor: '#1e293b' },
+    activeStatCardCorrect: { backgroundColor: '#059669', borderColor: '#059669' },
+    activeStatCardWrong: { backgroundColor: '#dc2626', borderColor: '#dc2626' },
+    activeStatLabel: { color: 'rgba(255,255,255,0.7)' },
+    activeStatValue: { color: '#fff' },
+    attemptedInfo: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'center',
+        marginBottom: 24,
+        gap: 6,
+        backgroundColor: '#f1f5f9',
+        paddingVertical: 8,
+        borderRadius: 12,
+    },
+    attemptedText: {
+        fontSize: 13,
+        color: '#64748b',
+        fontWeight: 'bold',
     },
     sectionTitle: {
         color: '#1e293b',
@@ -444,12 +509,29 @@ const styles = StyleSheet.create({
         letterSpacing: 0.5,
     },
     filterTabs: {
+        marginTop: 10,
+        marginBottom: 24,
+    },
+    filterHeader: {
         flexDirection: 'row',
-        marginBottom: 20,
+        alignItems: 'center',
+        marginBottom: 12,
+        gap: 6,
+    },
+    filterTitle: {
+        fontSize: 14,
+        fontWeight: 'bold',
+        color: '#475569',
+        textTransform: 'uppercase',
+        letterSpacing: 0.5,
+    },
+    filterTabsScroll: {
         gap: 10,
+        paddingRight: 20,
     },
     filterTab: {
-        flex: 1,
+        flexDirection: 'row',
+        paddingHorizontal: 16,
         paddingVertical: 10,
         borderRadius: 12,
         backgroundColor: '#fff',

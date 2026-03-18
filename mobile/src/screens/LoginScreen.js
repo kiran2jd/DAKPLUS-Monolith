@@ -193,10 +193,21 @@ export default function LoginScreen({ navigation }) {
                     contentContainerStyle={styles.scrollContainer}
                     keyboardShouldPersistTaps="handled"
                 >
+                    <View style={styles.topVector}>
+                        <LinearGradient 
+                            colors={['#dc2626', '#991b1b']} 
+                            style={styles.vectorCircle}
+                            start={{ x: 0, y: 0 }}
+                            end={{ x: 1, y: 1 }}
+                        />
+                    </View>
+
                     <View style={styles.header}>
-                        <Image source={logo} style={styles.logoImage} resizeMode="contain" />
-                        <Text style={[styles.title, { paddingLeft: 2 }]}>DAK Plus</Text>
-                        <Text style={styles.subtitle}>Advanced Learning & Assessment</Text>
+                        <View style={styles.logoBadge}>
+                            <Image source={logo} style={styles.logoImage} resizeMode="contain" />
+                        </View>
+                        <Text style={styles.title}>DAK PLUS</Text>
+                        <Text style={styles.subtitle}>Premium Postal Exam Preparation</Text>
                     </View>
                     <View style={styles.card}>
                         {step === 'input' && (
@@ -346,23 +357,52 @@ const styles = StyleSheet.create({
     },
     header: {
         alignItems: 'center',
-        marginBottom: 30,
+        marginBottom: 40,
+        zIndex: 10,
+    },
+    topVector: {
+        position: 'absolute',
+        top: -150,
+        right: -100,
+        zIndex: 0,
+    },
+    vectorCircle: {
+        width: 300,
+        height: 300,
+        borderRadius: 150,
+        opacity: 0.1,
+    },
+    logoBadge: {
+        backgroundColor: '#fff',
+        padding: 15,
+        borderRadius: 24,
+        shadowColor: '#dc2626',
+        shadowOffset: { width: 0, height: 10 },
+        shadowOpacity: 0.1,
+        shadowRadius: 20,
+        elevation: 5,
+        marginBottom: 20,
+        borderWidth: 1,
+        borderColor: '#f1f5f9',
     },
     logoImage: {
-        width: 240,
-        height: 80,
-        marginBottom: 10,
+        width: 150,
+        height: 50,
     },
     title: {
-        fontSize: 32,
-        fontWeight: 'bold',
+        fontSize: 34,
+        fontWeight: '900',
         color: '#1e293b',
-        letterSpacing: 2,
+        letterSpacing: 4,
+        textTransform: 'uppercase',
     },
     subtitle: {
-        fontSize: 14,
-        color: '#94a3b8',
-        marginTop: 5,
+        fontSize: 13,
+        color: '#64748b',
+        marginTop: 4,
+        fontWeight: '700',
+        letterSpacing: 1,
+        textTransform: 'uppercase',
     },
     card: {
         backgroundColor: '#ffffff',

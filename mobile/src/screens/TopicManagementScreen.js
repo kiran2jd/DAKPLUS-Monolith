@@ -207,36 +207,44 @@ export default function TopicManagementScreen({ navigation }) {
 
     return (
         <View style={styles.container}>
-            <LinearGradient colors={['#fcf9f2', '#fcf9f2']} style={[styles.header, { paddingTop: Math.max(insets.top, 5) }]}>
+            <LinearGradient 
+                colors={['#dc2626', '#b91c1c']} 
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 1 }}
+                style={[styles.premiumHeader, { paddingTop: Math.max(insets.top, 15) }]}
+            >
                 <View style={styles.headerRow}>
                     <TouchableOpacity 
                         onPress={() => navigation.goBack()} 
-                        style={styles.headerIconButton}
+                        style={styles.headerIconButtonPremium}
                         activeOpacity={0.7}
                     >
-                        <Ionicons name="chevron-back" size={24} color="#1e293b" />
+                        <Ionicons name="chevron-back" size={24} color="#fff" />
                     </TouchableOpacity>
-                    <Text style={styles.headerTitle}>TOPIC MATRIX</Text>
+                    <Text style={styles.headerTitlePremium}>TOPIC MATRIX</Text>
                     <TouchableOpacity 
                         onPress={() => navigation.dispatch(DrawerActions.openDrawer())} 
-                        style={styles.headerIconButton}
+                        style={styles.headerIconButtonPremium}
                         activeOpacity={0.7}
                     >
-                        <Ionicons name="menu-outline" size={28} color="#1e293b" />
+                        <Ionicons name="menu-outline" size={28} color="#fff" />
                     </TouchableOpacity>
                 </View>
-                <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: 8 }}>
-                    <Text style={styles.headerSubtitle}>Map your curriculum topics and modules</Text>
+                <View style={styles.headerBottomRow}>
+                    <View style={{ flex: 1 }}>
+                        <Text style={styles.headerSubtitlePremium}>Curriculum Mapping</Text>
+                        <Text style={styles.headerStatsPremium}>{topics.length} Principal Topics</Text>
+                    </View>
                     <TouchableOpacity 
-                        style={styles.createBtn}
+                        style={styles.createBtnPremium}
                         onPress={() => {
                             setEditingTopic(null);
                             setCourseIds([]);
                             setModalVisible(true);
                         }}
                     >
-                        <Ionicons name="duplicate" size={18} color="#fff" />
-                        <Text style={styles.createBtnText}>New Topic</Text>
+                        <Ionicons name="add" size={20} color="#dc2626" />
+                        <Text style={styles.createBtnTextPremium}>New Topic</Text>
                     </TouchableOpacity>
                 </View>
             </LinearGradient>
@@ -349,11 +357,56 @@ export default function TopicManagementScreen({ navigation }) {
 
 const styles = StyleSheet.create({
     container: { flex: 1, backgroundColor: '#fcf9f2' },
-    header: { paddingBottom: 24, paddingHorizontal: 20, borderBottomLeftRadius: 32, borderBottomRightRadius: 32 },
+    premiumHeader: {
+        paddingBottom: 30,
+        paddingHorizontal: 20,
+        borderBottomLeftRadius: 32,
+        borderBottomRightRadius: 32,
+        elevation: 8,
+        shadowColor: '#dc2626',
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.3,
+        shadowRadius: 10,
+    },
     headerRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
-    headerIconButton: { width: 44, height: 44, borderRadius: 12, backgroundColor: '#ffffff', justifyContent: 'center', alignItems: 'center', borderWidth: 1, borderColor: '#e2e8f0', shadowColor: '#000', shadowOpacity: 0.05, shadowOffset: { width: 0, height: 1 } },
-    headerTitle: { color: '#1e293b', fontSize: 18, fontWeight: '900', letterSpacing: 1 },
-    headerSubtitle: { color: '#475569', fontSize: 12, marginTop: 4, fontWeight: '500' },
+    headerIconButtonPremium: { 
+        width: 44, 
+        height: 44, 
+        borderRadius: 12, 
+        backgroundColor: 'rgba(255,255,255,0.2)', 
+        justifyContent: 'center', 
+        alignItems: 'center',
+    },
+    headerTitlePremium: { 
+        color: '#fff', 
+        fontSize: 16, 
+        fontWeight: '900', 
+        letterSpacing: 2,
+        textTransform: 'uppercase',
+    },
+    headerBottomRow: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        marginTop: 25,
+    },
+    headerSubtitlePremium: { color: 'rgba(255,255,255,0.7)', fontSize: 11, fontWeight: '800', textTransform: 'uppercase', letterSpacing: 0.5 },
+    headerStatsPremium: { color: '#fff', fontSize: 18, fontWeight: '900', marginTop: 2 },
+    createBtnPremium: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        backgroundColor: '#fff',
+        paddingVertical: 10,
+        paddingHorizontal: 16,
+        borderRadius: 14,
+        gap: 6,
+        elevation: 4,
+    },
+    createBtnTextPremium: {
+        color: '#dc2626',
+        fontSize: 13,
+        fontWeight: '900',
+    },
     list: { padding: 20, paddingBottom: 40 },
     topicCard: { backgroundColor: '#ffffff', borderRadius: 24, padding: 20, marginBottom: 16, borderWidth: 1, borderColor: '#e2e8f0', shadowColor: '#000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.05, shadowRadius: 10, elevation: 3 },
     topicHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 15 },
