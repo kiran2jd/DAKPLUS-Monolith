@@ -2,6 +2,7 @@ package com.mockanytime.dakplus.auth.controller;
 
 import com.mockanytime.dakplus.auth.model.User;
 import com.mockanytime.dakplus.auth.service.AuthService;
+import com.mockanytime.dakplus.auth.service.PushNotificationScheduler;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import jakarta.validation.Valid;
@@ -22,9 +23,11 @@ import java.util.Map;
 public class AuthController {
 
     private final AuthService authService;
+    private final PushNotificationScheduler pushScheduler;
 
-    public AuthController(AuthService authService) {
+    public AuthController(AuthService authService, PushNotificationScheduler pushScheduler) {
         this.authService = authService;
+        this.pushScheduler = pushScheduler;
     }
 
     // Data Transfer Objects (DTOs) for various authentication flows
@@ -288,5 +291,33 @@ public class AuthController {
             return ResponseEntity.ok(Map.of("message", "Token saved successfully"));
         }
         return ResponseEntity.badRequest().body(Map.of("message", "User ID or Token missing"));
+    }
+
+    /**
+     * Instantly test Push Notifications for the logged-in user
+     */
+    @PostMapping("/test-push")
+    public ResponseEntity<?> testPushNotification(@RequestHeader(value = "X-User-Id", required = false) String userId) {
+        if (userId == null) {
+            return ResponseEntity.badRequest().body(Map.of("message", "User ID required"));
+        }
+        try {
+            User user = authService.getUserById(userId);
+            if (user.getExpoPushToken() == null) {
+                return ResponseEntity.badRequest().body(Map.of("message", "No Expo Push Token registered for this user yet. Open the app on a physical device first."));
+            }
+
+            Map<String, Object> message = new java.util.HashMap<>();
+            message.put("to", user.getExpoPushToken());
+            message.put("sound", "default");
+            message.put("title", "Test Notification Successful! \uD83D\uDE80");
+            message.put("body", "Your device is correctly receiving DAKPlus push notifications.");
+            
+            pushScheduler.sendExpoPushNotifications(java.util.List.of(message));
+            
+            return ResponseEntity.ok(Map.of("message", "Push notification triggered to your device!"));
+        } catch (Exception e) {
+            return ResponseEntity.internalServerError().body(Map.of("message", e.getMessage()));
+        }
     }
 }

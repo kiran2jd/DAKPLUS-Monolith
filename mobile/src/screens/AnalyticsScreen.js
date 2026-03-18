@@ -5,11 +5,13 @@ import {
     Text,
     Dimensions,
     ActivityIndicator,
+    Alert,
 } from 'react-native';
 import { ScrollView, Pressable, TouchableOpacity } from 'react-native-gesture-handler';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import { resultService } from '../services/result';
+import { pushNotificationService } from '../services/pushNotification';
 
 import { useFocusEffect, DrawerActions } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -35,6 +37,19 @@ export default function AnalyticsScreen({ navigation }) {
         ]
     });
     const [loading, setLoading] = useState(true);
+    const [testingPush, setTestingPush] = useState(false);
+
+    const handleTestPush = async () => {
+        setTestingPush(true);
+        try {
+            const data = await pushNotificationService.testPushNotification();
+            Alert.alert("Push Sent!", data.message || "Please check your phone's notification tray.");
+        } catch (error) {
+            Alert.alert("Failed", error?.response?.data?.message || "Could not trigger push notification.");
+        } finally {
+            setTestingPush(false);
+        }
+    };
 
     const fetchStats = async () => {
         try {
@@ -219,6 +234,22 @@ export default function AnalyticsScreen({ navigation }) {
                             )}
                         </View>
                     )}
+
+                    <View style={styles.section}>
+                        <TouchableOpacity 
+                            style={styles.testPushBtn} 
+                            onPress={handleTestPush}
+                            disabled={testingPush}
+                        >
+                            <Ionicons name="notifications-outline" size={20} color="#dc2626" style={{ marginRight: 8 }} />
+                            {testingPush ? (
+                                <ActivityIndicator size="small" color="#dc2626" />
+                            ) : (
+                                <Text style={styles.testPushText}>Test Push Notifications</Text>
+                            )}
+                        </TouchableOpacity>
+                        <Text style={styles.testPushSubtext}>Tap to send a real push notification to your device to verify it's working.</Text>
+                    </View>
                 </ScrollView>
             </View>
         </View>
@@ -439,4 +470,27 @@ const styles = StyleSheet.create({
         fontWeight: '600',
         marginTop: 12,
     },
+    testPushBtn: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'center',
+        backgroundColor: 'rgba(239, 68, 68, 0.1)',
+        paddingVertical: 16,
+        borderRadius: 18,
+        borderWidth: 1,
+        borderColor: 'rgba(239, 68, 68, 0.2)',
+        marginTop: 10,
+    },
+    testPushText: {
+        color: '#dc2626',
+        fontSize: 15,
+        fontWeight: 'bold',
+    },
+    testPushSubtext: {
+        textAlign: 'center',
+        color: '#94a3b8',
+        fontSize: 11,
+        marginTop: 8,
+        paddingHorizontal: 20,
+    }
 });

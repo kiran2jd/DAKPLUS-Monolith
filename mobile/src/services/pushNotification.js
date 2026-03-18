@@ -66,5 +66,15 @@ export const pushNotificationService = {
     } catch (e) {
       console.log('Failed to send push token to backend:', e);
     }
+  },
+
+  testPushNotification: async () => {
+    try {
+      const response = await api.post('/auth/test-push');
+      return response.data;
+    } catch (error) {
+      console.log('Failed to trigger test push:', error?.response?.data || error.message);
+      throw error;
+    }
   }
 };

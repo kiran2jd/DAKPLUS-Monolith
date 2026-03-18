@@ -63,7 +63,7 @@ public class PushNotificationScheduler {
     /**
      * Helper to call Expo Push API
      */
-    private void sendExpoPushNotifications(List<Map<String, Object>> messages) {
+    public void sendExpoPushNotifications(List<Map<String, Object>> messages) {
         String expoPushUrl = "https://exp.host/--/api/v2/push/send";
         try {
             HttpHeaders headers = new HttpHeaders();
