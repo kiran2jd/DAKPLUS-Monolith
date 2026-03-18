@@ -384,7 +384,7 @@ export default function TakeTestScreen({ navigation, route }) {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: '#ffffff',
+        backgroundColor: '#fcf9f2',
     },
     header: {
         paddingTop: 50,
@@ -426,7 +426,7 @@ const styles = StyleSheet.create({
     },
     progressContainer: {
         padding: 20,
-        backgroundColor: '#ffffff',
+        backgroundColor: '#fcf9f2',
     },
     progressBar: {
         height: 6,
@@ -496,7 +496,7 @@ const styles = StyleSheet.create({
     footer: {
         flexDirection: 'row',
         padding: 20,
-        backgroundColor: '#ffffff',
+        backgroundColor: '#fcf9f2',
         gap: 12,
         borderTopWidth: 1,
         borderTopColor: '#f1f5f9',
@@ -528,7 +528,7 @@ const styles = StyleSheet.create({
         flex: 1,
         justifyContent: 'center',
         alignItems: 'center',
-        backgroundColor: '#ffffff',
+        backgroundColor: '#fcf9f2',
     },
     questionImage: {
         width: '100%',
@@ -560,7 +560,7 @@ const styles = StyleSheet.create({
         color: '#1e3a8a',
     },
     alreadyCard: {
-        backgroundColor: '#ffffff',
+        backgroundColor: '#fcf9f2',
         borderRadius: 24,
         padding: 24,
         alignItems: 'center',

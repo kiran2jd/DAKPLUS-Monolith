@@ -20,7 +20,7 @@ import ConfettiCannon from 'react-native-confetti-cannon';
  * PAYMENT SCREEN (v2.0)
  * Fixed: Redirection logic and PRO badge visibility through focus-refresh.
  */
-export default function PaymentScreen({ navigation }) {
+export default function PaymentScreen({ navigation, route }) {
     const [user, setUser] = useState(null);
     const [loading, setLoading] = useState(false);
     const [success, setSuccess] = useState(false);
@@ -78,9 +78,8 @@ export default function PaymentScreen({ navigation }) {
         }
     };
 
-    // Get courseId from navigation params if available
-    const routeParams = navigation.getState()?.routes?.find(r => r.name === 'Payment')?.params || {};
-    const selectedCourseId = routeParams.courseId || user?.examType || 'COMBINED';
+    // Access courseId reliably from navigation route props
+    const selectedCourseId = route?.params?.courseId || user?.examType || 'COMBINED';
     
     const details = pricing[selectedCourseId] || pricing[user?.examType] || pricing['COMBINED'];
     const currentPrice = details.price;
@@ -125,7 +124,7 @@ export default function PaymentScreen({ navigation }) {
                 </View>
             )}
             <ScrollView contentContainerStyle={styles.scrollContainer} showsVerticalScrollIndicator={false}>
-                <LinearGradient colors={['#dc2626', '#1e3a8a']} style={styles.header}>
+                <LinearGradient colors={['#fdfbf7', '#fdfbf7']} style={styles.header}>
                     <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
                         <Text style={styles.backText}>← Back</Text>
                     </TouchableOpacity>
@@ -186,15 +185,15 @@ export default function PaymentScreen({ navigation }) {
 }
 
 const styles = StyleSheet.create({
-    container: { flex: 1, backgroundColor: '#ffffff' },
+    container: { flex: 1, backgroundColor: '#fcf9f2' },
     scrollContainer: { flexGrow: 1 },
     header: { paddingTop: 50, paddingHorizontal: 20, paddingBottom: 40, alignItems: 'center', borderBottomLeftRadius: 32, borderBottomRightRadius: 32 },
     backBtn: { alignSelf: 'flex-start', marginBottom: 20 },
-    backText: { color: '#fff', fontSize: 16 },
-    title: { color: '#fff', fontSize: 32, fontWeight: 'extrabold', textAlign: 'center' },
-    subtitle: { color: '#ffffffcc', fontSize: 14, textAlign: 'center', marginTop: 8 },
+    backText: { color: '#dc2626', fontSize: 16, fontWeight: '700' },
+    title: { color: '#1e293b', fontSize: 32, fontWeight: '900', textAlign: 'center' },
+    subtitle: { color: '#64748b', fontSize: 14, textAlign: 'center', marginTop: 8, fontWeight: '600' },
     content: { padding: 24, marginTop: -30 },
-    planCard: { backgroundColor: '#ffffff', borderRadius: 24, padding: 24, borderWidth: 1, borderColor: '#e2e8f0', elevation: 8, shadowColor: '#dc2626', shadowOffset: { width: 0, height: 8 }, shadowOpacity: 0.1, shadowRadius: 16, marginBottom: 32 },
+    planCard: { backgroundColor: '#ffffff', borderRadius: 24, padding: 24, borderWidth: 1, borderColor: '#e2e8f0', elevation: 3, shadowColor: '#000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.05, shadowRadius: 12, marginBottom: 32 },
     proBadgeContainer: { position: 'absolute', top: -10, right: 20, backgroundColor: '#10b981', paddingHorizontal: 15, paddingVertical: 5, borderRadius: 20 },
     proBadgeText: { color: '#fff', fontSize: 10, fontWeight: 'bold' },
     planLabel: { color: '#dc2626', fontSize: 13, fontWeight: 'bold', textTransform: 'uppercase', letterSpacing: 1 },
@@ -204,14 +203,14 @@ const styles = StyleSheet.create({
     benefits: { gap: 12 },
     benefit: { color: '#475569', fontSize: 16, fontWeight: '500' },
     sectionTitle: { color: '#1e293b', fontSize: 18, fontWeight: 'bold', marginBottom: 16 },
-    infoBox: { backgroundColor: '#f1f5f9', padding: 16, borderRadius: 12, marginBottom: 24 },
+    infoBox: { backgroundColor: '#fdfbf7', padding: 16, borderRadius: 12, marginBottom: 24, borderWidth: 1, borderColor: '#f1f5f9' },
     infoText: { color: '#475569', fontSize: 14, lineHeight: 20 },
     payBtn: { backgroundColor: '#dc2626', padding: 20, borderRadius: 18, alignItems: 'center', shadowColor: '#dc2626', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.2, shadowRadius: 10, elevation: 4 },
-    payBtnText: { color: '#fff', fontSize: 18, fontWeight: 'bold' },
+    payBtnText: { color: '#fff', fontSize: 18, fontWeight: '900' },
     doneBtn: { backgroundColor: '#1e293b', padding: 20, borderRadius: 18, alignItems: 'center' },
     doneBtnText: { color: '#fff', fontSize: 16, fontWeight: 'bold' },
     disabledBtn: { opacity: 0.6 },
     secureText: { color: '#94a3b8', fontSize: 12, textAlign: 'center', marginTop: 16 },
-    successOverlay: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, zIndex: 10, justifyContent: 'center', alignItems: 'center', backgroundColor: 'rgba(255,255,255,0.1)' },
+    successOverlay: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, zIndex: 10, justifyContent: 'center', alignItems: 'center', backgroundColor: 'rgba(253,251,247,0.9)' },
     successTitle: { fontSize: 40, fontWeight: '900', color: '#10b981', textShadowColor: 'rgba(0,0,0,0.1)', textShadowOffset: { width: 2, height: 2 }, textShadowRadius: 10 }
 });

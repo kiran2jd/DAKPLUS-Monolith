@@ -283,11 +283,13 @@ export default function DashboardScreen({ navigation }) {
                     onPress={() => navigation.dispatch(DrawerActions.openDrawer())}
                     hitSlop={{ top: 20, bottom: 20, left: 20, right: 20 }}
                 >
-                    <Ionicons name="menu-outline" size={32} color="#fff" />
+                    <Ionicons name="menu-outline" size={32} color="#1e293b" />
                 </TouchableOpacity>
                 
                 <View style={styles.logoCenter}>
-                    <Image source={logo} style={styles.logoMini} resizeMode="contain" />
+                    <View style={styles.logoContainer}>
+                        <Image source={logo} style={styles.logoMini} resizeMode="contain" />
+                    </View>
                 </View>
 
                 <TouchableOpacity 
@@ -295,7 +297,7 @@ export default function DashboardScreen({ navigation }) {
                     onPress={() => navigation.navigate('Notifications')}
                     hitSlop={{ top: 20, bottom: 20, left: 20, right: 20 }}
                 >
-                    <Ionicons name="notifications-outline" size={24} color="#fff" />
+                    <Ionicons name="notifications-outline" size={24} color="#1e293b" />
                 </TouchableOpacity>
             </View>
         </View>
@@ -303,52 +305,54 @@ export default function DashboardScreen({ navigation }) {
 }
 
 const styles = StyleSheet.create({
-    container: { flex: 1, backgroundColor: '#0f172a' },
+    container: { flex: 1, backgroundColor: '#fcf9f2' },
     center: { justifyContent: 'center', alignItems: 'center' },
     scrollContainer: { paddingBottom: 40 },
     topBar: {
         position: 'absolute', top: 0, left: 0, right: 0,
         flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center',
         paddingHorizontal: 20, paddingBottom: 15,
-        backgroundColor: '#0f172a',
-        zIndex: 9999, elevation: 10,
-        borderBottomWidth: 1, borderBottomColor: 'rgba(255,255,255,0.05)'
+        backgroundColor: '#fcf9f2',
+        zIndex: 9999, elevation: 2,
+        borderBottomWidth: 1, borderBottomColor: '#e2e8f0',
+        shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.05, shadowRadius: 3
     },
-    headerIconButton: { width: 44, height: 44, borderRadius: 12, backgroundColor: 'rgba(255,255,255,0.08)', justifyContent: 'center', alignItems: 'center', borderWidth: 1, borderColor: 'rgba(255,255,255,0.1)' },
+    headerIconButton: { width: 44, height: 44, borderRadius: 12, backgroundColor: '#ffffff', justifyContent: 'center', alignItems: 'center', borderWidth: 1, borderColor: '#e2e8f0', elevation: 1, shadowColor: '#000', shadowOpacity: 0.05, shadowOffset: { width: 0, height: 1 } },
     logoCenter: { flex: 1, alignItems: 'center' },
-    logoMini: { width: 140, height: 45 },
+    logoContainer: { backgroundColor: '#fff', borderRadius: 16, paddingHorizontal: 12, paddingVertical: 6, shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.05, shadowRadius: 4, elevation: 2, borderWidth: 1, borderColor: '#f1f5f9' },
+    logoMini: { width: 110, height: 35, borderRadius: 8 },
     headerWrapperPadding: { paddingHorizontal: 20 },
     welcomeTextSection: { marginBottom: 24 },
-    greetingText: { color: '#94a3b8', fontSize: 13, fontWeight: '600' },
-    nameHeader: { color: '#fff', fontSize: 26, fontWeight: '900', marginTop: 2 },
+    greetingText: { color: '#64748b', fontSize: 13, fontWeight: '600' },
+    nameHeader: { color: '#1e293b', fontSize: 26, fontWeight: '900', marginTop: 2 },
     roleRow: { flexDirection: 'row', gap: 8, marginTop: 6, alignItems: 'center' },
-    roleBadge: { color: '#38bdf8', fontSize: 10, fontWeight: '900', letterSpacing: 1, backgroundColor: 'rgba(56, 189, 248, 0.1)', paddingHorizontal: 8, paddingVertical: 2, borderRadius: 4 },
-    proBadge: { color: '#f59e0b', fontSize: 10, fontWeight: '900', letterSpacing: 1, backgroundColor: 'rgba(245, 158, 11, 0.1)', paddingHorizontal: 8, paddingVertical: 2, borderRadius: 4 },
-    carouselContainer: { height: 160, borderRadius: 24, overflow: 'hidden', marginBottom: 24 },
+    roleBadge: { color: '#0284c7', fontSize: 10, fontWeight: '900', letterSpacing: 1, backgroundColor: '#e0f2fe', paddingHorizontal: 8, paddingVertical: 2, borderRadius: 4, borderWidth: 1, borderColor: '#bae6fd' },
+    proBadge: { color: '#d97706', fontSize: 10, fontWeight: '900', letterSpacing: 1, backgroundColor: '#fef3c7', paddingHorizontal: 8, paddingVertical: 2, borderRadius: 4, borderWidth: 1, borderColor: '#fde68a' },
+    carouselContainer: { height: 160, borderRadius: 24, overflow: 'hidden', marginBottom: 24, elevation: 5, shadowColor: '#000', shadowOpacity: 0.1, shadowOffset: { width: 0, height: 4 }, shadowRadius: 10 },
     bannerCard: { width: width - 40, height: 160, padding: 24, justifyContent: 'center', flexDirection: 'row', alignItems: 'center' },
-    bannerTitle: { color: '#fff', fontSize: 20, fontWeight: '900' },
+    bannerTitle: { color: '#ffffff', fontSize: 20, fontWeight: '900' },
     bannerSubtitle: { color: '#ffffffcc', fontSize: 10, fontWeight: 'bold', textTransform: 'uppercase', letterSpacing: 1.5, marginBottom: 4 },
     pagination: { position: 'absolute', bottom: 15, right: 24, flexDirection: 'row', gap: 6 },
-    dot: { width: 6, height: 6, borderRadius: 3, backgroundColor: 'rgba(255,255,255,0.3)' },
-    activeDot: { width: 18, backgroundColor: '#fff' },
+    dot: { width: 6, height: 6, borderRadius: 3, backgroundColor: 'rgba(255,255,255,0.4)' },
+    activeDot: { width: 18, backgroundColor: '#ffffff' },
     quickStatsRow: { flexDirection: 'row', gap: 12, marginBottom: 24 },
-    quickStatCard: { flex: 1, flexDirection: 'row', alignItems: 'center', backgroundColor: 'rgba(255,255,255,0.03)', padding: 12, borderRadius: 16, borderWidth: 1, borderColor: 'rgba(255,255,255,0.05)', gap: 10 },
+    quickStatCard: { flex: 1, flexDirection: 'row', alignItems: 'center', backgroundColor: '#ffffff', padding: 12, borderRadius: 16, borderWidth: 1, borderColor: '#e2e8f0', gap: 10, elevation: 2, shadowColor: '#000', shadowOpacity: 0.05, shadowOffset: { width: 0, height: 2 } },
     statIconBg: { width: 34, height: 34, borderRadius: 8, justifyContent: 'center', alignItems: 'center' },
     statLabel: { color: '#64748b', fontSize: 9, fontWeight: '700', textTransform: 'uppercase' },
-    statValue: { color: '#fff', fontSize: 15, fontWeight: '900' },
-    sectionTitle: { fontSize: 18, fontWeight: '900', color: '#fff', marginBottom: 16, letterSpacing: 0.5 },
+    statValue: { color: '#1e293b', fontSize: 15, fontWeight: '900' },
+    sectionTitle: { fontSize: 18, fontWeight: '900', color: '#1e293b', marginBottom: 16, letterSpacing: 0.5 },
     gridContainer: { flexDirection: 'row', flexWrap: 'wrap', marginHorizontal: -8 },
     gridSlot: { width: '50%', padding: 8 },
-    gridItem: { backgroundColor: 'rgba(255,255,255,0.04)', padding: 16, borderRadius: 24, alignItems: 'center', borderWidth: 1, borderColor: 'rgba(255,255,255,0.05)', minHeight: 125, elevation: 4 },
+    gridItem: { backgroundColor: '#ffffff', padding: 16, borderRadius: 24, alignItems: 'center', borderWidth: 1, borderColor: '#e2e8f0', minHeight: 125, elevation: 2, shadowColor: '#000', shadowOpacity: 0.05, shadowOffset: { width: 0, height: 3 }, shadowRadius: 5 },
     gridIconBg: { width: 44, height: 44, borderRadius: 12, justifyContent: 'center', alignItems: 'center', marginBottom: 10 },
-    gridLabel: { color: '#fff', fontWeight: 'bold', fontSize: 13, marginBottom: 2 },
+    gridLabel: { color: '#1e293b', fontWeight: 'bold', fontSize: 13, marginBottom: 2 },
     gridSub: { color: '#64748b', fontSize: 9, textAlign: 'center' },
-    leaderboardCard: { backgroundColor: 'rgba(255,255,255,0.01)', padding: 12, borderRadius: 20, borderWidth: 1, borderColor: 'rgba(255,255,255,0.05)' },
-    leaderboardRow: { flexDirection: 'row', alignItems: 'center', paddingVertical: 10, borderBottomWidth: 1, borderBottomColor: 'rgba(255,255,255,0.03)' },
-    rankBadge: { width: 22, height: 22, borderRadius: 11, backgroundColor: 'rgba(220, 38, 38, 0.1)', justifyContent: 'center', alignItems: 'center', marginRight: 12 },
-    rankText: { color: '#ef4444', fontWeight: 'bold', fontSize: 10 },
-    leaderboardName: { color: '#fff', flex: 1, fontSize: 13, fontWeight: '600' },
-    leaderboardScore: { color: '#94a3b8', fontSize: 11 },
+    leaderboardCard: { backgroundColor: '#ffffff', padding: 12, borderRadius: 20, borderWidth: 1, borderColor: '#e2e8f0', elevation: 2, shadowColor: '#000', shadowOpacity: 0.05, shadowOffset: { width: 0, height: 2 } },
+    leaderboardRow: { flexDirection: 'row', alignItems: 'center', paddingVertical: 10, borderBottomWidth: 1, borderBottomColor: '#f1f5f9' },
+    rankBadge: { width: 22, height: 22, borderRadius: 11, backgroundColor: '#fee2e2', justifyContent: 'center', alignItems: 'center', marginRight: 12 },
+    rankText: { color: '#dc2626', fontWeight: 'bold', fontSize: 10 },
+    leaderboardName: { color: '#334155', flex: 1, fontSize: 13, fontWeight: '600' },
+    leaderboardScore: { color: '#64748b', fontSize: 11 },
     recentSection: { marginTop: 10 },
     buyBanner: {
         marginTop: 20,

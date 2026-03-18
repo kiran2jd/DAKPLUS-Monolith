@@ -28,6 +28,16 @@ export default function TestLibraryScreen({ navigation, route }) {
     const [loading, setLoading] = useState(true);
     const [activeTab, setActiveTab] = useState('all'); // 'all' or 'purchased'
     const [purchases, setPurchases] = useState([]);
+    
+    // Vertical Banners Selection State
+    const [selectedCourseId, setSelectedCourseId] = useState(route.params?.courseId || null);
+
+    const COURSE_BANNERS = [
+        { id: 'MTS', title: "MTS Exam", subtitle: "TARGET 2026 BATCH", colors: ['#dc2626', '#b91c1c'], icon: 'mail-outline' },
+        { id: 'PMMG', title: "Postman & GM", subtitle: "COMPLETE PAPER 1 & 2", colors: ['#1e3a8a', '#1d4ed8'], icon: 'cube-outline' },
+        { id: 'PASA', title: "PA/SA Classes", subtitle: "TARGET 2026 BATCH", colors: ['#7c3aed', '#5b21b6'], icon: 'school-outline' },
+        { id: 'COMBINED', title: "Combined", subtitle: "PA/SA, PM/MG, MTS", colors: ['#059669', '#047857'], icon: 'library-outline' }
+    ];
 
     useFocusEffect(
         React.useCallback(() => {
@@ -44,13 +54,13 @@ export default function TestLibraryScreen({ navigation, route }) {
             const userData = await authService.getUser();
             setUser(userData);
 
-            const rawCourseId = route.params?.courseId;
-            const courseId = rawCourseId === 'COMBINED' ? null : rawCourseId;
-            console.log("Loading Library for course:", courseId);
+            const rawCourseId = selectedCourseId || route.params?.courseId;
+            const courseIdFilter = rawCourseId === 'COMBINED' ? null : rawCourseId;
+            console.log("Loading Library for course:", courseIdFilter);
 
             const [topicsData, testsData] = await Promise.all([
-                topicService.getAllTopics(courseId),
-                testService.getAvailableTests(courseId)
+                topicService.getAllTopics(courseIdFilter),
+                testService.getAvailableTests(courseIdFilter)
             ]);
 
             setTopics(topicsData);
@@ -177,19 +187,25 @@ export default function TestLibraryScreen({ navigation, route }) {
     return (
         <View style={styles.container}>
             <LinearGradient
-                colors={['#0f172a', '#1e293b', '#0f172a']}
+                colors={['#fcf9f2', '#fcf9f2']}
                 style={StyleSheet.absoluteFillObject}
             />
             <View style={{ flex: 1 }}>
                 {/* STICKY HEADER */}
                 <View style={[styles.topBarSticky, { paddingTop: Math.max(insets.top, 15) }]}>
                     <TouchableOpacity 
-                        onPress={() => navigation.goBack()} 
+                        onPress={() => {
+                            if (selectedCourseId !== null && route.params?.courseId === undefined) {
+                                setSelectedCourseId(null);
+                            } else {
+                                navigation.goBack();
+                            }
+                        }} 
                         style={styles.backBtn} 
                         hitSlop={{ top: 15, bottom: 15, left: 15, right: 15 }}
                         activeOpacity={0.7}
                     >
-                        <Ionicons name="chevron-back" size={24} color="#fff" />
+                        <Ionicons name="chevron-back" size={24} color="#1e293b" />
                     </TouchableOpacity>
                     <Text style={styles.headerTitle}>Exam Vault</Text>
                     <TouchableOpacity 
@@ -204,7 +220,7 @@ export default function TestLibraryScreen({ navigation, route }) {
                         hitSlop={{ top: 15, bottom: 15, left: 15, right: 15 }}
                         activeOpacity={0.7}
                     >
-                        <Ionicons name="menu-outline" size={32} color="#fff" />
+                        <Ionicons name="menu-outline" size={32} color="#1e293b" />
                     </TouchableOpacity>
                 </View>
 
@@ -261,10 +277,32 @@ export default function TestLibraryScreen({ navigation, route }) {
                 <FlatList
                     data={filteredTests}
                     keyExtractor={(item) => item.id}
-                    renderItem={renderTestItem}
+                    renderItem={selectedCourseId === null && activeTab === 'all' ? null : renderTestItem}
                     contentContainerStyle={styles.listContent}
+                    ListHeaderComponent={
+                        selectedCourseId === null && activeTab === 'all' ? (
+                            <View style={styles.courseBannersContainer}>
+                                {COURSE_BANNERS.map((banner) => (
+                                    <TouchableOpacity 
+                                        key={banner.id} 
+                                        activeOpacity={0.9} 
+                                        onPress={() => setSelectedCourseId(banner.id)}
+                                        style={styles.verticalBannerWrapper}
+                                    >
+                                        <LinearGradient colors={banner.colors} style={styles.verticalBannerCard} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}>
+                                            <View style={{ flex: 1 }}>
+                                                <Text style={styles.bannerSubtitle}>{banner.subtitle}</Text>
+                                                <Text style={styles.bannerTitle}>{banner.title}</Text>
+                                            </View>
+                                            <Ionicons name={banner.icon} size={60} color="rgba(255,255,255,0.2)" />
+                                        </LinearGradient>
+                                    </TouchableOpacity>
+                                ))}
+                            </View>
+                        ) : null
+                    }
                     ListFooterComponent={
-                        !isPro && user?.role?.toLowerCase() === 'student' ? (
+                        (!isPro && user?.role?.toLowerCase() === 'student') && (selectedCourseId !== null || activeTab !== 'all') ? (
                             <Pressable
                                 style={styles.libraryProBanner}
                                 onPress={() => navigation.navigate('Payment')}
@@ -288,16 +326,18 @@ export default function TestLibraryScreen({ navigation, route }) {
                         ) : null
                     }
                     ListEmptyComponent={
-                        loading ? (
-                            <View style={styles.emptyContainer}>
-                                <ActivityIndicator size="large" color="#dc2626" />
-                                <Text style={styles.emptyText}>Loading Library...</Text>
-                            </View>
-                        ) : (
-                            <View style={styles.emptyContainer}>
-                                <Ionicons name="search-outline" size={64} color="rgba(255,255,255,0.05)" />
-                                <Text style={styles.emptyText}>No matching tests found.</Text>
-                            </View>
+                        selectedCourseId === null && activeTab === 'all' ? null : (
+                            loading ? (
+                                <View style={styles.emptyContainer}>
+                                    <ActivityIndicator size="large" color="#dc2626" />
+                                    <Text style={styles.emptyText}>Loading Library...</Text>
+                                </View>
+                            ) : (
+                                <View style={styles.emptyContainer}>
+                                    <Ionicons name="search-outline" size={64} color="rgba(0,0,0,0.05)" />
+                                    <Text style={styles.emptyText}>No matching tests found.</Text>
+                                </View>
+                            )
                         )
                     }
                 />
@@ -309,7 +349,7 @@ export default function TestLibraryScreen({ navigation, route }) {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: '#0f172a',
+        backgroundColor: '#fcf9f2',
     },
     center: {
         justifyContent: 'center',
@@ -328,16 +368,20 @@ const styles = StyleSheet.create({
         width: 44,
         height: 44,
         borderRadius: 12,
-        backgroundColor: 'rgba(255,255,255,0.05)',
+        backgroundColor: '#ffffff',
         justifyContent: 'center',
         alignItems: 'center',
         borderWidth: 1,
-        borderColor: 'rgba(255,255,255,0.1)',
+        borderColor: '#e2e8f0',
+        elevation: 1,
+        shadowColor: '#000',
+        shadowOpacity: 0.05,
+        shadowOffset: { width: 0, height: 1 }
     },
     headerTitle: {
         fontSize: 20,
         fontWeight: '900',
-        color: '#fff',
+        color: '#1e293b',
         letterSpacing: 0.5,
     },
     tabContainer: {
@@ -363,10 +407,10 @@ const styles = StyleSheet.create({
     tabText: {
         fontSize: 14,
         fontWeight: '700',
-        color: '#64748b',
+        color: '#94a3b8',
     },
     tabTextActive: {
-        color: '#fff',
+        color: '#1e293b',
     },
     filterSection: {
         paddingVertical: 8,
@@ -376,41 +420,45 @@ const styles = StyleSheet.create({
         paddingBottom: 4,
     },
     topicChip: {
-        backgroundColor: 'rgba(255,255,255,0.03)',
+        backgroundColor: '#ffffff',
         paddingHorizontal: 16,
         paddingVertical: 10,
         borderRadius: 14,
         marginRight: 10,
         borderWidth: 1,
-        borderColor: 'rgba(255,255,255,0.05)',
+        borderColor: '#e2e8f0',
         overflow: 'hidden',
+        elevation: 1,
+        shadowColor: '#000',
+        shadowOpacity: 0.05,
+        shadowOffset: { width: 0, height: 1 }
     },
     topicChipActive: {
         borderColor: '#dc2626',
     },
     topicChipText: {
-        color: '#94a3b8',
+        color: '#64748b',
         fontWeight: 'bold',
         fontSize: 13,
     },
     topicChipTextActive: {
-        color: '#fff',
+        color: '#ffffff',
     },
     subtopicScroll: {
         paddingHorizontal: 20,
         marginTop: 8,
     },
     subChip: {
-        backgroundColor: 'transparent',
+        backgroundColor: '$#ffffff',
         paddingHorizontal: 14,
         paddingVertical: 6,
         borderRadius: 10,
         marginRight: 8,
         borderWidth: 1,
-        borderColor: 'rgba(30, 58, 138, 0.3)',
+        borderColor: '#cbd5e1',
     },
     subChipActive: {
-        backgroundColor: 'rgba(30, 58, 138, 0.2)',
+        backgroundColor: '#eff6ff',
         borderColor: '#3b82f6',
     },
     subChipText: {
@@ -419,23 +467,23 @@ const styles = StyleSheet.create({
         fontWeight: '600',
     },
     subChipTextActive: {
-        color: '#3b82f6',
+        color: '#2563eb',
     },
     listContent: {
         padding: 20,
     },
     testCard: {
-        backgroundColor: 'rgba(255,255,255,0.03)',
+        backgroundColor: '#ffffff',
         borderRadius: 24,
         padding: 20,
         marginBottom: 20,
         borderWidth: 1,
-        borderColor: 'rgba(255,255,255,0.05)',
+        borderColor: '#e2e8f0',
         shadowColor: '#000',
-        shadowOffset: { width: 0, height: 10 },
-        shadowOpacity: 0.2,
-        shadowRadius: 12,
-        elevation: 5,
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.05,
+        shadowRadius: 10,
+        elevation: 3,
     },
     lockedCard: {
         opacity: 0.7,
@@ -461,19 +509,19 @@ const styles = StyleSheet.create({
         textTransform: 'uppercase',
     },
     durationText: {
-        color: '#94a3b8',
+        color: '#64748b',
         fontSize: 12,
         fontWeight: '600',
     },
     testTitle: {
         fontSize: 17,
         fontWeight: '900',
-        color: '#fff',
+        color: '#1e293b',
         marginBottom: 6,
         letterSpacing: 0.3,
     },
     testDesc: {
-        color: '#64748b',
+        color: '#475569',
         fontSize: 13,
         lineHeight: 18,
         marginBottom: 20,
@@ -483,7 +531,7 @@ const styles = StyleSheet.create({
         justifyContent: 'space-between',
         alignItems: 'center',
         borderTopWidth: 1,
-        borderTopColor: 'rgba(255,255,255,0.03)',
+        borderTopColor: '#f1f5f9',
         paddingTop: 15,
     },
     categoryText: {
@@ -558,5 +606,38 @@ const styles = StyleSheet.create({
         color: '#fff',
         fontSize: 10,
         fontWeight: '900',
+    },
+    courseBannersContainer: {
+        paddingBottom: 20,
+    },
+    verticalBannerWrapper: {
+        marginBottom: 16,
+        borderRadius: 24,
+        elevation: 6,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 6 },
+        shadowOpacity: 0.15,
+        shadowRadius: 10,
+        overflow: 'hidden',
+    },
+    verticalBannerCard: {
+        width: '100%',
+        height: 160,
+        padding: 24,
+        flexDirection: 'row',
+        alignItems: 'center',
+    },
+    bannerTitle: {
+        color: '#fff',
+        fontSize: 22,
+        fontWeight: '900',
+    },
+    bannerSubtitle: {
+        color: '#ffffffcc',
+        fontSize: 11,
+        fontWeight: 'bold',
+        textTransform: 'uppercase',
+        letterSpacing: 1.5,
+        marginBottom: 6,
     },
 });

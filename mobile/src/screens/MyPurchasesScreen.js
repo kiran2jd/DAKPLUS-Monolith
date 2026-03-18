@@ -49,9 +49,9 @@ export default function MyPurchasesScreen({ navigation }) {
 
     return (
         <SafeAreaView style={styles.container}>
-            <LinearGradient colors={['#1e293b', '#0f172a']} style={styles.header}>
+            <LinearGradient colors={['#fcf9f2', '#fcf9f2']} style={styles.header}>
                 <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
-                    <Ionicons name="arrow-back" size={24} color="#fff" />
+                    <Ionicons name="chevron-back" size={24} color="#1e293b" />
                 </TouchableOpacity>
                 <Text style={styles.title}>Transaction History</Text>
             </LinearGradient>
@@ -97,11 +97,11 @@ export default function MyPurchasesScreen({ navigation }) {
 }
 
 const styles = StyleSheet.create({
-    container: { flex: 1, backgroundColor: '#f8fafc' },
+    container: { flex: 1, backgroundColor: '#fcf9f2' },
     center: { justifyContent: 'center', alignItems: 'center' },
-    header: { padding: 20, paddingTop: 50, flexDirection: 'row', alignItems: 'center', gap: 15 },
-    backBtn: { width: 40, height: 40, borderRadius: 20, backgroundColor: 'rgba(255,255,255,0.1)', justifyContent: 'center', alignItems: 'center' },
-    title: { color: '#fff', fontSize: 20, fontWeight: 'bold' },
+    header: { padding: 20, paddingTop: 50, flexDirection: 'row', alignItems: 'center', gap: 15, borderBottomWidth: 1, borderBottomColor: '#e2e8f0', elevation: 2, shadowColor: '#000', shadowOpacity: 0.05, shadowOffset: { width: 0, height: 2 }, shadowRadius: 3 },
+    backBtn: { width: 44, height: 44, borderRadius: 12, backgroundColor: '#ffffff', justifyContent: 'center', alignItems: 'center', borderWidth: 1, borderColor: '#e2e8f0', elevation: 1, shadowColor: '#000', shadowOpacity: 0.05, shadowOffset: { width: 0, height: 1 } },
+    title: { color: '#1e293b', fontSize: 20, fontWeight: '900' },
     scrollContent: { padding: 20 },
     txnCard: { backgroundColor: '#fff', borderRadius: 16, padding: 16, marginBottom: 15, elevation: 2, shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.1, shadowRadius: 4 },
     txnHeader: { flexDirection: 'row', alignItems: 'center', gap: 12, marginBottom: 12 },

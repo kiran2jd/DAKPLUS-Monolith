@@ -59,7 +59,7 @@ export default function ResultScreen({ navigation, route }) {
 
     if (loading) {
         return (
-            <View style={[styles.center, { backgroundColor: '#0f172a' }]}>
+            <View style={[styles.center, { backgroundColor: '#fcf9f2' }]}>
                 <ActivityIndicator size="large" color="#dc2626" />
             </View>
         );
@@ -67,9 +67,9 @@ export default function ResultScreen({ navigation, route }) {
 
     if (!result) {
         return (
-            <View style={[styles.center, { backgroundColor: '#0f172a' }]}>
+            <View style={[styles.center, { backgroundColor: '#fcf9f2' }]}>
                 <Ionicons name="alert-circle" size={64} color="#dc2626" />
-                <Text style={{ color: '#fff', marginTop: 16 }}>Result not found.</Text>
+                <Text style={{ color: '#1e293b', marginTop: 16 }}>Result not found.</Text>
                 <TouchableOpacity 
                     onPress={() => navigation.reset({ index: 0, routes: [{ name: 'Main' }] })}
                     style={{ marginTop: 24, padding: 12, backgroundColor: '#dc2626', borderRadius: 8 }}
@@ -93,9 +93,9 @@ export default function ResultScreen({ navigation, route }) {
     });
 
     return (
-        <SafeAreaView style={[styles.container, { backgroundColor: '#0f172a' }]}>
+        <SafeAreaView style={[styles.container, { backgroundColor: '#fcf9f2' }]}>
             <LinearGradient
-                colors={['#0f172a', '#1e293b', '#0f172a']}
+                colors={['#fcf9f2', '#fcf9f2']}
                 style={StyleSheet.absoluteFillObject}
             />
             {isPassed && (
@@ -265,7 +265,7 @@ export default function ResultScreen({ navigation, route }) {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: '#0f172a',
+        backgroundColor: '#fcf9f2',
     },
     scrollContainer: {
         flexGrow: 1,
@@ -321,15 +321,15 @@ const styles = StyleSheet.create({
     },
     statCard: {
         flex: 1,
-        backgroundColor: 'rgba(255,255,255,0.03)',
+        backgroundColor: '#ffffff',
         padding: 12,
         borderRadius: 20,
         borderWidth: 1,
-        borderColor: 'rgba(255,255,255,0.05)',
+        borderColor: '#e2e8f0',
         alignItems: 'center',
         shadowColor: '#000',
         shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.1,
+        shadowOpacity: 0.05,
         shadowRadius: 8,
         elevation: 2,
     },
@@ -341,32 +341,32 @@ const styles = StyleSheet.create({
         fontWeight: '600',
     },
     statValue: {
-        color: '#fff',
+        color: '#1e293b',
         fontSize: 20,
         fontWeight: '900',
     },
     sectionTitle: {
-        color: '#fff',
+        color: '#1e293b',
         fontSize: 20,
         fontWeight: '900',
         marginTop: 32,
         marginBottom: 16,
     },
     reviewCard: {
-        backgroundColor: 'rgba(255,255,255,0.02)',
+        backgroundColor: '#ffffff',
         borderRadius: 20,
         padding: 20,
         marginBottom: 16,
         borderWidth: 1,
-        borderColor: 'rgba(255,255,255,0.05)',
+        borderColor: '#e2e8f0',
         shadowColor: '#000',
         shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.1,
+        shadowOpacity: 0.05,
         shadowRadius: 10,
-        elevation: 3,
+        elevation: 2,
     },
     reviewQuestion: {
-        color: '#fff',
+        color: '#1e293b',
         fontSize: 16,
         fontWeight: '900',
         marginBottom: 12,
@@ -408,12 +408,12 @@ const styles = StyleSheet.create({
         marginBottom: 8,
     },
     explanationBox: {
-        backgroundColor: 'rgba(255,255,255,0.03)',
+        backgroundColor: '#f8fafc',
         padding: 14,
         borderRadius: 14,
         marginTop: 12,
         borderWidth: 1,
-        borderColor: 'rgba(255,255,255,0.05)',
+        borderColor: '#e2e8f0',
     },
     explanationTitle: {
         color: '#f97316',
@@ -423,7 +423,7 @@ const styles = StyleSheet.create({
         textTransform: 'uppercase',
     },
     explanationText: {
-        color: '#94a3b8',
+        color: '#475569',
         fontSize: 14,
         lineHeight: 20,
     },
@@ -483,14 +483,14 @@ const styles = StyleSheet.create({
         flex: 1,
         justifyContent: 'center',
         alignItems: 'center',
-        backgroundColor: '#f8fafc',
+        backgroundColor: '#fcf9f2',
     },
     emptyReview: {
         padding: 20,
         alignItems: 'center',
     },
     emptyReviewText: {
-        color: '#94a3b8',
+        color: '#64748b',
     },
     proCard: {
         marginTop: 24,

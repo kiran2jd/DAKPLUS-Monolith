@@ -113,7 +113,7 @@ export default function AnalyticsScreen({ navigation }) {
                         hitSlop={{ top: 15, bottom: 15, left: 15, right: 15 }}
                         activeOpacity={0.7}
                     >
-                        <Ionicons name="chevron-back" size={24} color="#fff" />
+                        <Ionicons name="chevron-back" size={24} color="#1e293b" />
                     </TouchableOpacity>
                     <Text style={styles.headerTitle}>Performance Hub</Text>
                     <TouchableOpacity 
@@ -128,7 +128,7 @@ export default function AnalyticsScreen({ navigation }) {
                         hitSlop={{ top: 15, bottom: 15, left: 15, right: 15 }}
                         activeOpacity={0.7}
                     >
-                        <Ionicons name="menu-outline" size={32} color="#fff" />
+                        <Ionicons name="menu-outline" size={32} color="#1e293b" />
                     </TouchableOpacity>
                 </View>
 
@@ -171,13 +171,13 @@ export default function AnalyticsScreen({ navigation }) {
                         <Text style={styles.sectionTitle}>Key Insights</Text>
                         <View style={styles.insightGrid}>
                             <View style={styles.insightCard}>
-                                <LinearGradient colors={['rgba(249, 115, 22, 0.15)', 'rgba(255, 255, 255, 0.05)']} style={styles.insightGradient} />
+                                <LinearGradient colors={['rgba(249, 115, 22, 0.05)', 'rgba(255, 255, 255, 1)']} style={styles.insightGradient} />
                                 <Ionicons name="trophy-outline" size={24} color="#f59e0b" />
                                 <Text style={styles.insightLabel}>Best Topic</Text>
                                 <Text style={styles.insightValue} numberOfLines={1}>{stats.bestCategory}</Text>
                             </View>
                             <View style={styles.insightCard}>
-                                <LinearGradient colors={['rgba(56, 189, 248, 0.15)', 'rgba(255, 255, 255, 0.05)']} style={styles.insightGradient} />
+                                <LinearGradient colors={['rgba(56, 189, 248, 0.05)', 'rgba(255, 255, 255, 1)']} style={styles.insightGradient} />
                                 <Ionicons name="bar-chart-outline" size={24} color="#38bdf8" />
                                 <Text style={styles.insightLabel}>Consistency</Text>
                                 <Text style={styles.insightValue}>{stats.totalTests >= 5 ? 'High' : 'Needs Practice'}</Text>
@@ -228,7 +228,7 @@ export default function AnalyticsScreen({ navigation }) {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: '#0f172a',
+        backgroundColor: '#fcf9f2',
     },
     center: {
         justifyContent: 'center',
@@ -247,16 +247,20 @@ const styles = StyleSheet.create({
         width: 44,
         height: 44,
         borderRadius: 12,
-        backgroundColor: 'rgba(255,255,255,0.05)',
+        backgroundColor: '#ffffff',
         justifyContent: 'center',
         alignItems: 'center',
         borderWidth: 1,
-        borderColor: 'rgba(255,255,255,0.1)',
+        borderColor: '#e2e8f0',
+        elevation: 1,
+        shadowColor: '#000',
+        shadowOpacity: 0.05,
+        shadowOffset: { width: 0, height: 1 }
     },
     headerTitle: {
         fontSize: 18,
         fontWeight: '900',
-        color: '#fff',
+        color: '#1e293b',
         letterSpacing: 0.5,
     },
     scrollContent: {
@@ -302,7 +306,7 @@ const styles = StyleSheet.create({
     sectionTitle: {
         fontSize: 18,
         fontWeight: '900',
-        color: '#fff',
+        color: '#1e293b',
         marginBottom: 16,
     },
     chartContainer: {
@@ -310,12 +314,16 @@ const styles = StyleSheet.create({
         justifyContent: 'space-around',
         alignItems: 'flex-end',
         height: 150,
-        backgroundColor: 'rgba(255,255,255,0.02)',
+        backgroundColor: '#ffffff',
         borderRadius: 22,
         paddingVertical: 15,
         paddingHorizontal: 10,
         borderWidth: 1,
-        borderColor: 'rgba(255,255,255,0.05)',
+        borderColor: '#e2e8f0',
+        elevation: 2,
+        shadowColor: '#000',
+        shadowOpacity: 0.05,
+        shadowOffset: { width: 0, height: 2 }
     },
     barWrapper: {
         alignItems: 'center',
@@ -325,7 +333,7 @@ const styles = StyleSheet.create({
     barBg: {
         width: 20,
         height: '80%',
-        backgroundColor: 'rgba(255,255,255,0.05)',
+        backgroundColor: '#f1f5f9',
         borderRadius: 5,
         overflow: 'hidden',
         justifyContent: 'flex-end',
@@ -335,7 +343,7 @@ const styles = StyleSheet.create({
         borderRadius: 5,
     },
     barLabel: {
-        color: '#94a3b8',
+        color: '#64748b',
         fontSize: 10,
         fontWeight: '700',
         marginTop: 8,
@@ -349,25 +357,31 @@ const styles = StyleSheet.create({
         height: 120,
         borderRadius: 22,
         borderWidth: 1,
-        borderColor: 'rgba(255,255,255,0.05)',
+        borderColor: '#e2e8f0',
         alignItems: 'center',
         justifyContent: 'center',
         paddingHorizontal: 12,
         position: 'relative',
         overflow: 'hidden',
+        backgroundColor: '#ffffff',
+        elevation: 2,
+        shadowColor: '#000',
+        shadowOpacity: 0.05,
+        shadowOffset: { width: 0, height: 2 }
     },
     insightGradient: {
         ...StyleSheet.absoluteFillObject,
+        opacity: 0.5,
     },
     insightLabel: {
-        color: '#94a3b8',
+        color: '#64748b',
         fontSize: 11,
         fontWeight: '700',
         marginTop: 8,
         textTransform: 'uppercase',
     },
     insightValue: {
-        color: '#fff',
+        color: '#1e293b',
         fontSize: 15,
         fontWeight: '900',
         marginTop: 4,
@@ -375,13 +389,17 @@ const styles = StyleSheet.create({
     },
     historyRow: {
         flexDirection: 'row',
-        backgroundColor: 'rgba(255,255,255,0.02)',
+        backgroundColor: '#ffffff',
         padding: 16,
         borderRadius: 18,
         marginBottom: 12,
         alignItems: 'center',
         borderWidth: 1,
-        borderColor: 'rgba(255,255,255,0.05)',
+        borderColor: '#e2e8f0',
+        elevation: 2,
+        shadowColor: '#000',
+        shadowOpacity: 0.05,
+        shadowOffset: { width: 0, height: 1 }
     },
     historyInfo: {
         flex: 1,
@@ -390,11 +408,11 @@ const styles = StyleSheet.create({
     historyTitle: {
         fontSize: 15,
         fontWeight: 'bold',
-        color: '#fff',
+        color: '#1e293b',
     },
     historyDate: {
         fontSize: 11,
-        color: '#475569',
+        color: '#64748b',
         marginTop: 2,
         fontWeight: '600',
     },
@@ -410,13 +428,13 @@ const styles = StyleSheet.create({
     emptyBox: {
         padding: 40,
         alignItems: 'center',
-        backgroundColor: 'rgba(255,255,255,0.01)',
+        backgroundColor: '#ffffff',
         borderRadius: 22,
         borderWidth: 1,
-        borderColor: 'rgba(255,255,255,0.03)',
+        borderColor: '#e2e8f0',
     },
     emptyText: {
-        color: '#475569',
+        color: '#64748b',
         fontSize: 14,
         fontWeight: '600',
         marginTop: 12,
