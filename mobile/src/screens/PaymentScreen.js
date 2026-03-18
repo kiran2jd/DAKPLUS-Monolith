@@ -8,11 +8,13 @@ import {
     Alert,
     SafeAreaView,
     ScrollView,
+    Modal,
 } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import * as WebBrowser from 'expo-web-browser';
 import { LinearGradient } from 'expo-linear-gradient';
 import * as SecureStore from 'expo-secure-store';
-import RazorpayCheckout from 'react-native-razorpay';
+import { WebView } from 'react-native-webview';
 import { useFocusEffect } from '@react-navigation/native';
 import api from '../services/api';
 import ConfettiCannon from 'react-native-confetti-cannon';
@@ -25,7 +27,8 @@ export default function PaymentScreen({ navigation, route }) {
     const [user, setUser] = useState(null);
     const [loading, setLoading] = useState(false);
     const [success, setSuccess] = useState(false);
-    const [method, setMethod] = useState('upi');
+    const [showWebView, setShowWebView] = useState(false);
+    const [paymentUrl, setPaymentUrl] = useState('');
 
     // REFRESH PROFILE ON FOCUS
     // This ensures that when the user returns from the browser after payment,
@@ -86,78 +89,46 @@ export default function PaymentScreen({ navigation, route }) {
     const currentPrice = details.price;
 
     const handlePayment = async () => {
+        const token = await SecureStore.getItemAsync('access_token');
         const userId = user?.id || user?._id || user?.userId;
-        const itemType = (selectedCourseId === 'COMBINED' || selectedCourseId === 'MTS' || selectedCourseId === 'PMMG' || selectedCourseId === 'PASA') ? 'SUBSCRIPTION' : 'EXAM';
+        const webUrl = `https://dakplus.in/payment?source=mobile&token=${encodeURIComponent(token)}&userId=${encodeURIComponent(userId)}&itemId=${selectedCourseId}`;
         
-        setLoading(true);
-        try {
-            // 1. Create order on secure backend
-            const { data: orderData } = await api.post('/payments/create-order', {
-                amount: currentPrice,
-                userId: userId,
-                itemId: selectedCourseId,
-                itemType: itemType
-            });
-
-            // Make sure the env var is set in your build or local environment
-            const keyId = process.env.EXPO_PUBLIC_RAZORPAY_KEY_ID || 'rzp_test_YOUR_KEY_HERE';
-
-            const options = {
-                description: details.subtitle,
-                image: 'https://api-v2.dakplus.in/logo.jpg',
-                currency: 'INR',
-                key: keyId,
-                amount: orderData.amount * 100, // Razorpay takes paise
-                name: 'DAK Plus App',
-                order_id: orderData.orderId,
-                prefill: {
-                    email: user?.email || '',
-                    contact: user?.phoneNumber || user?.phone || '',
-                    name: user?.fullName || user?.name || ''
-                },
-                theme: { color: '#dc2626' }
-            };
-
-            RazorpayCheckout.open(options).then((data) => {
-                // 2. Verify payment locally
-                api.post('/payments/verify-payment', {
-                    razorpay_payment_id: data.razorpay_payment_id,
-                    razorpay_order_id: data.razorpay_order_id,
-                    razorpay_signature: data.razorpay_signature
-                }).then(() => {
-                    setSuccess(true);
-                    loadProfile(); // Refreshes state and navigates
-                }).catch(err => {
-                    Alert.alert("Verification Error", "Payment successful but confirmation delayed. Check your purchases later.");
-                });
-            }).catch((error) => {
-                // Error code 0 generally means cancelled
-                if (error?.code !== 0 && error?.code !== '0') {
-                    Alert.alert("Payment Cancelled", "The transaction was canceled or failed.");
-                }
-            });
-
-        } catch (err) {
-            console.error("Order Creation Error:", err);
-            Alert.alert('Technical Error', 'Could not securely initiate transaction at this time.');
-        } finally {
-            setLoading(false);
-        }
+        setPaymentUrl(webUrl);
+        setShowWebView(true);
     };
 
     return (
         <SafeAreaView style={styles.container}>
             {success && (
                 <View style={styles.successOverlay}>
-                    <ConfettiCannon
-                        count={200}
-                        origin={{ x: width / 2, y: 0 }}
-                        fadeOut={true}
-                        explosionSpeed={350}
-                    />
+                    <ConfettiCannon count={200} origin={{ x: 180, y: 0 }} fadeOut={true} explosionSpeed={350} />
                     <Text style={styles.successTitle}>PRO UNLOCKED!</Text>
                 </View>
             )}
+
+            <Modal visible={showWebView} animationType="slide" onRequestClose={() => setShowWebView(false)}>
+                <SafeAreaView style={{ flex: 1, backgroundColor: '#fcf9f2' }}>
+                    <View style={styles.webviewHeader}>
+                        <TouchableOpacity onPress={() => setShowWebView(false)} style={styles.webviewCloseBtn}>
+                            <Ionicons name="close" size={28} color="#1e293b" />
+                        </TouchableOpacity>
+                        <Text style={styles.webviewTitle}>Secure Checkout</Text>
+                        <View style={{ width: 40 }} />
+                    </View>
+                    <WebView 
+                        source={{ uri: paymentUrl }} 
+                        style={{ flex: 1 }}
+                        onNavigationStateChange={(navState) => {
+                            if (navState.url.includes('dakplus://') || navState.url.includes('payment=success') || navState.url.includes('/dashboard')) {
+                                setShowWebView(false);
+                                setSuccess(true);
+                                loadProfile();
+                            }
+                        }}
+                    />
+                </SafeAreaView>
+            </Modal>
+
             <ScrollView contentContainerStyle={styles.scrollContainer} showsVerticalScrollIndicator={false}>
                 <LinearGradient colors={['#fdfbf7', '#fdfbf7']} style={styles.header}>
                     <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
@@ -247,5 +218,8 @@ const styles = StyleSheet.create({
     disabledBtn: { opacity: 0.6 },
     secureText: { color: '#94a3b8', fontSize: 12, textAlign: 'center', marginTop: 16 },
     successOverlay: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, zIndex: 10, justifyContent: 'center', alignItems: 'center', backgroundColor: 'rgba(253,251,247,0.9)' },
-    successTitle: { fontSize: 40, fontWeight: '900', color: '#10b981', textShadowColor: 'rgba(0,0,0,0.1)', textShadowOffset: { width: 2, height: 2 }, textShadowRadius: 10 }
+    successTitle: { fontSize: 40, fontWeight: '900', color: '#10b981', textShadowColor: 'rgba(0,0,0,0.1)', textShadowOffset: { width: 2, height: 2 }, textShadowRadius: 10 },
+    webviewHeader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 16, paddingVertical: 12, borderBottomWidth: 1, borderBottomColor: '#e2e8f0', backgroundColor: '#fcf9f2' },
+    webviewCloseBtn: { padding: 8 },
+    webviewTitle: { fontSize: 18, fontWeight: 'bold', color: '#1e293b' }
 });

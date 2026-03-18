@@ -34,7 +34,9 @@
         "projectId": "1558a079-b208-4992-80fc-2a30a769f649"
       }
     },
-    "plugins": [],
+    "plugins": [
+      "expo-font"
+    ],
     "owner": "kiranchinna_expo"
   }
 }
