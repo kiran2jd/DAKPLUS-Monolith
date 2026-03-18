@@ -14,5 +14,10 @@ export const notificationService = {
     markAsRead: async (id) => {
         const response = await api.put(`/auth/notifications/${id}/read`);
         return response.data;
+    },
+
+    deleteNotification: async (id) => {
+        const response = await api.delete(`/auth/notifications/${id}`);
+        return response.data;
     }
 };

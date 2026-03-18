@@ -38,22 +38,23 @@ export default function NotificationsScreen({ navigation }) {
         fetchNotifications();
     };
 
-    const handleMarkAsRead = async (id) => {
+    const handleDeleteNotification = async (id) => {
         try {
-            await notificationService.markAsRead(id);
-            // Update local state to show as read immediately
-            setNotifications(notifications.map(n =>
-                n.id === id ? { ...n, read: true } : n
-            ));
+            // Optimistically remove from UI
+            setNotifications(notifications.filter(n => n.id !== id));
+            // Tell backend to delete
+            await notificationService.deleteNotification(id);
         } catch (error) {
-            console.error('Failed to mark as read:', error);
+            console.error('Failed to delete notification:', error);
+            // If it fails, refresh the list to fix the optimistic update
+            fetchNotifications();
         }
     };
 
     const renderItem = ({ item }) => (
         <TouchableOpacity
             style={[styles.notificationCard, !item.read && styles.unreadCard]}
-            onPress={() => handleMarkAsRead(item.id)}
+            onPress={() => handleDeleteNotification(item.id)}
         >
             <View style={styles.iconContainer}>
                 <View style={[styles.iconBg, { backgroundColor: item.type === 'EXAM_COMPLETION' ? '#dcfce7' : '#dbeafe' }]}>

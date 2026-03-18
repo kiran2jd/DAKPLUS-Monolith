@@ -25,6 +25,7 @@ import NotificationsScreen from '../screens/NotificationsScreen';
 import SyllabusScreen from '../screens/SyllabusScreen';
 import AnalyticsScreen from '../screens/AnalyticsScreen';
 import { authService } from '../services/auth';
+import { pushNotificationService } from '../services/pushNotification';
 
 const Stack = createNativeStackNavigator();
 const Drawer = createDrawerNavigator();
@@ -99,6 +100,20 @@ export default function AppNavigator() {
             try {
                 const authenticated = await authService.isAuthenticated();
                 setIsAuthenticated(authenticated);
+                
+                if (authenticated) {
+                    // Register for push notifications if auth is successful
+                    setTimeout(async () => {
+                        try {
+                            const token = await pushNotificationService.registerForPushNotificationsAsync();
+                            if (token) {
+                                await pushNotificationService.sendTokenToBackend(token);
+                            }
+                        } catch (e) {
+                            console.log("Push reg error:", e);
+                        }
+                    }, 1000);
+                }
             } catch (error) {
                 setIsAuthenticated(false);
             } finally {

@@ -275,4 +275,18 @@ public class AuthController {
             return ResponseEntity.badRequest().body(Map.of("message", e.getMessage()));
         }
     }
+
+    /**
+     * Store Expo Push Notification Token
+     */
+    @PostMapping("/push-token")
+    public ResponseEntity<?> savePushToken(@RequestHeader(value = "X-User-Id", required = false) String userId,
+                                           @RequestBody Map<String, String> request) {
+        String token = request.get("token");
+        if (userId != null && token != null) {
+            authService.updatePushToken(userId, token);
+            return ResponseEntity.ok(Map.of("message", "Token saved successfully"));
+        }
+        return ResponseEntity.badRequest().body(Map.of("message", "User ID or Token missing"));
+    }
 }

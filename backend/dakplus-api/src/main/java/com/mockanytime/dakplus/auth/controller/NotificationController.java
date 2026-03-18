@@ -43,4 +43,10 @@ public class NotificationController {
         notification.setRead(false);
         return ResponseEntity.ok(notificationRepository.save(notification));
     }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<?> deleteNotification(@PathVariable String id) {
+        notificationRepository.deleteById(id);
+        return ResponseEntity.ok().build();
+    }
 }
