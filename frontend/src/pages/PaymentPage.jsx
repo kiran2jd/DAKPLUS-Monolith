@@ -31,24 +31,23 @@ export default function PaymentPage() {
         const source = searchParams.get('source');
         const token = searchParams.get('token');
 
-        // If coming from mobile and we have a token, restore it
-        if (source === 'mobile' && token && !localStorage.getItem('token')) {
+        // If coming from mobile and we have a token, restore it IMMEDIATELY
+        if (source === 'mobile' && token) {
             localStorage.setItem('token', token);
             // Optionally fetch profile if user object is missing
-            if (!localStorage.getItem('user')) {
-                authService.getProfile().then(profile => {
-                    localStorage.setItem('user', JSON.stringify(profile));
-                    setUser(profile);
-                }).catch(err => {
-                    console.log("Profile sync failed, continuing:", err);
-                });
-            }
+            authService.getProfile().then(profile => {
+                localStorage.setItem('user', JSON.stringify(profile));
+                setUser(profile);
+            }).catch(err => {
+                console.log("Profile sync failed, continuing:", err);
+            });
         }
 
         const storedUser = localStorage.getItem('user');
         if (storedUser) {
             setUser(JSON.parse(storedUser));
-        } else if (!token) { // Only redirect to login if we don't have a token from mobile
+        } else if (!token && source !== 'mobile') { 
+            // Only redirect to login if we don't have a token AND we aren't loading from mobile
             // Enforce login for payment
             navigate(`/login?redirect=/payment${testId ? `?testId=${testId}` : ''}`);
         }
@@ -104,8 +103,10 @@ export default function PaymentPage() {
             // If testId is present, it's a individual test purchase (₹49), else specific Exam or Pro Subscription
             const amount = testId ? 49 : selectedPlan.amount;
             const itemId = testId || selectedPlan.id;
-            // FIX: Plans should be treated as EXAM to trigger unlockExam in backend
-            const itemType = testId ? 'TEST' : 'EXAM';
+            
+            // Fix: DAKPlus grants PREMIUM for its main course purchases.
+            const isSubscription = ['MTS', 'PMMG', 'PASA', 'COMBINED'].includes(itemId) || (selectedPlan.label && selectedPlan.label.includes('Prep'));
+            const itemType = testId ? 'TEST' : (isSubscription ? 'SUBSCRIPTION' : 'EXAM');
             
             // Extract explicitly passed userId from URL if available
             const urlUserId = searchParams.get('userId');
@@ -132,7 +133,14 @@ export default function PaymentPage() {
                                 localStorage.setItem('user', JSON.stringify(updatedUser));
                             }
                             setSuccess(true);
-                            setTimeout(() => navigate(testId ? `/dashboard/take-test/${testId}` : '/dashboard'), 3000);
+                            const source = searchParams.get('source');
+                            setTimeout(() => {
+                                if (source === 'mobile') {
+                                    window.location.href = 'https://dakplus.in/dashboard?payment=success';
+                                } else {
+                                    navigate(testId ? `/dashboard/take-test/${testId}` : '/dashboard');
+                                }
+                            }, 3000);
                         } else {
                             alert('Dummy payment verification failed.');
                         }
@@ -175,7 +183,7 @@ export default function PaymentPage() {
                             const source = searchParams.get('source');
                             setTimeout(() => {
                                 if (source === 'mobile') {
-                                    window.location.href = testId ? `dakplus://take-test/${testId}` : 'dakplus://dashboard';
+                                    window.location.href = 'https://dakplus.in/dashboard?payment=success';
                                 } else {
                                     navigate(testId ? `/dashboard/take-test/${testId}` : '/dashboard');
                                 }
