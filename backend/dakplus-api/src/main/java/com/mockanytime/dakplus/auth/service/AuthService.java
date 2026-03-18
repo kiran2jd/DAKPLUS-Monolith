@@ -198,4 +198,16 @@ public class AuthService {
         Optional<User> userOpt = userRepository.findById(userId);
         return userOpt.map(user -> sessionId != null && sessionId.equals(user.getActiveSessionId())).orElse(false);
     }
+
+    /**
+     * Update user's Expo push token
+     */
+    public void updatePushToken(String userId, String token) {
+        Optional<User> userOpt = userRepository.findById(userId);
+        if (userOpt.isPresent()) {
+            User user = userOpt.get();
+            user.setExpoPushToken(token);
+            userRepository.save(user);
+        }
+    }
 }
