@@ -136,7 +136,6 @@ export default function ResultScreen({ navigation, route }) {
 
                 <View style={styles.content}>
                     <View style={styles.statsGrid}>
-                    <View style={styles.statsGrid}>
                         <View style={styles.statCard}>
                             <Text style={styles.statLabel}>{language === 'hi' ? 'प्रयास किया गया' : 'Attempted'}</Text>
                             <Text style={styles.statValue}>
@@ -151,7 +150,6 @@ export default function ResultScreen({ navigation, route }) {
                             <Text style={styles.statLabel}>{language === 'hi' ? 'ग़लत' : 'Wrong'}</Text>
                             <Text style={[styles.statValue, { color: '#dc2626' }]}>{result.wrongAnswers || 0}</Text>
                         </View>
-                    </View>
                     </View>
 
                     <TouchableOpacity

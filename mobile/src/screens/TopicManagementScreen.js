@@ -207,14 +207,14 @@ export default function TopicManagementScreen({ navigation }) {
 
     return (
         <View style={styles.container}>
-            <LinearGradient colors={['#1e293b', '#0f172a']} style={[styles.header, { paddingTop: Math.max(insets.top, 5) }]}>
+            <LinearGradient colors={['#fcf9f2', '#fcf9f2']} style={[styles.header, { paddingTop: Math.max(insets.top, 5) }]}>
                 <View style={styles.headerRow}>
                     <TouchableOpacity 
                         onPress={() => navigation.goBack()} 
                         style={styles.headerIconButton}
                         activeOpacity={0.7}
                     >
-                        <Ionicons name="chevron-back" size={24} color="#fff" />
+                        <Ionicons name="chevron-back" size={24} color="#1e293b" />
                     </TouchableOpacity>
                     <Text style={styles.headerTitle}>TOPIC MATRIX</Text>
                     <TouchableOpacity 
@@ -222,7 +222,7 @@ export default function TopicManagementScreen({ navigation }) {
                         style={styles.headerIconButton}
                         activeOpacity={0.7}
                     >
-                        <Ionicons name="menu-outline" size={28} color="#fff" />
+                        <Ionicons name="menu-outline" size={28} color="#1e293b" />
                     </TouchableOpacity>
                 </View>
                 <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: 8 }}>
@@ -348,30 +348,30 @@ export default function TopicManagementScreen({ navigation }) {
 }
 
 const styles = StyleSheet.create({
-    container: { flex: 1, backgroundColor: '#0f172a' },
+    container: { flex: 1, backgroundColor: '#fcf9f2' },
     header: { paddingBottom: 24, paddingHorizontal: 20, borderBottomLeftRadius: 32, borderBottomRightRadius: 32 },
     headerRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
-    headerIconButton: { width: 44, height: 44, borderRadius: 12, backgroundColor: 'rgba(255,255,255,0.08)', justifyContent: 'center', alignItems: 'center', borderWidth: 1, borderColor: 'rgba(255,255,255,0.1)' },
-    headerTitle: { color: '#fff', fontSize: 18, fontWeight: '900', letterSpacing: 1 },
-    headerSubtitle: { color: '#94a3b8', fontSize: 12, marginTop: 4, fontWeight: '500' },
+    headerIconButton: { width: 44, height: 44, borderRadius: 12, backgroundColor: '#ffffff', justifyContent: 'center', alignItems: 'center', borderWidth: 1, borderColor: '#e2e8f0', shadowColor: '#000', shadowOpacity: 0.05, shadowOffset: { width: 0, height: 1 } },
+    headerTitle: { color: '#1e293b', fontSize: 18, fontWeight: '900', letterSpacing: 1 },
+    headerSubtitle: { color: '#475569', fontSize: 12, marginTop: 4, fontWeight: '500' },
     list: { padding: 20, paddingBottom: 40 },
-    topicCard: { backgroundColor: 'rgba(255,255,255,0.03)', borderRadius: 24, padding: 20, marginBottom: 16, borderWidth: 1, borderColor: 'rgba(255,255,255,0.05)' },
+    topicCard: { backgroundColor: '#ffffff', borderRadius: 24, padding: 20, marginBottom: 16, borderWidth: 1, borderColor: '#e2e8f0', shadowColor: '#000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.05, shadowRadius: 10, elevation: 3 },
     topicHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 15 },
-    topicName: { fontSize: 17, fontWeight: '900', color: '#fff' },
+    topicName: { fontSize: 17, fontWeight: '900', color: '#1e293b' },
     headerActions: { flexDirection: 'row', alignItems: 'center', gap: 10 },
     actionIcon: { padding: 4 },
     subtopicsContainer: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
-    subtopicBadge: { backgroundColor: 'rgba(255,255,255,0.02)', paddingHorizontal: 12, paddingVertical: 6, borderRadius: 12, borderWidth: 1, borderColor: 'rgba(255,255,255,0.05)' },
-    subtopicText: { fontSize: 12, color: '#94a3b8', fontWeight: '500' },
-    noSubtopics: { fontSize: 12, color: '#475569', fontStyle: 'italic', paddingLeft: 4 },
-    modalOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.8)', justifyContent: 'center', padding: 24 },
-    modalContent: { backgroundColor: '#1e293b', borderRadius: 32, padding: 32, borderWidth: 1, borderColor: 'rgba(255,255,255,0.1)' },
-    modalTitle: { fontSize: 22, fontWeight: '900', color: '#fff', marginBottom: 24, letterSpacing: 0.5 },
-    input: { backgroundColor: 'rgba(255,255,255,0.04)', borderRadius: 16, padding: 18, borderWidth: 1, borderColor: 'rgba(255,255,255,0.1)', marginBottom: 30, color: '#fff', fontSize: 16 },
+    subtopicBadge: { backgroundColor: '#f8fafc', paddingHorizontal: 12, paddingVertical: 6, borderRadius: 12, borderWidth: 1, borderColor: '#e2e8f0' },
+    subtopicText: { fontSize: 12, color: '#475569', fontWeight: '500' },
+    noSubtopics: { fontSize: 12, color: '#64748b', fontStyle: 'italic', paddingLeft: 4 },
+    modalOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'center', padding: 24 },
+    modalContent: { backgroundColor: '#ffffff', borderRadius: 32, padding: 32, borderWidth: 1, borderColor: '#e2e8f0', shadowColor: '#000', shadowOffset: { width: 0, height: 10 }, shadowOpacity: 0.1, shadowRadius: 20 },
+    modalTitle: { fontSize: 22, fontWeight: '900', color: '#1e293b', marginBottom: 24, letterSpacing: 0.5 },
+    input: { backgroundColor: '#ffffff', borderRadius: 16, padding: 18, borderWidth: 1, borderColor: '#e2e8f0', marginBottom: 30, color: '#1e293b', fontSize: 16 },
     modalBtns: { flexDirection: 'row', gap: 12 },
     modalBtn: { flex: 1, padding: 18, borderRadius: 16, alignItems: 'center' },
-    cancelBtn: { backgroundColor: 'rgba(255,255,255,0.05)' },
-    cancelBtnText: { color: '#94a3b8', fontWeight: 'bold' },
+    cancelBtn: { backgroundColor: '#f8fafc', borderWidth: 1, borderColor: '#e2e8f0' },
+    cancelBtnText: { color: '#64748b', fontWeight: 'bold' },
     saveBtn: { backgroundColor: '#10b981' },
     saveBtnText: { color: '#fff', fontWeight: '900', textTransform: 'uppercase' },
     empty: { alignItems: 'center', marginTop: 100 },
@@ -438,9 +438,9 @@ const styles = StyleSheet.create({
         paddingHorizontal: 16,
         paddingVertical: 10,
         borderRadius: 12,
-        backgroundColor: 'rgba(255,255,255,0.04)',
+        backgroundColor: '#ffffff',
         borderWidth: 1,
-        borderColor: 'rgba(255,255,255,0.05)',
+        borderColor: '#e2e8f0',
     },
     courseChipActive: {
         backgroundColor: 'rgba(16,185,129,0.1)',

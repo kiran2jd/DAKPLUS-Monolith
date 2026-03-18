@@ -224,63 +224,67 @@ export default function TestLibraryScreen({ navigation, route }) {
                     </TouchableOpacity>
                 </View>
 
-                <View style={styles.tabContainer}>
-                    <Pressable
-                        style={[styles.tabButton, activeTab === 'all' && styles.tabButtonActive]}
-                        onPress={() => setActiveTab('all')}
-                    >
-                        {activeTab === 'all' && <LinearGradient colors={['#dc2626', '#f97316']} style={styles.tabLine} />}
-                        <Text style={[styles.tabText, activeTab === 'all' && styles.tabTextActive]}>All Exams</Text>
-                    </Pressable>
-                    <Pressable
-                        style={[styles.tabButton, activeTab === 'purchased' && styles.tabButtonActive]}
-                        onPress={() => setActiveTab('purchased')}
-                    >
-                        {activeTab === 'purchased' && <LinearGradient colors={['#dc2626', '#f97316']} style={styles.tabLine} />}
-                        <Text style={[styles.tabText, activeTab === 'purchased' && styles.tabTextActive]}>My Library</Text>
-                    </Pressable>
-                </View>
-
-                <View style={styles.filterSection}>
-                    <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.topicScroll}>
-                        {topics.map(topic => (
+                {selectedCourseId !== null && (
+                    <>
+                        <View style={styles.tabContainer}>
                             <Pressable
-                                key={topic.id}
-                                style={[styles.topicChip, selectedTopic === topic.id && styles.topicChipActive]}
-                                onPress={() => handleTopicSelect(topic.id)}
+                                style={[styles.tabButton, activeTab === 'all' && styles.tabButtonActive]}
+                                onPress={() => setActiveTab('all')}
                             >
-                                {selectedTopic === topic.id && <LinearGradient colors={['#dc2626', '#f97316']} style={StyleSheet.absoluteFillObject} />}
-                                <Text style={[styles.topicChipText, selectedTopic === topic.id && styles.topicChipTextActive]}>
-                                    {topic.name}
-                                </Text>
+                                {activeTab === 'all' && <LinearGradient colors={['#dc2626', '#f97316']} style={styles.tabLine} />}
+                                <Text style={[styles.tabText, activeTab === 'all' && styles.tabTextActive]}>All Exams</Text>
                             </Pressable>
-                        ))}
-                    </ScrollView>
+                            <Pressable
+                                style={[styles.tabButton, activeTab === 'purchased' && styles.tabButtonActive]}
+                                onPress={() => setActiveTab('purchased')}
+                            >
+                                {activeTab === 'purchased' && <LinearGradient colors={['#dc2626', '#f97316']} style={styles.tabLine} />}
+                                <Text style={[styles.tabText, activeTab === 'purchased' && styles.tabTextActive]}>My Library</Text>
+                            </Pressable>
+                        </View>
 
-                    {selectedTopic && subtopics.length > 0 && (
-                        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.subtopicScroll}>
-                            {subtopics.map(sub => (
-                                <Pressable
-                                    key={sub.id}
-                                    style={[styles.subChip, selectedSubtopic === sub.id && styles.subChipActive]}
-                                    onPress={() => setSelectedSubtopic(selectedSubtopic === sub.id ? null : sub.id)}
-                                >
-                                    <Text style={[styles.subChipText, selectedSubtopic === sub.id && styles.subChipTextActive]}>
-                                        {sub.name}
-                                    </Text>
-                                </Pressable>
-                            ))}
-                        </ScrollView>
-                    )}
-                </View>
+                        <View style={styles.filterSection}>
+                            <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.topicScroll}>
+                                {topics.map(topic => (
+                                    <Pressable
+                                        key={topic.id}
+                                        style={[styles.topicChip, selectedTopic === topic.id && styles.topicChipActive]}
+                                        onPress={() => handleTopicSelect(topic.id)}
+                                    >
+                                        {selectedTopic === topic.id && <LinearGradient colors={['#dc2626', '#f97316']} style={StyleSheet.absoluteFillObject} />}
+                                        <Text style={[styles.topicChipText, selectedTopic === topic.id && styles.topicChipTextActive]}>
+                                            {topic.name}
+                                        </Text>
+                                    </Pressable>
+                                ))}
+                            </ScrollView>
+
+                            {selectedTopic && subtopics.length > 0 && (
+                                <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.subtopicScroll}>
+                                    {subtopics.map(sub => (
+                                        <Pressable
+                                            key={sub.id}
+                                            style={[styles.subChip, selectedSubtopic === sub.id && styles.subChipActive]}
+                                            onPress={() => setSelectedSubtopic(selectedSubtopic === sub.id ? null : sub.id)}
+                                        >
+                                            <Text style={[styles.subChipText, selectedSubtopic === sub.id && styles.subChipTextActive]}>
+                                                {sub.name}
+                                            </Text>
+                                        </Pressable>
+                                    ))}
+                                </ScrollView>
+                            )}
+                        </View>
+                    </>
+                )}
 
                 <FlatList
                     data={filteredTests}
                     keyExtractor={(item) => item.id}
-                    renderItem={selectedCourseId === null && activeTab === 'all' ? null : renderTestItem}
+                    renderItem={selectedCourseId === null ? null : renderTestItem}
                     contentContainerStyle={styles.listContent}
                     ListHeaderComponent={
-                        selectedCourseId === null && activeTab === 'all' ? (
+                        selectedCourseId === null ? (
                             <View style={styles.courseBannersContainer}>
                                 {COURSE_BANNERS.map((banner) => (
                                     <TouchableOpacity 
@@ -302,7 +306,7 @@ export default function TestLibraryScreen({ navigation, route }) {
                         ) : null
                     }
                     ListFooterComponent={
-                        (!isPro && user?.role?.toLowerCase() === 'student') && (selectedCourseId !== null || activeTab !== 'all') ? (
+                        (!isPro && user?.role?.toLowerCase() === 'student') && (selectedCourseId !== null) ? (
                             <Pressable
                                 style={styles.libraryProBanner}
                                 onPress={() => navigation.navigate('Payment')}
@@ -326,7 +330,7 @@ export default function TestLibraryScreen({ navigation, route }) {
                         ) : null
                     }
                     ListEmptyComponent={
-                        selectedCourseId === null && activeTab === 'all' ? null : (
+                        selectedCourseId === null ? null : (
                             loading ? (
                                 <View style={styles.emptyContainer}>
                                     <ActivityIndicator size="large" color="#dc2626" />

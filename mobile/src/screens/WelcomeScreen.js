@@ -17,9 +17,9 @@ export default function WelcomeScreen({ navigation }) {
     }, []);
     return (
         <SafeAreaView style={styles.container}>
-            <StatusBar barStyle="light-content" />
+            <StatusBar barStyle="dark-content" />
             <LinearGradient
-                colors={['#0f172a', '#1e293b', '#0f172a']}
+                colors={['#fcf9f2', '#fcf9f2', '#fcf9f2']}
                 style={StyleSheet.absoluteFillObject}
                 pointerEvents="none"
             />
@@ -80,7 +80,7 @@ const styles = StyleSheet.create({
     logoText: {
         fontSize: 40,
         fontWeight: 'bold',
-        color: '#fff',
+        color: '#1e293b',
         letterSpacing: 4,
     },
     logoUnderline: {
@@ -97,14 +97,14 @@ const styles = StyleSheet.create({
     title: {
         fontSize: 28,
         fontWeight: 'bold',
-        color: '#fff',
+        color: '#1e293b',
         textAlign: 'center',
         marginBottom: 15,
         lineHeight: 36,
     },
     description: {
         fontSize: 16,
-        color: '#ffffffcc',
+        color: '#475569',
         textAlign: 'center',
         lineHeight: 24,
     },
@@ -114,24 +114,24 @@ const styles = StyleSheet.create({
         marginBottom: 40,
     },
     button: {
-        backgroundColor: '#fff',
+        backgroundColor: '#dc2626',
         width: '100%',
         paddingVertical: 18,
         borderRadius: 16,
         alignItems: 'center',
-        shadowColor: '#000',
+        shadowColor: '#dc2626',
         shadowOffset: { width: 0, height: 4 },
         shadowOpacity: 0.2,
         shadowRadius: 8,
         elevation: 8,
     },
     buttonText: {
-        color: '#dc2626',
+        color: '#ffffff',
         fontSize: 18,
         fontWeight: 'bold',
     },
     footerNote: {
-        color: '#ffffff80',
+        color: '#64748b',
         fontSize: 12,
         marginTop: 20,
         textTransform: 'uppercase',

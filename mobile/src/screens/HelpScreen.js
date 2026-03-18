@@ -32,7 +32,7 @@ export default function HelpScreen({ navigation }) {
     return (
         <View style={styles.container}>
             <LinearGradient
-                colors={['#0f172a', '#1e293b', '#0f172a']}
+                colors={['#fcf9f2', '#fcf9f2', '#fcf9f2']}
                 style={StyleSheet.absoluteFillObject}
             />
             <SafeAreaView style={{ flex: 1 }}>
@@ -82,7 +82,7 @@ export default function HelpScreen({ navigation }) {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: '#0f172a',
+        backgroundColor: '#fcf9f2',
     },
     header: {
         padding: 20,
@@ -91,7 +91,7 @@ const styles = StyleSheet.create({
     headerTitle: {
         fontSize: 22,
         fontWeight: '900',
-        color: '#fff',
+        color: '#1e293b',
     },
     scrollContent: {
         padding: 20,
@@ -99,7 +99,7 @@ const styles = StyleSheet.create({
     sectionTitle: {
         fontSize: 18,
         fontWeight: '900',
-        color: '#fff',
+        color: '#1e293b',
         marginBottom: 15,
     },
     contactSection: {
@@ -130,21 +130,21 @@ const styles = StyleSheet.create({
         marginBottom: 30,
     },
     faqCard: {
-        backgroundColor: 'rgba(255,255,255,0.03)',
+        backgroundColor: '#ffffff',
         padding: 15,
         borderRadius: 15,
         marginBottom: 12,
         borderWidth: 1,
-        borderColor: 'rgba(255,255,255,0.05)',
+        borderColor: '#e2e8f0',
     },
     faqQuestion: {
-        color: '#fff',
+        color: '#1e293b',
         fontSize: 15,
         fontWeight: 'bold',
         marginBottom: 5,
     },
     faqAnswer: {
-        color: '#94a3b8',
+        color: '#64748b',
         fontSize: 13,
         lineHeight: 18,
     },

@@ -205,12 +205,12 @@ export default function CreateTestScreen({ navigation }) {
 
     return (
         <SafeAreaView style={styles.container}>
-            <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : null} style={{ flex: 1, backgroundColor: '#0f172a' }}>
+            <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : null} style={{ flex: 1, backgroundColor: '#fcf9f2' }}>
                 <ScrollView contentContainerStyle={styles.scrollContainer} showsVerticalScrollIndicator={false}>
-                    <LinearGradient colors={['#1e293b', '#0f172a']} style={[styles.header, { paddingTop: Math.max(insets.top, 15) }]}>
+                    <LinearGradient colors={['#fcf9f2', '#fcf9f2']} style={[styles.header, { paddingTop: Math.max(insets.top, 15) }]}>
                         <View style={styles.topNav}>
                             <TouchableOpacity onPress={() => navigation.goBack()} style={styles.headerIconButton}>
-                                <Ionicons name="chevron-back" size={24} color="#fff" />
+                                <Ionicons name="chevron-back" size={24} color="#1e293b" />
                             </TouchableOpacity>
                             <Text style={styles.headerTitle}>DESIGN EXAM</Text>
                             <View style={{ width: 44 }} />
@@ -281,7 +281,7 @@ export default function CreateTestScreen({ navigation }) {
                                             <Ionicons 
                                                 name={courseIds.includes(cid) ? "checkbox" : "square-outline"} 
                                                 size={16} 
-                                                color={courseIds.includes(cid) ? "#fff" : "#94a3b8"} 
+                                                color={courseIds.includes(cid) ? "#fff" : "#64748b"} 
                                             />
                                             <Text style={[styles.courseChipText, courseIds.includes(cid) ? styles.courseChipTextSelected : null]}>
                                                 {cid}
@@ -435,27 +435,27 @@ export default function CreateTestScreen({ navigation }) {
 }
 
 const styles = StyleSheet.create({
-    container: { flex: 1, backgroundColor: '#0f172a' },
+    container: { flex: 1, backgroundColor: '#fcf9f2' },
     header: { paddingBottom: 30, paddingHorizontal: 20, borderBottomLeftRadius: 32, borderBottomRightRadius: 32 },
     topNav: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 15 },
-    headerIconButton: { width: 44, height: 44, borderRadius: 12, backgroundColor: 'rgba(255,255,255,0.08)', justifyContent: 'center', alignItems: 'center', borderWidth: 1, borderColor: 'rgba(255,255,255,0.1)' },
-    headerTitle: { color: '#fff', fontSize: 20, fontWeight: '900', letterSpacing: 1 },
-    headerSubtitle: { color: '#94a3b8', fontSize: 13, textAlign: 'center', fontWeight: '500' },
+    headerIconButton: { width: 44, height: 44, borderRadius: 12, backgroundColor: '#ffffff', justifyContent: 'center', alignItems: 'center', borderWidth: 1, borderColor: '#e2e8f0', shadowColor: '#000', shadowOpacity: 0.05, shadowOffset: { width: 0, height: 1 } },
+    headerTitle: { color: '#1e293b', fontSize: 20, fontWeight: '900', letterSpacing: 1 },
+    headerSubtitle: { color: '#475569', fontSize: 13, textAlign: 'center', fontWeight: '500' },
     scrollContainer: { flexGrow: 1, paddingBottom: 40 },
     form: { padding: 20 },
     inputGroup: { marginBottom: 24 },
-    label: { color: '#94a3b8', fontSize: 13, marginBottom: 10, fontWeight: '900', letterSpacing: 0.5, textTransform: 'uppercase' },
-    input: { backgroundColor: 'rgba(255,255,255,0.04)', borderRadius: 16, padding: 16, color: '#fff', fontSize: 16, borderWidth: 1, borderColor: 'rgba(255,255,255,0.08)' },
+    label: { color: '#64748b', fontSize: 13, marginBottom: 10, fontWeight: '900', letterSpacing: 0.5, textTransform: 'uppercase' },
+    input: { backgroundColor: '#ffffff', borderRadius: 16, padding: 16, color: '#1e293b', fontSize: 16, borderWidth: 1, borderColor: '#e2e8f0' },
     row: { flexDirection: 'row', gap: 12 },
-    divider: { height: 1, backgroundColor: 'rgba(255,255,255,0.05)', marginVertical: 30 },
+    divider: { height: 1, backgroundColor: '#e2e8f0', marginVertical: 30 },
     sectionHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 },
-    sectionTitle: { color: '#fff', fontSize: 22, fontWeight: '900' },
+    sectionTitle: { color: '#1e293b', fontSize: 22, fontWeight: '900' },
     aiButton: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#7c3aed', paddingVertical: 10, paddingHorizontal: 16, borderRadius: 12, gap: 8, elevation: 4 },
     aiButtonText: { color: '#fff', fontSize: 12, fontWeight: 'bold' },
-    questionCard: { backgroundColor: 'rgba(255,255,255,0.02)', borderRadius: 28, padding: 24, marginBottom: 24, borderWidth: 1, borderColor: 'rgba(255,255,255,0.05)' },
+    questionCard: { backgroundColor: '#ffffff', borderRadius: 28, padding: 24, marginBottom: 24, borderWidth: 1, borderColor: '#e2e8f0', shadowColor: '#000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.05, shadowRadius: 10, elevation: 3 },
     qIndex: { color: '#dc2626', fontWeight: '900', marginBottom: 18, fontSize: 12, letterSpacing: 1, textTransform: 'uppercase' },
     optionRow: { flexDirection: 'row', alignItems: 'center', gap: 12, marginTop: 14 },
-    radio: { width: 24, height: 24, borderRadius: 12, borderWidth: 2, borderColor: 'rgba(255,255,255,0.2)', justifyContent: 'center', alignItems: 'center' },
+    radio: { width: 24, height: 24, borderRadius: 12, borderWidth: 2, borderColor: '#cbd5e1', justifyContent: 'center', alignItems: 'center' },
     radioSelected: { backgroundColor: '#10b981', borderColor: '#10b981' },
     addButton: { padding: 20, borderRadius: 18, borderWidth: 2, borderColor: 'rgba(220, 38, 38, 0.3)', borderStyle: 'dashed', alignItems: 'center', marginBottom: 32 },
     addButtonText: { color: '#dc2626', fontWeight: '900', fontSize: 15, letterSpacing: 0.5 },
@@ -463,19 +463,19 @@ const styles = StyleSheet.create({
     submitButtonText: { color: '#fff', fontSize: 18, fontWeight: '900', letterSpacing: 1 },
     disabledBtn: { opacity: 0.6 },
     pickerContainer: { marginBottom: 10 },
-    chip: { paddingHorizontal: 18, paddingVertical: 10, borderRadius: 24, backgroundColor: 'rgba(255,255,255,0.05)', marginRight: 10, borderWidth: 1, borderColor: 'rgba(255,255,255,0.08)' },
+    chip: { paddingHorizontal: 18, paddingVertical: 10, borderRadius: 24, backgroundColor: '#ffffff', marginRight: 10, borderWidth: 1, borderColor: '#e2e8f0' },
     chipSelected: { backgroundColor: '#dc2626', borderColor: '#dc2626' },
-    chipText: { fontSize: 13, color: '#94a3b8', fontWeight: '600' },
+    chipText: { fontSize: 13, color: '#64748b', fontWeight: '600' },
     chipTextSelected: { color: '#fff', fontWeight: 'bold' },
     smallImgBtn: {
         flexDirection: 'row',
         alignItems: 'center',
-        backgroundColor: 'rgba(255,255,255,0.05)',
+        backgroundColor: '#ffffff',
         paddingVertical: 6,
         paddingHorizontal: 10,
         borderRadius: 8,
         borderWidth: 1,
-        borderColor: 'rgba(255,255,255,0.1)',
+        borderColor: '#e2e8f0',
         gap: 6
     },
     imgPicked: {
@@ -498,11 +498,11 @@ const styles = StyleSheet.create({
         paddingHorizontal: 12, 
         paddingVertical: 8, 
         borderRadius: 12, 
-        backgroundColor: 'rgba(255,255,255,0.05)',
+        backgroundColor: '#ffffff',
         borderWidth: 1,
-        borderColor: 'rgba(255,255,255,0.08)'
+        borderColor: '#e2e8f0'
     },
     courseChipSelected: { backgroundColor: '#dc2626', borderColor: '#dc2626' },
-    courseChipText: { color: '#94a3b8', fontSize: 13, fontWeight: '600' },
+    courseChipText: { color: '#64748b', fontSize: 13, fontWeight: '600' },
     courseChipTextSelected: { color: '#fff', fontWeight: 'bold' }
 });

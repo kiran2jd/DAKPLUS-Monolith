@@ -123,9 +123,9 @@ export default function EditTestScreen({ navigation, route }) {
         <SafeAreaView style={styles.container}>
             <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : null} style={{ flex: 1 }}>
                 <ScrollView contentContainerStyle={styles.scrollContainer}>
-                    <LinearGradient colors={['#1e293b', '#334155']} style={styles.header}>
+                    <LinearGradient colors={['#fcf9f2', '#fcf9f2']} style={styles.header}>
                         <TouchableOpacity onPress={() => navigation.goBack()} style={{ alignSelf: 'flex-start', marginBottom: 10 }}>
-                            <Text style={{ color: '#fff' }}>← Back</Text>
+                            <Text style={{ color: '#1e293b', fontWeight: 'bold' }}>← Back</Text>
                         </TouchableOpacity>
                         <Text style={styles.headerTitle}>Edit Test</Text>
                     </LinearGradient>
@@ -260,7 +260,7 @@ export default function EditTestScreen({ navigation, route }) {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: '#f8fafc',
+        backgroundColor: '#fcf9f2',
     },
     header: {
         padding: 40,
@@ -269,7 +269,7 @@ const styles = StyleSheet.create({
         borderBottomRightRadius: 32,
     },
     headerTitle: {
-        color: '#fff',
+        color: '#1e293b',
         fontSize: 24,
         fontWeight: 'bold',
     },
@@ -389,9 +389,9 @@ const styles = StyleSheet.create({
         paddingHorizontal: 12, 
         paddingVertical: 8, 
         borderRadius: 12, 
-        backgroundColor: '#e2e8f0',
+        backgroundColor: '#ffffff',
         borderWidth: 1,
-        borderColor: '#cbd5e1'
+        borderColor: '#e2e8f0'
     },
     courseChipSelected: { backgroundColor: '#dc2626', borderColor: '#dc2626' },
     courseChipText: { color: '#475569', fontSize: 13, fontWeight: '600' },

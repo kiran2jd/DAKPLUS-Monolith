@@ -12,6 +12,7 @@ import {
 import * as WebBrowser from 'expo-web-browser';
 import { LinearGradient } from 'expo-linear-gradient';
 import * as SecureStore from 'expo-secure-store';
+import RazorpayCheckout from 'react-native-razorpay';
 import { useFocusEffect } from '@react-navigation/native';
 import api from '../services/api';
 import ConfettiCannon from 'react-native-confetti-cannon';
@@ -85,26 +86,60 @@ export default function PaymentScreen({ navigation, route }) {
     const currentPrice = details.price;
 
     const handlePayment = async () => {
-        const token = await SecureStore.getItemAsync('access_token');
         const userId = user?.id || user?._id || user?.userId;
-        // Include source=mobile, itemId, and explicit userId to let the web app know exactly what they are buying and bypass race conditions
-        const webPaymentUrl = `https://dakplus.in/payment?source=mobile&token=${encodeURIComponent(token)}&userId=${encodeURIComponent(userId)}&itemId=${selectedCourseId}`;
+        const itemType = (selectedCourseId === 'COMBINED' || selectedCourseId === 'MTS' || selectedCourseId === 'PMMG' || selectedCourseId === 'PASA') ? 'SUBSCRIPTION' : 'EXAM';
         
         setLoading(true);
         try {
-            // Use Linking to cleanly open the system browser/PWA which can easily redirect back to dakplus://
-            import('react-native').then(({ Linking }) => {
-                Linking.openURL(webPaymentUrl);
+            // 1. Create order on secure backend
+            const { data: orderData } = await api.post('/payments/create-order', {
+                amount: currentPrice,
+                userId: userId,
+                itemId: selectedCourseId,
+                itemType: itemType
             });
-            
-            // We tell the user to return to the app manually if the deep link gets blocked
-            Alert.alert(
-                "Secure Payment", 
-                "You are being redirected to our secure payment portal. Once you complete the payment, return to this app and it will automatically refresh."
-            );
+
+            // Make sure the env var is set in your build or local environment
+            const keyId = process.env.EXPO_PUBLIC_RAZORPAY_KEY_ID || 'rzp_test_YOUR_KEY_HERE';
+
+            const options = {
+                description: details.subtitle,
+                image: 'https://api-v2.dakplus.in/logo.jpg',
+                currency: 'INR',
+                key: keyId,
+                amount: orderData.amount * 100, // Razorpay takes paise
+                name: 'DAK Plus App',
+                order_id: orderData.orderId,
+                prefill: {
+                    email: user?.email || '',
+                    contact: user?.phoneNumber || user?.phone || '',
+                    name: user?.fullName || user?.name || ''
+                },
+                theme: { color: '#dc2626' }
+            };
+
+            RazorpayCheckout.open(options).then((data) => {
+                // 2. Verify payment locally
+                api.post('/payments/verify-payment', {
+                    razorpay_payment_id: data.razorpay_payment_id,
+                    razorpay_order_id: data.razorpay_order_id,
+                    razorpay_signature: data.razorpay_signature
+                }).then(() => {
+                    setSuccess(true);
+                    loadProfile(); // Refreshes state and navigates
+                }).catch(err => {
+                    Alert.alert("Verification Error", "Payment successful but confirmation delayed. Check your purchases later.");
+                });
+            }).catch((error) => {
+                // Error code 0 generally means cancelled
+                if (error?.code !== 0 && error?.code !== '0') {
+                    Alert.alert("Payment Cancelled", "The transaction was canceled or failed.");
+                }
+            });
+
         } catch (err) {
-            console.error("Browser Error:", err);
-            Alert.alert('Technical Error', 'Temporary failure in opening the secure portal.');
+            console.error("Order Creation Error:", err);
+            Alert.alert('Technical Error', 'Could not securely initiate transaction at this time.');
         } finally {
             setLoading(false);
         }

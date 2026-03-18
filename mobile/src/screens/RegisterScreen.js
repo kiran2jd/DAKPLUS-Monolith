@@ -173,13 +173,13 @@ export default function RegisterScreen({ navigation, route }) {
             <View style={styles.modalOverlay}>
                 <View style={styles.modalContent}>
                     <LinearGradient
-                        colors={['#0f172a', '#1e293b']}
+                        colors={['#ffffff', '#fcf9f2']}
                         style={StyleSheet.absoluteFillObject}
                     />
                     <View style={styles.modalHeader}>
                         <Text style={styles.modalTitle}>Select {currentField === 'circle' ? 'Postal Circle' : currentField === 'cadre' ? 'Cadre' : 'Target Exam'}</Text>
                         <TouchableOpacity onPress={() => setModalVisible(false)}>
-                            <Ionicons name="close" size={28} color="#fff" />
+                            <Ionicons name="close" size={28} color="#1e293b" />
                         </TouchableOpacity>
                     </View>
 
@@ -217,7 +217,7 @@ export default function RegisterScreen({ navigation, route }) {
                 style={styles.container}
             >
                 <LinearGradient
-                    colors={['#0f172a', '#1e293b', '#0f172a']}
+                    colors={['#fcf9f2', '#fcf9f2', '#fcf9f2']}
                     style={StyleSheet.absoluteFillObject}
                 />
                 <ScrollView
@@ -387,7 +387,7 @@ export default function RegisterScreen({ navigation, route }) {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: '#0f172a',
+        backgroundColor: '#fcf9f2',
     },
     scrollContainer: {
         flexGrow: 1,
@@ -401,7 +401,7 @@ const styles = StyleSheet.create({
     title: {
         fontSize: 28,
         fontWeight: 'bold',
-        color: '#fff',
+        color: '#1e293b',
         letterSpacing: 1,
     },
     subtitle: {
@@ -410,11 +410,11 @@ const styles = StyleSheet.create({
         marginTop: 5,
     },
     card: {
-        backgroundColor: 'rgba(255,255,255,0.03)',
+        backgroundColor: '#ffffff',
         borderRadius: 24,
         padding: 24,
         borderWidth: 1,
-        borderColor: 'rgba(255,255,255,0.08)',
+        borderColor: '#e2e8f0',
         shadowColor: '#000',
         shadowOffset: { width: 0, height: 8 },
         shadowOpacity: 0.05,
@@ -425,13 +425,13 @@ const styles = StyleSheet.create({
     },
     divider: {
         height: 1,
-        backgroundColor: 'rgba(255,255,255,0.05)',
+        backgroundColor: '#e2e8f0',
         marginVertical: 10,
     },
     sectionTitle: {
         fontSize: 16,
         fontWeight: 'bold',
-        color: '#fff',
+        color: '#1e293b',
         marginBottom: 8,
     },
     inputGroup: {
@@ -445,28 +445,28 @@ const styles = StyleSheet.create({
     passwordContainer: {
         flexDirection: 'row',
         alignItems: 'center',
-        backgroundColor: 'rgba(255,255,255,0.05)',
+        backgroundColor: '#ffffff',
         borderRadius: 14,
         borderWidth: 1,
-        borderColor: 'rgba(255,255,255,0.1)',
+        borderColor: '#e2e8f0',
     },
     passwordInput: {
         flex: 1,
         padding: 16,
-        color: '#fff',
+        color: '#1e293b',
         fontSize: 16,
     },
     eyeIcon: {
         padding: 12,
     },
     input: {
-        backgroundColor: 'rgba(255,255,255,0.05)',
+        backgroundColor: '#ffffff',
         borderRadius: 12,
         padding: 14,
-        color: '#fff',
+        color: '#1e293b',
         fontSize: 16,
         borderWidth: 1,
-        borderColor: 'rgba(255,255,255,0.1)',
+        borderColor: '#e2e8f0',
     },
     disabledInput: {
         opacity: 0.6,
@@ -569,18 +569,18 @@ const styles = StyleSheet.create({
         fontWeight: 'bold',
     },
     selector: {
-        backgroundColor: 'rgba(255,255,255,0.05)',
+        backgroundColor: '#ffffff',
         borderRadius: 12,
         padding: 14,
         flexDirection: 'row',
         justifyContent: 'space-between',
         alignItems: 'center',
         borderWidth: 1,
-        borderColor: 'rgba(255,255,255,0.1)',
+        borderColor: '#e2e8f0',
     },
     selectorText: {
         fontSize: 16,
-        color: '#fff',
+        color: '#1e293b',
     },
     placeholder: {
         color: '#555',
@@ -591,7 +591,7 @@ const styles = StyleSheet.create({
         justifyContent: 'flex-end',
     },
     modalContent: {
-        backgroundColor: '#0f172a',
+        backgroundColor: '#ffffff',
         borderTopLeftRadius: 32,
         borderTopRightRadius: 32,
         maxHeight: '80%',
@@ -607,17 +607,17 @@ const styles = StyleSheet.create({
     modalTitle: {
         fontSize: 20,
         fontWeight: 'bold',
-        color: '#fff',
+        color: '#1e293b',
     },
     searchInput: {
-        backgroundColor: 'rgba(255,255,255,0.05)',
+        backgroundColor: '#fcf9f2',
         borderRadius: 12,
         padding: 12,
         fontSize: 16,
-        color: '#fff',
+        color: '#1e293b',
         marginBottom: 20,
         borderWidth: 1,
-        borderColor: 'rgba(255,255,255,0.1)',
+        borderColor: '#e2e8f0',
     },
     modalItem: {
         flexDirection: 'row',
@@ -627,11 +627,11 @@ const styles = StyleSheet.create({
     },
     modalItemText: {
         fontSize: 16,
-        color: '#e2e8f0',
+        color: '#1e293b',
     },
     modalSeparator: {
         height: 1,
-        backgroundColor: 'rgba(255,255,255,0.05)',
+        backgroundColor: '#f1f5f9',
     },
     clearBtn: {
         padding: 12,

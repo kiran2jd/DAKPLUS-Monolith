@@ -186,7 +186,7 @@ export default function LoginScreen({ navigation }) {
                 style={styles.container}
             >
                 <LinearGradient
-                    colors={['#0f172a', '#1e293b', '#0f172a']}
+                    colors={['#fcf9f2', '#fcf9f2', '#fcf9f2']}
                     style={StyleSheet.absoluteFillObject}
                 />
                 <ScrollView
@@ -337,7 +337,7 @@ export default function LoginScreen({ navigation }) {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: '#0f172a',
+        backgroundColor: '#fcf9f2',
     },
     scrollContainer: {
         flexGrow: 1,
@@ -356,7 +356,7 @@ const styles = StyleSheet.create({
     title: {
         fontSize: 32,
         fontWeight: 'bold',
-        color: '#fff',
+        color: '#1e293b',
         letterSpacing: 2,
     },
     subtitle: {
@@ -365,11 +365,11 @@ const styles = StyleSheet.create({
         marginTop: 5,
     },
     card: {
-        backgroundColor: 'rgba(255,255,255,0.03)',
+        backgroundColor: '#ffffff',
         borderRadius: 24,
         padding: 28,
         borderWidth: 1,
-        borderColor: 'rgba(255,255,255,0.08)',
+        borderColor: '#e2e8f0',
         shadowColor: '#000',
         shadowOffset: { width: 0, height: 12 },
         shadowOpacity: 0.1,
@@ -377,7 +377,7 @@ const styles = StyleSheet.create({
     },
     tabContainer: {
         flexDirection: 'row',
-        backgroundColor: 'rgba(255,255,255,0.05)',
+        backgroundColor: '#f1f5f9',
         borderRadius: 12,
         padding: 4,
         marginBottom: 24,
@@ -389,7 +389,7 @@ const styles = StyleSheet.create({
         borderRadius: 8,
     },
     activeTab: {
-        backgroundColor: 'rgba(255,255,255,0.1)',
+        backgroundColor: '#ffffff',
         shadowColor: '#000',
         shadowOffset: { width: 0, height: 2 },
         shadowOpacity: 0.05,
@@ -400,7 +400,7 @@ const styles = StyleSheet.create({
         fontWeight: '600',
     },
     activeTabText: {
-        color: '#fff',
+        color: '#1e293b',
     },
     form: {
         gap: 16,
@@ -411,26 +411,26 @@ const styles = StyleSheet.create({
         marginBottom: 8,
     },
     input: {
-        backgroundColor: 'rgba(255,255,255,0.05)',
+        backgroundColor: '#ffffff',
         borderRadius: 14,
         padding: 16,
-        color: '#fff',
+        color: '#1e293b',
         fontSize: 16,
         borderWidth: 1,
-        borderColor: 'rgba(255,255,255,0.1)',
+        borderColor: '#e2e8f0',
     },
     passwordContainer: {
         flexDirection: 'row',
         alignItems: 'center',
-        backgroundColor: 'rgba(255,255,255,0.05)',
+        backgroundColor: '#ffffff',
         borderRadius: 14,
         borderWidth: 1,
-        borderColor: 'rgba(255,255,255,0.1)',
+        borderColor: '#e2e8f0',
     },
     passwordInput: {
         flex: 1,
         padding: 16,
-        color: '#fff',
+        color: '#1e293b',
         fontSize: 16,
     },
     eyeIcon: {
@@ -467,14 +467,14 @@ const styles = StyleSheet.create({
         marginTop: 24,
         paddingTop: 20,
         borderTopWidth: 1,
-        borderTopColor: 'rgba(255,255,255,0.05)',
+        borderTopColor: '#f1f5f9',
     },
     footerText: {
-        color: '#94a3b8',
+        color: '#64748b',
         fontSize: 14,
     },
     footerLink: {
-        color: '#fff',
+        color: '#1e293b',
         fontSize: 14,
         fontWeight: 'bold',
         textDecorationLine: 'underline',

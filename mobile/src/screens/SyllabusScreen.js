@@ -161,7 +161,7 @@ export default function SyllabusScreen({ navigation, route }) {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: '#f8fafc',
+        backgroundColor: '#fcf9f2',
     },
     center: {
         justifyContent: 'center',

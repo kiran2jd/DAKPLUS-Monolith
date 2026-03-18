@@ -111,7 +111,7 @@ export default function NotificationsScreen({ navigation }) {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: '#f8fafc',
+        backgroundColor: '#fcf9f2',
     },
     header: {
         flexDirection: 'row',
