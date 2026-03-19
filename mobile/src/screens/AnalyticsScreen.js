@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
     StyleSheet,
     View,
@@ -15,7 +15,6 @@ import { pushNotificationService } from '../services/pushNotification';
 
 import { useFocusEffect, DrawerActions } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useCallback, useEffect } from 'react';
 import * as SecureStore from 'expo-secure-store';
 
 const { width } = Dimensions.get('window');
