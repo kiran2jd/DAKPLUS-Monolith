@@ -130,7 +130,7 @@ export default function TestLibraryScreen({ navigation, route }) {
                     isLocked && styles.lockedCard,
                     { opacity: pressed ? 0.7 : 1 }
                 ]}
-                onPress={() => isLocked ? navigation.navigate('Payment') : navigation.navigate('TakeTest', { testId: item.id })}
+                onPress={() => isLocked ? navigation.navigate('Payment', { courseId: selectedCourseId }) : navigation.navigate('TakeTest', { testId: item.id })}
             >
                 <View style={styles.testHeader}>
                     <View style={[styles.badge, { backgroundColor: item.difficulty === 'Hard' ? 'rgba(239, 68, 68, 0.1)' : 'rgba(34, 197, 94, 0.1)' }]}>

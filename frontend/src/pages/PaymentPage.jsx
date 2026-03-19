@@ -30,11 +30,19 @@ export default function PaymentPage() {
     useEffect(() => {
         const source = searchParams.get('source');
         const token = searchParams.get('token');
+        const userId = searchParams.get('userId');
 
         // If coming from mobile and we have a token, restore it IMMEDIATELY
         if (source === 'mobile' && token) {
             localStorage.setItem('token', token);
-            // Optionally fetch profile if user object is missing
+            if (userId) {
+                const mockUser = JSON.parse(localStorage.getItem('user') || '{}');
+                mockUser.id = userId;
+                localStorage.setItem('user', JSON.stringify(mockUser));
+                setUser(mockUser);
+            }
+            
+            // Optionally fetch profile if user object is missing, but don't AWAIT it for the redirect logic
             authService.getProfile().then(profile => {
                 localStorage.setItem('user', JSON.stringify(profile));
                 setUser(profile);
@@ -44,11 +52,10 @@ export default function PaymentPage() {
         }
 
         const storedUser = localStorage.getItem('user');
-        if (storedUser) {
+        if (storedUser && JSON.parse(storedUser).id) {
             setUser(JSON.parse(storedUser));
-        } else if (!token && source !== 'mobile') { 
+        } else if (!token && !searchParams.get('userId') && source !== 'mobile') { 
             // Only redirect to login if we don't have a token AND we aren't loading from mobile
-            // Enforce login for payment
             navigate(`/login?redirect=/payment${testId ? `?testId=${testId}` : ''}`);
         }
 
@@ -247,9 +254,11 @@ export default function PaymentPage() {
         );
     }
 
+    const isMinimal = searchParams.get('minimal') === 'true';
+
     return (
         <div className="min-h-screen bg-gray-50 flex flex-col">
-            <Navbar />
+            <Navbar hide={isMinimal} />
             <div className="flex-1 container mx-auto px-4 py-8">
                 <div className="max-w-4xl mx-auto">
                     <div className="text-center mb-10">

@@ -91,7 +91,7 @@ export default function PaymentScreen({ navigation, route }) {
     const handlePayment = async () => {
         const token = await SecureStore.getItemAsync('access_token');
         const userId = user?.id || user?._id || user?.userId;
-        const webUrl = `https://dakplus.in/payment?source=mobile&token=${encodeURIComponent(token)}&userId=${encodeURIComponent(userId)}&itemId=${selectedCourseId}`;
+        const webUrl = `https://dakplus.in/payment?source=mobile&minimal=true&token=${encodeURIComponent(token)}&userId=${encodeURIComponent(userId)}&itemId=${selectedCourseId}`;
         
         setPaymentUrl(webUrl);
         setShowWebView(true);
@@ -118,8 +118,27 @@ export default function PaymentScreen({ navigation, route }) {
                     <WebView 
                         source={{ uri: paymentUrl }} 
                         style={{ flex: 1 }}
+                        injectedJavaScript={`
+                            (function() {
+                                try {
+                                    const params = new URLSearchParams(window.location.search);
+                                    const token = params.get('token');
+                                    const userId = params.get('userId');
+                                    if (token) localStorage.setItem('token', token);
+                                    if (userId) {
+                                        const user = JSON.parse(localStorage.getItem('user') || '{}');
+                                        user.id = userId;
+                                        localStorage.setItem('user', JSON.stringify(user));
+                                    }
+                                    // Safety: also set a flag to hide elements if CSS fails
+                                    document.body.classList.add('mobile-webview');
+                                } catch (e) {}
+                            })();
+                            true;
+                        `}
                         onNavigationStateChange={(navState) => {
-                            if (navState.url.includes('dakplus://') || navState.url.includes('payment=success') || navState.url.includes('/dashboard')) {
+                            console.log("WebView Nav:", navState.url);
+                            if (navState.url.includes('checkout/success') || navState.url.includes('payment=success')) {
                                 setShowWebView(false);
                                 setSuccess(true);
                                 loadProfile();

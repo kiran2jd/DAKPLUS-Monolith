@@ -53,7 +53,9 @@ export const pushNotificationService = {
         console.log('Error fetching push token:', e);
       }
     } else {
-      console.log('Must use physical device for Push Notifications');
+      console.log('Must use physical device for real Push Notifications. Using Mock Token for dev testing.');
+      // Return a valid-format mock token for testing registration logic on emulators
+      token = "ExponentPushToken[mock_emulator_token_" + Math.random().toString(36).substring(7) + "]";
     }
 
     return token;
