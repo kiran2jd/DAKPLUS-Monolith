@@ -30,6 +30,19 @@ export default function PaymentScreen({ navigation, route }) {
     const [showWebView, setShowWebView] = useState(false);
     const [paymentUrl, setPaymentUrl] = useState('');
 
+    // Handle automatic navigation when success is true
+    React.useEffect(() => {
+        let timeout;
+        if (success) {
+            timeout = setTimeout(() => {
+                navigation.navigate('Main');
+            }, 3500); // Give enough time for the confetti and user to read "PRO UNLOCKED"
+        }
+        return () => {
+            if (timeout) clearTimeout(timeout);
+        };
+    }, [success]);
+
     // REFRESH PROFILE ON FOCUS
     // This ensures that when the user returns from the browser after payment,
     // the app immediately picks up their "PREMIUM" status.
@@ -42,13 +55,14 @@ export default function PaymentScreen({ navigation, route }) {
     const loadProfile = async () => {
         try {
             const data = await api.get('/auth/profile');
-            setUser(data.user);
-            if (data.user?.subscriptionTier === 'PREMIUM') {
-                setSuccess(true);
-                // Auto-redirect to Home if user is now Premium
-                setTimeout(() => {
-                    navigation.navigate('Main');
-                }, 1500);
+            if (data.user) {
+                setUser(data.user);
+                // Also update the stored user in SecureStore so other screens see the change
+                await SecureStore.setItemAsync('user', JSON.stringify(data.user));
+                
+                if (data.user.subscriptionTier === 'PREMIUM' && !success) {
+                    setSuccess(true);
+                }
             }
         } catch (err) {
             console.error("Failed to load profile", err);

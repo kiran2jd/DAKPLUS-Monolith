@@ -11,6 +11,7 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
+import { useFocusEffect } from '@react-navigation/native';
 import { authService } from '../services/auth';
 import api from '../services/api';
 
@@ -20,9 +21,11 @@ export default function MyPurchasesScreen({ navigation }) {
     const [purchases, setPurchases] = useState([]);
     const [loading, setLoading] = useState(true);
 
-    useEffect(() => {
-        fetchPurchases();
-    }, []);
+    useFocusEffect(
+        React.useCallback(() => {
+            fetchPurchases();
+        }, [])
+    );
 
     const fetchPurchases = async () => {
         try {

@@ -15,7 +15,8 @@ import { pushNotificationService } from '../services/pushNotification';
 
 import { useFocusEffect, DrawerActions } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useCallback } from 'react';
+import { useCallback, useEffect } from 'react';
+import * as SecureStore from 'expo-secure-store';
 
 const { width } = Dimensions.get('window');
 
@@ -42,10 +43,29 @@ export default function AnalyticsScreen({ navigation }) {
     const handleTestPush = async () => {
         setTestingPush(true);
         try {
+            // PROACTIVE REGISTRATION: Try to register/refresh token before testing
+            console.log("Proactively registering push token...");
+            const token = await pushNotificationService.registerForPushNotificationsAsync();
+            if (token) {
+                await pushNotificationService.sendTokenToBackend(token);
+                // Update local storage to reflect we have a token
+                const userStr = await SecureStore.getItemAsync('user');
+                if (userStr) {
+                    const user = JSON.parse(userStr);
+                    user.expoPushToken = token;
+                    await SecureStore.setItemAsync('user', JSON.stringify(user));
+                }
+            }
+
             const data = await pushNotificationService.testPushNotification();
             Alert.alert("Push Sent!", data.message || "Please check your phone's notification tray.");
         } catch (error) {
-            Alert.alert("Failed", error?.response?.data?.message || "Could not trigger push notification.");
+            const errorMsg = error?.response?.data?.message || error.message;
+            if (errorMsg.includes("No Expo Push Token")) {
+                Alert.alert("Registration In Progress", "We've just attempted to register your device. Please try clicking this button one more time in 5 seconds.");
+            } else {
+                Alert.alert("Notification Error", errorMsg);
+            }
         } finally {
             setTestingPush(false);
         }

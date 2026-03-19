@@ -112,7 +112,9 @@ export default function PaymentPage() {
             const itemId = testId || selectedPlan.id;
             
             // Fix: DAKPlus grants PREMIUM for its main course purchases.
-            const isSubscription = ['MTS', 'PMMG', 'PASA', 'COMBINED'].includes(itemId) || (selectedPlan.label && selectedPlan.label.includes('Prep'));
+            // Segregate course payments: Only COMBINED results in global PREMIUM status.
+            // Individual courses (MTS, PMMG, PASA) use EXAM type for specific unlocking.
+            const isSubscription = itemId === 'COMBINED' || (selectedPlan.label && selectedPlan.label.includes('Prep'));
             const itemType = testId ? 'TEST' : (isSubscription ? 'SUBSCRIPTION' : 'EXAM');
             
             // Extract explicitly passed userId from URL if available
