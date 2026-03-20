@@ -40,6 +40,7 @@ export default function AnalyticsScreen({ navigation }) {
     const [testingPush, setTestingPush] = useState(false);
 
     const handleTestPush = async () => {
+        /*
         setTestingPush(true);
         try {
             // PROACTIVE REGISTRATION: Try to register/refresh token before testing
@@ -79,6 +80,8 @@ export default function AnalyticsScreen({ navigation }) {
         } finally {
             setTestingPush(false);
         }
+        */
+        Alert.alert("Notice", "Push Notification testing is currently disabled.");
     };
 
     const fetchStats = async () => {

@@ -101,19 +101,22 @@ export default function AppNavigator() {
                 const authenticated = await authService.isAuthenticated();
                 setIsAuthenticated(authenticated);
                 
+                /* 
                 if (authenticated) {
-                    // Register for push notifications if auth is successful
-                    setTimeout(async () => {
-                        try {
-                            const token = await pushNotificationService.registerForPushNotificationsAsync();
-                            if (token) {
-                                await pushNotificationService.sendTokenToBackend(token);
-                            }
-                        } catch (e) {
-                            console.log("Push reg error:", e);
-                        }
-                    }, 1000);
+                    // Register for push notifications if auth is successful (Suspended)
+                    // setTimeout(async () => {
+                    //     try {
+                    //         const token = await pushNotificationService.registerForPushNotificationsAsync();
+                    //         if (token && typeof token === 'string') {
+                    //             await pushNotificationService.sendTokenToBackend(token);
+                    //         }
+                    //     } catch (e) {
+                    //         console.log("Push reg error:", e);
+                    //     }
+                    // }, 1000);
                 }
+                */
+                // Alert.alert("Notice", "Push Notification testing is currently disabled.");
             } catch (error) {
                 setIsAuthenticated(false);
             } finally {

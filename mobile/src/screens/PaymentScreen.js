@@ -25,7 +25,7 @@ import ConfettiCannon from 'react-native-confetti-cannon';
  */
 export default function PaymentScreen({ navigation, route }) {
     const [user, setUser] = useState(null);
-    const [loading, setLoading] = useState(false);
+    const [processing, setProcessing] = useState(false);
     const [success, setSuccess] = useState(false);
     const [showWebView, setShowWebView] = useState(false);
     const [paymentUrl, setPaymentUrl] = useState('');
@@ -215,11 +215,11 @@ export default function PaymentScreen({ navigation, route }) {
                             </View>
 
                             <TouchableOpacity
-                                style={[styles.payBtn, loading ? styles.disabledBtn : null]}
+                                style={[styles.payBtn, processing ? styles.disabledBtn : null]}
                                 onPress={handlePayment}
-                                disabled={loading}
+                                disabled={processing}
                             >
-                                {loading ? <ActivityIndicator color="#fff" /> : <Text style={styles.payBtnText}>Proceed to Payment</Text>}
+                                {processing ? <ActivityIndicator color="#fff" /> : <Text style={styles.payBtnText}>Proceed to Payment</Text>}
                             </TouchableOpacity>
                         </>
                     )}
