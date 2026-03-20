@@ -24,8 +24,7 @@
         "foregroundImage": "./assets/logo.jpg",
         "backgroundColor": "#ffffff"
       },
-      "package": "com.kiran2jd.dakplus",
-      "googleServicesFile": "./google-services.json"
+      "package": "com.kiran2jd.dakplus"
     },
     "web": {
       "favicon": "./assets/logo.jpg"
@@ -36,8 +35,7 @@
       }
     },
     "plugins": [
-      "expo-font",
-      "expo-notifications"
+      "expo-font"
     ],
     "owner": "kiranchinna_expo"
   }
