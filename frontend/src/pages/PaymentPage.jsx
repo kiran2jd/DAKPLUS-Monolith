@@ -136,6 +136,7 @@ export default function PaymentPage() {
 
                     try {
                         const verificationResult = await paymentService.verifyPayment(dummyResponse);
+                        console.log('Dummy Verification Result:', verificationResult);
                         if (verificationResult.status === 'success') {
                             if (itemType === 'SUBSCRIPTION') {
                                 const updatedUser = { ...user, subscriptionTier: 'PREMIUM' };
@@ -145,7 +146,8 @@ export default function PaymentPage() {
                             const source = searchParams.get('source');
                             setTimeout(() => {
                                 if (source === 'mobile') {
-                                    window.location.href = 'https://dakplus.in/dashboard?payment=success';
+                                    console.log('Redirecting to mobile app...');
+                                    window.location.href = 'dakplus://checkout/success';
                                 } else {
                                     navigate(testId ? `/dashboard/take-test/${testId}` : '/dashboard');
                                 }
@@ -181,6 +183,7 @@ export default function PaymentPage() {
 
                     try {
                         const verificationResult = await paymentService.verifyPayment(verifyData);
+                        console.log('Payment Verification Result:', verificationResult);
                         if (verificationResult.status === 'success') {
                             // Update local user state if subscription
                             if (itemType === 'SUBSCRIPTION') {
@@ -192,7 +195,8 @@ export default function PaymentPage() {
                             const source = searchParams.get('source');
                             setTimeout(() => {
                                 if (source === 'mobile') {
-                                    window.location.href = 'https://dakplus.in/dashboard?payment=success';
+                                    console.log('Redirecting to mobile app...');
+                                    window.location.href = 'dakplus://checkout/success';
                                 } else {
                                     navigate(testId ? `/dashboard/take-test/${testId}` : '/dashboard');
                                 }

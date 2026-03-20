@@ -44,7 +44,15 @@ export default function AnalyticsScreen({ navigation }) {
         try {
             // PROACTIVE REGISTRATION: Try to register/refresh token before testing
             console.log("Proactively registering push token...");
-            const token = await pushNotificationService.registerForPushNotificationsAsync();
+            const result = await pushNotificationService.registerForPushNotificationsAsync();
+            
+            if (result && typeof result === 'object' && result.error) {
+                Alert.alert("Push Error", `Cause: ${result.error}\n\n${result.message || "Please check your settings."}`);
+                setTestingPush(false);
+                return;
+            }
+
+            const token = result; // If not an error object, it's the token
             if (token) {
                 await pushNotificationService.sendTokenToBackend(token);
                 // Update local storage to reflect we have a token
@@ -54,6 +62,9 @@ export default function AnalyticsScreen({ navigation }) {
                     user.expoPushToken = token;
                     await SecureStore.setItemAsync('user', JSON.stringify(user));
                 }
+                // Wait 2 seconds for backend to persist token
+                console.log("Waiting for backend sync...");
+                await new Promise(resolve => setTimeout(resolve, 2000));
             }
 
             const data = await pushNotificationService.testPushNotification();

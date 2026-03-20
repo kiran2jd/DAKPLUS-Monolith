@@ -103,12 +103,29 @@ export default function PaymentScreen({ navigation, route }) {
     const currentPrice = details.price;
 
     const handlePayment = async () => {
-        const token = await SecureStore.getItemAsync('access_token');
-        const userId = user?.id || user?._id || user?.userId;
-        const webUrl = `https://dakplus.in/payment?source=mobile&minimal=true&token=${encodeURIComponent(token)}&userId=${encodeURIComponent(userId)}&itemId=${selectedCourseId}`;
-        
-        setPaymentUrl(webUrl);
-        setShowWebView(true);
+        setProcessing(true); // Ensure user doesn't double-tap
+        try {
+            const token = await SecureStore.getItemAsync('access_token');
+            const currentUser = await authService.getUser();
+            const userId = currentUser?.id || currentUser?._id || currentUser?.userId;
+
+            if (!token || !userId || userId === 'undefined') {
+                console.log("CRITICAL: Authentication data missing before payment!", { userId, hasToken: !!token });
+                Alert.alert("Authentication Error", "Session expired or invalid. Please logout and login again before making a payment.");
+                setProcessing(false);
+                return;
+            }
+
+            const webUrl = `https://dakplus.in/payment?source=mobile&minimal=true&token=${encodeURIComponent(token)}&userId=${encodeURIComponent(userId)}&itemId=${selectedCourseId}`;
+            console.log("Navigating to Mobile Payment URL:", webUrl);
+            setPaymentUrl(webUrl);
+            setShowWebView(true);
+        } catch (error) {
+            console.error("Payment initiation failed:", error);
+            Alert.alert("Error", "Could not start payment. Please try again.");
+        } finally {
+            setProcessing(false);
+        }
     };
 
     return (

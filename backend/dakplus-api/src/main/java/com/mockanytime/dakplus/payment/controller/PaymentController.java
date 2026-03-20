@@ -103,14 +103,20 @@ public class PaymentController {
         System.out.println("Verifying payment: orderId=" + orderId + ", paymentId=" + paymentId);
 
         boolean isValid = razorpayService.verifySignature(orderId, paymentId, signature);
+        System.out.println("Signature validation result: " + isValid);
+        
         if (isValid) {
             // Update Purchase record
+            System.out.println("Searching for purchase record with orderId: " + orderId);
             Purchase purchase = purchaseRepository.findByOrderId(orderId).orElse(null);
+            
             if (purchase != null) {
+                System.out.println("Found purchase record: " + purchase.getId() + " for user: " + purchase.getUserId());
                 purchase.setPaymentId(paymentId);
                 purchase.setStatus("PAID");
                 purchase.setUpdatedAt(LocalDateTime.now());
                 purchaseRepository.save(purchase);
+                System.out.println("Purchase status updated to PAID");
 
                 String targetUserId = purchase.getUserId();
 
@@ -126,17 +132,20 @@ public class PaymentController {
                 } else if ("EXAM".equals(purchase.getItemType()) || "TEST".equals(purchase.getItemType())) {
                     try {
                         String itemId = purchase.getItemId();
-                        System.out.println("Unlocking exam " + itemId + " for user: " + targetUserId);
+                        System.out.println("Unlocking exam/test " + itemId + " for user: " + targetUserId);
                         authService.unlockExam(targetUserId, itemId);
                         System.out.println("Exam unlocked for userId: " + targetUserId);
                     } catch (Exception e) {
                         System.err.println("Failed to unlock exam: " + e.getMessage());
                     }
                 }
+            } else {
+                System.err.println("CRITICAL: Purchase record NOT FOUND for verified orderId: " + orderId);
             }
 
             return ResponseEntity.ok(Map.of("status", "success", "message", "Payment verified"));
         } else {
+            System.err.println("INVALID SIGNATURE for orderId: " + orderId);
             // Update Purchase as Failed
             Purchase purchase = purchaseRepository.findByOrderId(orderId).orElse(null);
             if (purchase != null) {
