@@ -168,6 +168,19 @@ export default function PaymentScreen({ navigation, route }) {
                             })();
                             true;
                         `}
+                        onMessage={(event) => {
+                            try {
+                                const data = JSON.parse(event.nativeEvent.data);
+                                console.log("WebView Message:", data);
+                                if (data.status === 'success') {
+                                    setShowWebView(false);
+                                    setSuccess(true);
+                                    loadProfile();
+                                }
+                            } catch (e) {
+                                console.log("WebView Message Error:", e);
+                            }
+                        }}
                         onNavigationStateChange={(navState) => {
                             console.log("WebView Nav:", navState.url);
                             if (navState.url.includes('checkout/success') || navState.url.includes('payment=success')) {

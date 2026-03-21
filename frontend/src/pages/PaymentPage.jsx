@@ -144,14 +144,17 @@ export default function PaymentPage() {
                             }
                             setSuccess(true);
                             const source = searchParams.get('source');
-                            setTimeout(() => {
-                                if (source === 'mobile') {
-                                    console.log('Redirecting to mobile app...');
-                                    window.location.href = 'dakplus://checkout/success';
-                                } else {
-                                    navigate(testId ? `/dashboard/take-test/${testId}` : '/dashboard');
-                                }
-                            }, 3000);
+                             setTimeout(() => {
+                                 if (source === 'mobile') {
+                                     console.log('Notifying mobile app via postMessage and redirect...');
+                                     if (window.ReactNativeWebView) {
+                                         window.ReactNativeWebView.postMessage(JSON.stringify({ status: 'success', type: 'payment' }));
+                                     }
+                                     window.location.href = 'dakplus://checkout/success';
+                                 } else {
+                                     navigate(testId ? `/dashboard/take-test/${testId}` : '/dashboard');
+                                 }
+                             }, 3000);
                         } else {
                             alert('Dummy payment verification failed.');
                         }
@@ -193,14 +196,17 @@ export default function PaymentPage() {
 
                             setSuccess(true);
                             const source = searchParams.get('source');
-                            setTimeout(() => {
-                                if (source === 'mobile') {
-                                    console.log('Redirecting to mobile app...');
-                                    window.location.href = 'dakplus://checkout/success';
-                                } else {
-                                    navigate(testId ? `/dashboard/take-test/${testId}` : '/dashboard');
-                                }
-                            }, 3000);
+                             setTimeout(() => {
+                                 if (source === 'mobile') {
+                                     console.log('Notifying mobile app via postMessage and redirect...');
+                                     if (window.ReactNativeWebView) {
+                                         window.ReactNativeWebView.postMessage(JSON.stringify({ status: 'success', type: 'payment' }));
+                                     }
+                                     window.location.href = 'dakplus://checkout/success';
+                                 } else {
+                                     navigate(testId ? `/dashboard/take-test/${testId}` : '/dashboard');
+                                 }
+                             }, 3000);
                         } else {
                             alert('Payment verification failed. Please contact support.');
                         }
