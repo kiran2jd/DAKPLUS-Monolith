@@ -232,63 +232,28 @@ export default function TestLibraryScreen({ navigation, route }) {
                 </LinearGradient>
 
                 {selectedCourseId !== null && (
-                    <>
-                        <View style={styles.tabContainer}>
-                            <Pressable
-                                style={[styles.tabButton, activeTab === 'all' && styles.tabButtonActive]}
-                                onPress={() => setActiveTab('all')}
-                            >
-                                {activeTab === 'all' && <LinearGradient colors={['#dc2626', '#f97316']} style={styles.tabLine} />}
-                                <Text style={[styles.tabText, activeTab === 'all' && styles.tabTextActive]}>All Exams</Text>
-                            </Pressable>
-                            <Pressable
-                                style={[styles.tabButton, activeTab === 'purchased' && styles.tabButtonActive]}
-                                onPress={() => setActiveTab('purchased')}
-                            >
-                                {activeTab === 'purchased' && <LinearGradient colors={['#dc2626', '#f97316']} style={styles.tabLine} />}
-                                <Text style={[styles.tabText, activeTab === 'purchased' && styles.tabTextActive]}>My Library</Text>
-                            </Pressable>
-                        </View>
-
-                        <View style={styles.filterSection}>
-                            <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.topicScroll}>
-                                {topics.map(topic => (
-                                    <Pressable
-                                        key={topic.id}
-                                        style={[styles.topicChip, selectedTopic === topic.id && styles.topicChipActive]}
-                                        onPress={() => handleTopicSelect(topic.id)}
-                                    >
-                                        {selectedTopic === topic.id && <LinearGradient colors={['#dc2626', '#f97316']} style={StyleSheet.absoluteFillObject} />}
-                                        <Text style={[styles.topicChipText, selectedTopic === topic.id && styles.topicChipTextActive]}>
-                                            {topic.name}
-                                        </Text>
-                                    </Pressable>
-                                ))}
-                            </ScrollView>
-
-                            {selectedTopic && subtopics.length > 0 && (
-                                <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.subtopicScroll}>
-                                    {subtopics.map(sub => (
-                                        <Pressable
-                                            key={sub.id}
-                                            style={[styles.subChip, selectedSubtopic === sub.id && styles.subChipActive]}
-                                            onPress={() => setSelectedSubtopic(selectedSubtopic === sub.id ? null : sub.id)}
-                                        >
-                                            <Text style={[styles.subChipText, selectedSubtopic === sub.id && styles.subChipTextActive]}>
-                                                {sub.name}
-                                            </Text>
-                                        </Pressable>
-                                    ))}
-                                </ScrollView>
-                            )}
-                        </View>
-                    </>
+                    <View style={styles.tabContainer}>
+                        <Pressable
+                            style={[styles.tabButton, activeTab === 'all' && styles.tabButtonActive]}
+                            onPress={() => setActiveTab('all')}
+                        >
+                            {activeTab === 'all' && <LinearGradient colors={['#dc2626', '#f97316']} style={styles.tabLine} />}
+                            <Text style={[styles.tabText, activeTab === 'all' && styles.tabTextActive]}>All Exams</Text>
+                        </Pressable>
+                        <Pressable
+                            style={[styles.tabButton, activeTab === 'purchased' && styles.tabButtonActive]}
+                            onPress={() => setActiveTab('purchased')}
+                        >
+                            {activeTab === 'purchased' && <LinearGradient colors={['#dc2626', '#f97316']} style={styles.tabLine} />}
+                            <Text style={[styles.tabText, activeTab === 'purchased' && styles.tabTextActive]}>My Library</Text>
+                        </Pressable>
+                    </View>
                 )}
 
                 <FlatList
-                    data={filteredTests}
+                    data={selectedCourseId === null ? [] : filteredTests}
                     keyExtractor={(item) => item.id}
-                    renderItem={selectedCourseId === null ? null : renderTestItem}
+                    renderItem={selectedCourseId === null || !selectedSubtopic ? null : renderTestItem}
                     contentContainerStyle={styles.listContent}
                     ListHeaderComponent={
                         selectedCourseId === null ? (
@@ -310,7 +275,57 @@ export default function TestLibraryScreen({ navigation, route }) {
                                     </TouchableOpacity>
                                 ))}
                             </View>
-                        ) : null
+                        ) : (
+                            <View style={styles.verticalHierarchyContainer}>
+                                {topics.map((topic, tIdx) => {
+                                    const isSelfSelected = selectedTopic === topic.id;
+                                    const topicColors = [['#dc2626', '#b91c1c'], ['#1e3a8a', '#1d4ed8'], ['#7c3aed', '#5b21b6'], ['#059669', '#047857']];
+                                    const colors = topicColors[tIdx % topicColors.length];
+
+                                    return (
+                                        <View key={topic.id} style={styles.hierarchyItem}>
+                                            <TouchableOpacity 
+                                                activeOpacity={0.8}
+                                                onPress={() => handleTopicSelect(topic.id)}
+                                                style={[styles.topicBannerWrapper, isSelfSelected && styles.topicBannerActive]}
+                                            >
+                                                <LinearGradient colors={isSelfSelected ? colors : ['#ffffff', '#f8fafc']} style={styles.topicBannerCard} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }}>
+                                                    <Ionicons name="folder-open-outline" size={24} color={isSelfSelected ? '#fff' : colors[0]} style={{ marginRight: 15 }} />
+                                                    <Text style={[styles.topicBannerTitle, isSelfSelected && styles.topicBannerTitleActive]}>{topic.name}</Text>
+                                                    <Ionicons name={isSelfSelected ? "chevron-up" : "chevron-down"} size={20} color={isSelfSelected ? '#fff' : '#64748b'} />
+                                                </LinearGradient>
+                                            </TouchableOpacity>
+
+                                            {isSelfSelected && subtopics.length > 0 && (
+                                                <View style={styles.subtopicList}>
+                                                    {subtopics.map((sub) => {
+                                                        const isSubActive = selectedSubtopic === sub.id;
+                                                        return (
+                                                            <View key={sub.id}>
+                                                                <TouchableOpacity 
+                                                                    activeOpacity={0.7}
+                                                                    onPress={() => setSelectedSubtopic(isSubActive ? null : sub.id)}
+                                                                    style={[styles.subtopicBanner, isSubActive && styles.subtopicBannerActive]}
+                                                                >
+                                                                    <View style={[styles.subtopicMarker, { backgroundColor: isSubActive ? colors[0] : '#e2e8f0' }]} />
+                                                                    <Text style={[styles.subtopicText, isSubActive && styles.subtopicTextActive]}>{sub.name}</Text>
+                                                                    <Ionicons name={isSubActive ? "eye-outline" : "chevron-forward"} size={16} color={isSubActive ? colors[0] : '#94a3b8'} />
+                                                                </TouchableOpacity>
+                                                                
+                                                                {/* If subtopic is active, tests will be rendered by the FlatList but we show a header here if needed */}
+                                                                {isSubActive && (
+                                                                    <Text style={styles.testsLabel}>Exam Library</Text>
+                                                                )}
+                                                            </View>
+                                                        );
+                                                    })}
+                                                </View>
+                                            )}
+                                        </View>
+                                    );
+                                })}
+                            </View>
+                        )
                     }
                     ListFooterComponent={
                         (!isPro && user?.role?.toLowerCase() === 'student') && (selectedCourseId !== null) ? (
@@ -650,4 +665,86 @@ const styles = StyleSheet.create({
         letterSpacing: 1.5,
         marginBottom: 6,
     },
+    // VERTICAL HIERARCHY STYLES
+    verticalHierarchyContainer: {
+        marginBottom: 20,
+    },
+    hierarchyItem: {
+        marginBottom: 12,
+    },
+    topicBannerWrapper: {
+        borderRadius: 20,
+        overflow: 'hidden',
+        borderWidth: 1,
+        borderColor: '#e2e8f0',
+        elevation: 2,
+        shadowColor: '#000',
+        shadowOpacity: 0.05,
+        shadowOffset: { width: 0, height: 2 },
+    },
+    topicBannerActive: {
+        borderColor: 'transparent',
+        elevation: 6,
+        shadowOpacity: 0.2,
+        shadowRadius: 10,
+    },
+    topicBannerCard: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        paddingVertical: 18,
+        paddingHorizontal: 20,
+    },
+    topicBannerTitle: {
+        flex: 1,
+        fontSize: 16,
+        fontWeight: '800',
+        color: '#1e293b',
+    },
+    topicBannerTitleActive: {
+        color: '#fff',
+    },
+    subtopicList: {
+        marginTop: 8,
+        paddingLeft: 10,
+    },
+    subtopicBanner: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        paddingVertical: 14,
+        paddingHorizontal: 16,
+        backgroundColor: '#fff',
+        borderRadius: 15,
+        marginBottom: 6,
+        borderWidth: 1,
+        borderColor: '#f1f5f9',
+    },
+    subtopicBannerActive: {
+        borderColor: '#e2e8f0',
+        backgroundColor: '#f8fafc',
+    },
+    subtopicMarker: {
+        width: 4,
+        height: 16,
+        borderRadius: 2,
+        marginRight: 12,
+    },
+    subtopicText: {
+        flex: 1,
+        fontSize: 14,
+        fontWeight: '700',
+        color: '#64748b',
+    },
+    subtopicTextActive: {
+        color: '#1e293b',
+    },
+    testsLabel: {
+        fontSize: 12,
+        fontWeight: '900',
+        color: '#94a3b8',
+        textTransform: 'uppercase',
+        letterSpacing: 1,
+        marginLeft: 15,
+        marginTop: 15,
+        marginBottom: 5,
+    }
 });

@@ -207,32 +207,69 @@ export default function StudentDashboard() {
                     </div>
                 )}
 
-                {/* Topics */}
-                <div className="mb-8 overflow-x-auto pb-4 flex gap-4 scrollbar-hide">
-                    {topics.map(topic => (
-                        <button
-                            key={topic.id}
-                            onClick={() => handleTopicClick(topic.id)}
-                            className={`flex-shrink-0 px-6 py-3 rounded-2xl font-bold transition-all border-2 ${selectedTopic === topic.id ? 'bg-red-600 border-red-600 text-white shadow-lg' : 'bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-300 hover:border-red-300 dark:hover:border-red-500'}`}
-                        >
-                            {topic.name}
-                        </button>
-                    ))}
-                </div>
+                {/* Vertical Hierarchical Navigation */}
+                <div className="mb-10 space-y-4">
+                    <h2 className="text-xl font-black text-gray-900 dark:text-white mb-6 flex items-center gap-2">
+                        <BookOpen className="w-5 h-5 text-red-600" />
+                        Explore Topics
+                    </h2>
+                    
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                        {topics.map((topic, idx) => {
+                            const isSelected = selectedTopic === topic.id;
+                            const colors = [
+                                'from-red-600 to-red-800',
+                                'from-blue-600 to-blue-800',
+                                'from-purple-600 to-purple-800',
+                                'from-emerald-600 to-emerald-800'
+                            ];
+                            const colorClass = colors[idx % colors.length];
 
-                {selectedTopic && subtopics.length > 0 && (
-                    <div className="mb-8 flex flex-wrap gap-2">
-                        {subtopics.map(sub => (
-                            <button
-                                key={sub.id}
-                                onClick={() => setSelectedSubtopic(selectedSubtopic === sub.id ? null : sub.id)}
-                                className={`px-4 py-2 rounded-full text-sm font-semibold transition-all ${selectedSubtopic === sub.id ? 'bg-blue-600 text-white' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'}`}
-                            >
-                                {sub.name}
-                            </button>
-                        ))}
+                            return (
+                                <div key={topic.id} className="space-y-4">
+                                    <button
+                                        onClick={() => handleTopicClick(topic.id)}
+                                        className={`w-full relative overflow-hidden rounded-2xl p-6 text-left transition-all group ${
+                                            isSelected 
+                                            ? `bg-gradient-to-br ${colorClass} text-white shadow-xl scale-[1.02]` 
+                                            : 'bg-white dark:bg-gray-800 border-2 border-gray-100 dark:border-gray-700 hover:border-red-200 dark:hover:border-red-500 shadow-sm'
+                                        }`}
+                                    >
+                                        <div className="relative z-10">
+                                            <span className={`text-[10px] font-black uppercase tracking-widest ${isSelected ? 'text-white/70' : 'text-gray-400'}`}>Topic</span>
+                                            <h3 className={`text-xl font-bold mt-1 ${isSelected ? 'text-white' : 'text-gray-900 dark:text-white'}`}>
+                                                {topic.name}
+                                            </h3>
+                                        </div>
+                                        <div className={`absolute right-4 bottom-4 transition-transform group-hover:scale-110 ${isSelected ? 'text-white/20' : 'text-gray-100 dark:text-gray-700'}`}>
+                                            <BookOpen size={64} />
+                                        </div>
+                                    </button>
+
+                                    {/* Nested Subtopics */}
+                                    {isSelected && subtopics.length > 0 && (
+                                        <div className="pl-4 space-y-2 animate-in slide-in-from-top-4 duration-300">
+                                            {subtopics.map(sub => (
+                                                <button
+                                                    key={sub.id}
+                                                    onClick={() => setSelectedSubtopic(selectedSubtopic === sub.id ? null : sub.id)}
+                                                    className={`w-full flex items-center justify-between p-4 rounded-xl font-bold transition-all border-2 ${
+                                                        selectedSubtopic === sub.id
+                                                        ? 'bg-blue-50 dark:bg-blue-900/20 border-blue-600 text-blue-700 dark:text-blue-400'
+                                                        : 'bg-white dark:bg-gray-800 border-gray-100 dark:border-gray-700 text-gray-600 dark:text-gray-400 hover:bg-gray-50'
+                                                    }`}
+                                                >
+                                                    <span>{sub.name}</span>
+                                                    <PlayCircle size={16} />
+                                                </button>
+                                            ))}
+                                        </div>
+                                    )}
+                                </div>
+                            );
+                        })}
                     </div>
-                )}
+                </div>
 
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                     {/* Left Column: Progress & Tests */}
