@@ -175,18 +175,11 @@ export default function TestLibraryScreen({ navigation, route }) {
     const purchasedIds = purchases.map(p => p.itemId);
 
     const filteredTests = tests.filter(test => {
-        // If course is selected, filter by course
-        const rawCourseId = selectedCourseId;
-        const testCourseIds = test.courseIds || [];
-        const matchesCourse = rawCourseId === 'COMBINED' || testCourseIds.includes(rawCourseId);
-
-        if (!matchesCourse) return false;
-
         const matchesTopic = !selectedTopic || test.topicId === selectedTopic;
         const matchesSubtopic = !selectedSubtopic || test.subtopicId === selectedSubtopic;
 
         if (activeTab === 'purchased') {
-            const hasAccess = isPro || purchasedIds.includes(test.id) || testCourseIds.some(cid => unlockedExams.includes(cid)) || unlockedExams.includes('COMBINED');
+            const hasAccess = isPro || purchasedIds.includes(test.id) || (test.courseIds || []).some(cid => unlockedExams.includes(cid)) || unlockedExams.includes('COMBINED');
             return hasAccess && matchesTopic && matchesSubtopic;
         }
 
@@ -260,9 +253,9 @@ export default function TestLibraryScreen({ navigation, route }) {
                 )}
 
                 <FlatList
-                    data={selectedCourseId === null ? [] : filteredTests}
-                    keyExtractor={(item) => item.id}
-                    renderItem={selectedCourseId === null ? null : renderTestItem}
+                    data={[]}
+                    keyExtractor={() => 'empty'}
+                    renderItem={null}
                     contentContainerStyle={styles.listContent}
                     ListHeaderComponent={
                         selectedCourseId === null ? (
@@ -305,9 +298,18 @@ export default function TestLibraryScreen({ navigation, route }) {
                                                 </LinearGradient>
                                             </TouchableOpacity>
 
-                                            {isSelfSelected && subtopics.length > 0 && (
+                                            {isSelfSelected && (
                                                 <View style={styles.subtopicList}>
-                                                    {subtopics.map((sub) => {
+                                                    {/* Topic-level tests (General Exams with no subtopic) */}
+                                                    <View style={styles.inlineTestList}>
+                                                        {filteredTests.filter(t => t.topicId === topic.id && (!t.subtopicId || t.subtopicId === "null" || t.subtopicId === "")).map(test => (
+                                                            <View key={test.id} style={{ marginBottom: 12 }}>
+                                                                {renderTestItem({ item: test })}
+                                                            </View>
+                                                        ))}
+                                                    </View>
+
+                                                    {subtopics.length > 0 && subtopics.map((sub) => {
                                                         const isSubActive = selectedSubtopic === sub.id;
                                                         return (
                                                             <View key={sub.id}>
@@ -321,9 +323,18 @@ export default function TestLibraryScreen({ navigation, route }) {
                                                                     <Ionicons name={isSubActive ? "eye-outline" : "chevron-forward"} size={16} color={isSubActive ? colors[0] : '#94a3b8'} />
                                                                 </TouchableOpacity>
                                                                 
-                                                                {/* If subtopic is active, tests will be rendered by the FlatList but we show a header here if needed */}
+                                                                {/* Tests inside the subtopic (Folder Style) */}
                                                                 {isSubActive && (
-                                                                    <Text style={styles.testsLabel}>Exam Library</Text>
+                                                                    <View style={styles.inlineTestList}>
+                                                                        {filteredTests.filter(t => t.subtopicId === sub.id).map(test => (
+                                                                            <View key={test.id} style={{ marginBottom: 12 }}>
+                                                                                {renderTestItem({ item: test })}
+                                                                            </View>
+                                                                        ))}
+                                                                        {filteredTests.filter(t => t.subtopicId === sub.id).length === 0 && (
+                                                                            <Text style={styles.noTestsText}>No tests in this category yet.</Text>
+                                                                        )}
+                                                                    </View>
                                                                 )}
                                                             </View>
                                                         );
@@ -758,5 +769,17 @@ const styles = StyleSheet.create({
         marginLeft: 15,
         marginTop: 15,
         marginBottom: 5,
+    },
+    inlineTestList: {
+        marginTop: 10,
+        marginBottom: 15,
+        paddingLeft: 10,
+    },
+    noTestsText: {
+        fontSize: 12,
+        color: '#94a3b8',
+        fontStyle: 'italic',
+        textAlign: 'center',
+        paddingVertical: 10,
     }
 });

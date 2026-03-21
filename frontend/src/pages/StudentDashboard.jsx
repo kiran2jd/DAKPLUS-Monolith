@@ -211,7 +211,7 @@ export default function StudentDashboard() {
                 <div className="mb-10 space-y-4">
                     <h2 className="text-xl font-black text-gray-900 dark:text-white mb-6 flex items-center gap-2">
                         <BookOpen className="w-5 h-5 text-red-600" />
-                        Explore Topics
+                        Explore Library
                     </h2>
                     
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -247,21 +247,102 @@ export default function StudentDashboard() {
                                     </button>
 
                                     {/* Nested Subtopics */}
-                                    {isSelected && subtopics.length > 0 && (
-                                        <div className="pl-4 space-y-2 animate-in slide-in-from-top-4 duration-300">
-                                            {subtopics.map(sub => (
-                                                <button
-                                                    key={sub.id}
-                                                    onClick={() => setSelectedSubtopic(selectedSubtopic === sub.id ? null : sub.id)}
-                                                    className={`w-full flex items-center justify-between p-4 rounded-xl font-bold transition-all border-2 ${
-                                                        selectedSubtopic === sub.id
-                                                        ? 'bg-blue-50 dark:bg-blue-900/20 border-blue-600 text-blue-700 dark:text-blue-400'
-                                                        : 'bg-white dark:bg-gray-800 border-gray-100 dark:border-gray-700 text-gray-600 dark:text-gray-400 hover:bg-gray-50'
-                                                    }`}
-                                                >
-                                                    <span>{sub.name}</span>
-                                                    <PlayCircle size={16} />
-                                                </button>
+                                    {isSelected && (
+                                        <div className="pl-4 space-y-4 animate-in slide-in-from-top-4 duration-300">
+                                            {/* General Topic Tests (No Subtopic) */}
+                                            <div className="space-y-2">
+                                                {tests
+                                                    .filter(t => t.topicId === topic.id && (!t.subtopicId || t.subtopicId === "null" || t.subtopicId === ""))
+                                                    .map(test => {
+                                                        const isPremium = test.premium || test.isPremium;
+                                                        const testCourseIds = test.courseIds || [];
+                                                        const hasAccess = isPro || 
+                                                                         purchasedIds.includes(test.id) || 
+                                                                         testCourseIds.some(cid => user?.unlockedExams?.includes(cid)) ||
+                                                                         user?.unlockedExams?.includes('COMBINED');
+
+                                                        return (
+                                                            <div key={test.id} className="flex items-center justify-between p-3 bg-red-50/30 dark:bg-red-900/10 rounded-lg border border-red-100 dark:border-red-900/30">
+                                                                <div className="flex-1 min-w-0">
+                                                                    <p className="text-sm font-bold text-gray-900 dark:text-white truncate">{test.title}</p>
+                                                                    <span className="text-[8px] font-black text-red-600 dark:text-red-400 uppercase tracking-widest leading-none">General Exam</span>
+                                                                </div>
+                                                                <button
+                                                                    onClick={() => navigate(isPremium && !hasAccess ? `/payment?testId=${test.id}` : `/dashboard/take-test/${test.id}`)}
+                                                                    className="ml-3 px-3 py-1 bg-red-600 text-white rounded-md text-[10px] font-black uppercase"
+                                                                >
+                                                                    Start
+                                                                </button>
+                                                            </div>
+                                                        );
+                                                    })
+                                                }
+                                            </div>
+
+                                            {subtopics.length > 0 && subtopics.map(sub => (
+                                                <div key={sub.id} className="space-y-2">
+                                                    <button
+                                                        onClick={() => setSelectedSubtopic(selectedSubtopic === sub.id ? null : sub.id)}
+                                                        className={`w-full flex items-center justify-between p-4 rounded-xl font-bold transition-all border-2 ${
+                                                            selectedSubtopic === sub.id
+                                                            ? 'bg-blue-50 dark:bg-blue-900/20 border-blue-600 text-blue-700 dark:text-blue-400'
+                                                            : 'bg-white dark:bg-gray-800 border-gray-100 dark:border-gray-700 text-gray-600 dark:text-gray-400 hover:bg-gray-50'
+                                                        }`}
+                                                    >
+                                                        <span>{sub.name}</span>
+                                                        <ChevronRight className={`transition-transform ${selectedSubtopic === sub.id ? 'rotate-90' : ''}`} size={16} />
+                                                    </button>
+
+                                                    {/* Nested Tests (Inline Folder Style) */}
+                                                    {selectedSubtopic === sub.id && (
+                                                        <div className="mt-2 space-y-2 pl-4 border-l-2 border-blue-200 dark:border-blue-800">
+                                                            {tests
+                                                                .filter(t => t.subtopicId === sub.id)
+                                                                .filter(t => {
+                                                                    if (activeTab === 'purchased') {
+                                                                        const testCourseIds = t.courseIds || [];
+                                                                        return isPro || 
+                                                                               purchasedIds.includes(t.id) || 
+                                                                               testCourseIds.some(cid => user?.unlockedExams?.includes(cid)) ||
+                                                                               user?.unlockedExams?.includes('COMBINED');
+                                                                    }
+                                                                    return true;
+                                                                })
+                                                                .map(test => {
+                                                                    const isPremium = test.premium || test.isPremium;
+                                                                    const testCourseIds = test.courseIds || [];
+                                                                    const hasAccess = isPro || 
+                                                                                     purchasedIds.includes(test.id) || 
+                                                                                     testCourseIds.some(cid => user?.unlockedExams?.includes(cid)) ||
+                                                                                     user?.unlockedExams?.includes('COMBINED');
+
+                                                                    return (
+                                                                        <div key={test.id} className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg hover:bg-white dark:hover:bg-gray-700 shadow-sm transition-all border border-transparent hover:border-red-100">
+                                                                            <div className="flex-1 min-w-0">
+                                                                                <p className="text-sm font-bold text-gray-900 dark:text-white truncate">{test.title}</p>
+                                                                                <div className="flex gap-2 mt-1">
+                                                                                    {isPremium && <span className="text-[8px] font-black bg-amber-100 text-amber-700 px-1 rounded">PRO</span>}
+                                                                                    {hasAccess && isPremium && <span className="text-[8px] font-black bg-green-100 text-green-700 px-1 rounded">UNLOCKED</span>}
+                                                                                </div>
+                                                                            </div>
+                                                                            <button
+                                                                                onClick={() => navigate(isPremium && !hasAccess ? `/payment?testId=${test.id}` : `/dashboard/take-test/${test.id}`)}
+                                                                                className={`ml-3 px-3 py-1 rounded-md text-[10px] font-black uppercase transition-all ${
+                                                                                    isPremium && !hasAccess ? 'bg-amber-500 text-white' : 'bg-red-600 text-white'
+                                                                                }`}
+                                                                            >
+                                                                                {isPremium && !hasAccess ? 'Unlock' : 'Start'}
+                                                                            </button>
+                                                                        </div>
+                                                                    );
+                                                                })
+                                                            }
+                                                            {tests.filter(t => t.subtopicId === sub.id).length === 0 && (
+                                                                <p className="text-[10px] text-gray-400 italic">No tests available yet.</p>
+                                                            )}
+                                                        </div>
+                                                    )}
+                                                </div>
                                             ))}
                                         </div>
                                     )}
@@ -272,113 +353,14 @@ export default function StudentDashboard() {
                 </div>
 
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                    {/* Left Column: Progress & Tests */}
+                    {/* Left Column: Progress & News */}
                     <div className="lg:col-span-2 space-y-6">
                         <CourseProgressBar progress={completedTestsCount} total={totalAvailableTests} />
-
-                        <div id="tests-section" className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
-                            <h2 className="text-2xl font-black text-gray-900 dark:text-white">Recommended Exams</h2>
-                            <div className="flex bg-gray-200 dark:bg-gray-700 p-1 rounded-xl w-full md:w-auto transition-colors">
-                                <button
-                                    onClick={() => setActiveTab('all')}
-                                    className={`flex-1 md:flex-none px-6 py-2 rounded-lg text-sm font-bold transition ${activeTab === 'all' ? 'bg-white dark:bg-gray-600 text-red-600 dark:text-red-400 shadow-sm' : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200'}`}
-                                >
-                                    All
-                                </button>
-                                <button
-                                    onClick={() => setActiveTab('purchased')}
-                                    className={`flex-1 md:flex-none px-6 py-2 rounded-lg text-sm font-bold transition ${activeTab === 'purchased' ? 'bg-white dark:bg-gray-600 text-red-600 dark:text-red-400 shadow-sm' : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200'}`}
-                                >
-                                    My Library
-                                </button>
-                            </div>
+                        
+                        <div className="bg-white dark:bg-gray-800 p-8 rounded-3xl shadow-sm border border-gray-100 dark:border-gray-700">
+                            <h2 className="text-2xl font-black text-gray-900 dark:text-white mb-4">Latest Updates</h2>
+                            <p className="text-gray-500">Welcome to DAKPlus! Select a folder above to start your practice exams.</p>
                         </div>
-
-                        {loading ? (
-                            <div className="flex justify-center p-20">
-                                <div className="animate-spin h-10 w-10 border-4 border-red-600 border-t-transparent rounded-full"></div>
-                            </div>
-                        ) : tests.length === 0 ? (
-                            <div className="bg-white p-12 text-center rounded-2xl border-2 border-dashed border-gray-200">
-                                <ClipboardList className="h-12 w-12 text-gray-300 mx-auto mb-4" />
-                                <p className="text-gray-500 font-medium">No tests available matching your selection.</p>
-                            </div>
-                        ) : (
-                            <div className="grid grid-cols-1 gap-4">
-                                {tests.filter(test => {
-                                    const matchesTopic = !selectedTopic || test.topicId === selectedTopic;
-                                    const matchesSubtopic = !selectedSubtopic || test.subtopicId === selectedSubtopic;
-                                    
-                                    const testCourseIds = test.courseIds || [];
-                                    const isPurchased = isPro || 
-                                                       purchasedIds.includes(test.id) || 
-                                                       testCourseIds.some(cid => user?.unlockedExams?.includes(cid)) ||
-                                                       user?.unlockedExams?.includes('COMBINED');
-
-                                    if (activeTab === 'purchased') {
-                                        return isPurchased && matchesTopic && matchesSubtopic;
-                                    }
-                                    return matchesTopic && matchesSubtopic;
-                                }).map(test => {
-                                    const isPremium = test.premium || test.isPremium;
-                                    const testCourseIds = test.courseIds || [];
-                                    const hasAccess = isPro || 
-                                                     purchasedIds.includes(test.id) || 
-                                                     testCourseIds.some(cid => user?.unlockedExams?.includes(cid)) ||
-                                                     user?.unlockedExams?.includes('COMBINED');
-
-                                    const handleStart = async () => {
-                                        if (!isPremium || hasAccess) {
-                                            navigate(`/dashboard/take-test/${test.id}`);
-                                        } else {
-                                            navigate(`/payment?testId=${test.id}`);
-                                        }
-                                    };
-
-                                    return (
-                                        <div key={test.id} className="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-sm border border-gray-100 dark:border-gray-700 hover:border-red-200 dark:hover:border-red-500 hover:shadow-xl transition-all group">
-                                            <div className="flex justify-between items-start mb-4">
-                                                <div className="flex gap-2">
-                                                    <span className={`px-2 py-1 rounded text-[10px] font-black uppercase tracking-widest ${test.difficulty === 'Hard' ? 'bg-red-50 dark:bg-red-900/30 text-red-600 dark:text-red-400' : 'bg-green-50 dark:bg-green-900/30 text-green-600 dark:text-green-400'}`}>
-                                                        {test.difficulty || 'Normal'}
-                                                    </span>
-                                                    {isPremium && (
-                                                        <span className="px-2 py-1 rounded bg-amber-50 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400 text-[10px] font-black uppercase tracking-widest">
-                                                            PREMIUM
-                                                        </span>
-                                                    )}
-                                                </div>
-                                                <div className="flex items-center text-gray-400 dark:text-gray-500 text-xs gap-1">
-                                                    <Clock className="w-3 h-3" />
-                                                    {test.durationMinutes || 60}m
-                                                </div>
-                                            </div>
-                                            <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2 group-hover:text-red-600 dark:group-hover:text-red-400 transition-colors">
-                                                {test.title}
-                                            </h3>
-                                            <p className="text-gray-500 dark:text-gray-400 text-sm mb-6 line-clamp-2">{test.description}</p>
-                                            <div className="flex justify-between items-center pt-5 border-t border-gray-50 dark:border-gray-700">
-                                                <div className="flex items-center gap-2 text-xs font-bold text-gray-400 dark:text-gray-500">
-                                                    <BookOpen className="w-3 h-3" />
-                                                    {test.category || 'Standard'}
-                                                </div>
-                                                <button
-                                                    onClick={handleStart}
-                                                    className={`px-6 py-2 rounded-xl font-bold transition-all flex items-center gap-2 ${
-                                                        isPremium && !hasAccess 
-                                                        ? 'bg-amber-100 dark:bg-amber-900/50 text-amber-700 dark:text-amber-400 hover:bg-amber-500 hover:text-white' 
-                                                        : (hasAccess && isPremium ? 'bg-green-600 text-white hover:bg-green-700 shadow-md' : 'bg-red-600 text-white hover:bg-red-700 shadow-md')
-                                                    }`}
-                                                >
-                                                    {isPremium && !hasAccess ? 'Unlock' : (hasAccess && isPremium ? 'Unlocked' : 'Start')}
-                                                    {hasAccess && isPremium && <div className="w-2 h-2 rounded-full bg-white animate-pulse" />}
-                                                </button>
-                                            </div>
-                                        </div>
-                                    );
-                                })}
-                            </div>
-                        )}
                     </div>
 
                     {/* Right Column: Leaderboard & Activity */}
