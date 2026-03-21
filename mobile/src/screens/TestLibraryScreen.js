@@ -153,14 +153,16 @@ export default function TestLibraryScreen({ navigation, route }) {
 
                 <View style={styles.testFooter}>
                     <Text style={styles.categoryText}>{item.category || 'General'}</Text>
-                    <View style={[styles.startButton, isLocked ? styles.lockedBtn : null]}>
+                    <View style={[styles.startButton, isLocked ? styles.lockedBtn : styles.unlockedBtn]}>
                         <LinearGradient
-                            colors={isLocked ? ['#475569', '#334155'] : ['#dc2626', '#f97316']}
+                            colors={isLocked ? ['#475569', '#334155'] : (isUnlocked ? ['#22c55e', '#16a34a'] : ['#dc2626', '#f97316'])}
                             start={{ x: 0, y: 0 }}
                             end={{ x: 1, y: 0 }}
                             style={styles.btnGradient}
                         >
-                            <Text style={styles.startButtonText}>{isLocked ? 'Unlock PRO' : 'Start Test'}</Text>
+                            <Text style={styles.startButtonText}>
+                                {isLocked ? 'Unlock PRO' : (isUnlocked ? 'Unlocked' : 'Start Test')}
+                            </Text>
                         </LinearGradient>
                     </View>
                 </View>
@@ -173,11 +175,18 @@ export default function TestLibraryScreen({ navigation, route }) {
     const purchasedIds = purchases.map(p => p.itemId);
 
     const filteredTests = tests.filter(test => {
+        // If course is selected, filter by course
+        const rawCourseId = selectedCourseId;
+        const testCourseIds = test.courseIds || [];
+        const matchesCourse = rawCourseId === 'COMBINED' || testCourseIds.includes(rawCourseId);
+
+        if (!matchesCourse) return false;
+
         const matchesTopic = !selectedTopic || test.topicId === selectedTopic;
         const matchesSubtopic = !selectedSubtopic || test.subtopicId === selectedSubtopic;
 
         if (activeTab === 'purchased') {
-            const hasAccess = isPro || purchasedIds.includes(test.id);
+            const hasAccess = isPro || purchasedIds.includes(test.id) || testCourseIds.some(cid => unlockedExams.includes(cid)) || unlockedExams.includes('COMBINED');
             return hasAccess && matchesTopic && matchesSubtopic;
         }
 
@@ -253,7 +262,7 @@ export default function TestLibraryScreen({ navigation, route }) {
                 <FlatList
                     data={selectedCourseId === null ? [] : filteredTests}
                     keyExtractor={(item) => item.id}
-                    renderItem={selectedCourseId === null || !selectedSubtopic ? null : renderTestItem}
+                    renderItem={selectedCourseId === null ? null : renderTestItem}
                     contentContainerStyle={styles.listContent}
                     ListHeaderComponent={
                         selectedCourseId === null ? (
@@ -572,6 +581,9 @@ const styles = StyleSheet.create({
     },
     lockedBtn: {
         backgroundColor: '#334155',
+    },
+    unlockedBtn: {
+        backgroundColor: '#16a34a',
     },
     btnGradient: {
         paddingHorizontal: 16,

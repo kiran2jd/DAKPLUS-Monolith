@@ -308,7 +308,12 @@ export default function StudentDashboard() {
                                 {tests.filter(test => {
                                     const matchesTopic = !selectedTopic || test.topicId === selectedTopic;
                                     const matchesSubtopic = !selectedSubtopic || test.subtopicId === selectedSubtopic;
-                                    const isPurchased = isPro || purchasedIds.includes(test.id);
+                                    
+                                    const testCourseIds = test.courseIds || [];
+                                    const isPurchased = isPro || 
+                                                       purchasedIds.includes(test.id) || 
+                                                       testCourseIds.some(cid => user?.unlockedExams?.includes(cid)) ||
+                                                       user?.unlockedExams?.includes('COMBINED');
 
                                     if (activeTab === 'purchased') {
                                         return isPurchased && matchesTopic && matchesSubtopic;
@@ -316,7 +321,11 @@ export default function StudentDashboard() {
                                     return matchesTopic && matchesSubtopic;
                                 }).map(test => {
                                     const isPremium = test.premium || test.isPremium;
-                                    const hasAccess = isPro || purchasedIds.includes(test.id);
+                                    const testCourseIds = test.courseIds || [];
+                                    const hasAccess = isPro || 
+                                                     purchasedIds.includes(test.id) || 
+                                                     testCourseIds.some(cid => user?.unlockedExams?.includes(cid)) ||
+                                                     user?.unlockedExams?.includes('COMBINED');
 
                                     const handleStart = async () => {
                                         if (!isPremium || hasAccess) {
@@ -355,9 +364,14 @@ export default function StudentDashboard() {
                                                 </div>
                                                 <button
                                                     onClick={handleStart}
-                                                    className={`px-6 py-2 rounded-xl font-bold transition-all ${isPremium && !hasAccess ? 'bg-amber-100 dark:bg-amber-900/50 text-amber-700 dark:text-amber-400 hover:bg-amber-500 hover:text-white' : 'bg-red-600 text-white hover:bg-red-700 shadow-md hover:shadow-red-200'}`}
+                                                    className={`px-6 py-2 rounded-xl font-bold transition-all flex items-center gap-2 ${
+                                                        isPremium && !hasAccess 
+                                                        ? 'bg-amber-100 dark:bg-amber-900/50 text-amber-700 dark:text-amber-400 hover:bg-amber-500 hover:text-white' 
+                                                        : (hasAccess && isPremium ? 'bg-green-600 text-white hover:bg-green-700 shadow-md' : 'bg-red-600 text-white hover:bg-red-700 shadow-md')
+                                                    }`}
                                                 >
-                                                    {isPremium && !hasAccess ? 'Unlock' : 'Start'}
+                                                    {isPremium && !hasAccess ? 'Unlock' : (hasAccess && isPremium ? 'Unlocked' : 'Start')}
+                                                    {hasAccess && isPremium && <div className="w-2 h-2 rounded-full bg-white animate-pulse" />}
                                                 </button>
                                             </div>
                                         </div>
