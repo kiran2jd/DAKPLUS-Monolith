@@ -17,6 +17,7 @@ import * as SecureStore from 'expo-secure-store';
 import { WebView } from 'react-native-webview';
 import { useFocusEffect } from '@react-navigation/native';
 import api from '../services/api';
+import { authService } from '../services/auth';
 import ConfettiCannon from 'react-native-confetti-cannon';
 
 /**

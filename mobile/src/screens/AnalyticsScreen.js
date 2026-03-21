@@ -37,52 +37,8 @@ export default function AnalyticsScreen({ navigation }) {
         ]
     });
     const [loading, setLoading] = useState(true);
-    const [testingPush, setTestingPush] = useState(false);
 
-    const handleTestPush = async () => {
-        /*
-        setTestingPush(true);
-        try {
-            // PROACTIVE REGISTRATION: Try to register/refresh token before testing
-            console.log("Proactively registering push token...");
-            const result = await pushNotificationService.registerForPushNotificationsAsync();
-            
-            if (result && typeof result === 'object' && result.error) {
-                Alert.alert("Push Error", `Cause: ${result.error}\n\n${result.message || "Please check your settings."}`);
-                setTestingPush(false);
-                return;
-            }
 
-            const token = result; // If not an error object, it's the token
-            if (token) {
-                await pushNotificationService.sendTokenToBackend(token);
-                // Update local storage to reflect we have a token
-                const userStr = await SecureStore.getItemAsync('user');
-                if (userStr) {
-                    const user = JSON.parse(userStr);
-                    user.expoPushToken = token;
-                    await SecureStore.setItemAsync('user', JSON.stringify(user));
-                }
-                // Wait 2 seconds for backend to persist token
-                console.log("Waiting for backend sync...");
-                await new Promise(resolve => setTimeout(resolve, 2000));
-            }
-
-            const data = await pushNotificationService.testPushNotification();
-            Alert.alert("Push Sent!", data.message || "Please check your phone's notification tray.");
-        } catch (error) {
-            const errorMsg = error?.response?.data?.message || error.message;
-            if (errorMsg.includes("No Expo Push Token")) {
-                Alert.alert("Registration In Progress", "We've just attempted to register your device. Please try clicking this button one more time in 5 seconds.");
-            } else {
-                Alert.alert("Notification Error", errorMsg);
-            }
-        } finally {
-            setTestingPush(false);
-        }
-        */
-        Alert.alert("Notice", "Push Notification testing is currently disabled.");
-    };
 
     const fetchStats = async () => {
         try {
@@ -268,21 +224,7 @@ export default function AnalyticsScreen({ navigation }) {
                         </View>
                     )}
 
-                    <View style={styles.section}>
-                        <TouchableOpacity 
-                            style={styles.testPushBtn} 
-                            onPress={handleTestPush}
-                            disabled={testingPush}
-                        >
-                            <Ionicons name="notifications-outline" size={20} color="#dc2626" style={{ marginRight: 8 }} />
-                            {testingPush ? (
-                                <ActivityIndicator size="small" color="#dc2626" />
-                            ) : (
-                                <Text style={styles.testPushText}>Test Push Notifications</Text>
-                            )}
-                        </TouchableOpacity>
-                        <Text style={styles.testPushSubtext}>Tap to send a real push notification to your device to verify it's working.</Text>
-                    </View>
+
                 </ScrollView>
             </View>
         </View>
