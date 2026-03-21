@@ -48,15 +48,19 @@ export default function TestLibraryScreen({ navigation, route }) {
     const loadInitialData = async () => {
         try {
             // Only show full-screen loader if we have no topics or tests loaded yet
-            if (topics.length === 0 || tests.length === 0) {
-                setLoading(true);
+            // Sync fresh profile from server to catch any recent payments
+            let userData;
+            try {
+                userData = await authService.getProfile();
+            } catch (err) {
+                console.log("Profile refresh failed, falling back to local user", err);
+                userData = await authService.getUser();
             }
-            const userData = await authService.getUser();
             setUser(userData);
 
-            const rawCourseId = selectedCourseId || route.params?.courseId;
+            const rawCourseId = (selectedCourseId || route.params?.courseId || '').toUpperCase();
             const courseIdFilter = rawCourseId === 'COMBINED' ? null : rawCourseId;
-            console.log("Loading Library for course:", courseIdFilter);
+            console.log("Loading Library for course:", courseIdFilter, "User Pro:", userData?.subscriptionTier);
 
             const [topicsData, testsData] = await Promise.all([
                 topicService.getAllTopics(courseIdFilter),
@@ -117,8 +121,8 @@ export default function TestLibraryScreen({ navigation, route }) {
         // Course-based locking logic (Shared Content Support)
         const itemCourseIds = item.courseIds || [];
         const isUnlocked = isPro || 
-                          unlockedExams.includes('COMBINED') || 
-                          itemCourseIds.some(cid => unlockedExams.includes(cid)) ||
+                          unlockedExams.some(u => u.toUpperCase() === 'COMBINED') || 
+                          itemCourseIds.some(cid => unlockedExams.some(u => u.toUpperCase() === cid.toUpperCase())) ||
                           purchasedIds.includes(item.id);
 
         const isLocked = isPremium && !isUnlocked;
@@ -179,7 +183,11 @@ export default function TestLibraryScreen({ navigation, route }) {
         const matchesSubtopic = !selectedSubtopic || test.subtopicId === selectedSubtopic;
 
         if (activeTab === 'purchased') {
-            const hasAccess = isPro || purchasedIds.includes(test.id) || (test.courseIds || []).some(cid => unlockedExams.includes(cid)) || unlockedExams.includes('COMBINED');
+            const unlockedList = user?.unlockedExams || [];
+            const hasAccess = isPro || 
+                             purchasedIds.includes(test.id) || 
+                             (test.courseIds || []).some(cid => unlockedList.some(ul => ul.toUpperCase() === cid.toUpperCase())) ||
+                             unlockedList.some(ul => ul.toUpperCase() === 'COMBINED');
             return hasAccess && matchesTopic && matchesSubtopic;
         }
 

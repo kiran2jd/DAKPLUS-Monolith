@@ -44,14 +44,13 @@ export default function StudentDashboard() {
     useEffect(() => {
         const loadInitialData = async () => {
             try {
-                // 1. Refresh profile
+                // 1. Refresh profile from server (ensure we have latest PRO/Unlock status)
                 const profileRes = await authService.getProfile();
                 if (profileRes?.user) {
-                    const localUser = getUserFromStorage();
-                    const mergedUser = { ...profileRes.user };
-                    if (localUser?.subscriptionTier === 'PREMIUM') mergedUser.subscriptionTier = 'PREMIUM';
-                    else if (!mergedUser.subscriptionTier) mergedUser.subscriptionTier = 'FREE';
-                    setUser(mergedUser);
+                    // Update current user state with fresh server data
+                    setUser(profileRes.user);
+                    // Also sync to localStorage for persistence
+                    localStorage.setItem('user', JSON.stringify(profileRes.user));
                 }
 
                 // 2. Load Tests and Topics
@@ -256,10 +255,11 @@ export default function StudentDashboard() {
                                                     .map(test => {
                                                         const isPremium = test.premium || test.isPremium;
                                                         const testCourseIds = test.courseIds || [];
+                                                        const unlockedList = user?.unlockedExams || [];
                                                         const hasAccess = isPro || 
                                                                          purchasedIds.includes(test.id) || 
-                                                                         testCourseIds.some(cid => user?.unlockedExams?.includes(cid)) ||
-                                                                         user?.unlockedExams?.includes('COMBINED');
+                                                                         testCourseIds.some(cid => unlockedList.some(ul => ul.toUpperCase() === cid.toUpperCase())) ||
+                                                                         unlockedList.some(ul => ul.toUpperCase() === 'COMBINED');
 
                                                         return (
                                                             <div key={test.id} className="flex items-center justify-between p-3 bg-red-50/30 dark:bg-red-900/10 rounded-lg border border-red-100 dark:border-red-900/30">
@@ -301,20 +301,22 @@ export default function StudentDashboard() {
                                                                 .filter(t => {
                                                                     if (activeTab === 'purchased') {
                                                                         const testCourseIds = t.courseIds || [];
+                                                                        const unlockedList = user?.unlockedExams || [];
                                                                         return isPro || 
                                                                                purchasedIds.includes(t.id) || 
-                                                                               testCourseIds.some(cid => user?.unlockedExams?.includes(cid)) ||
-                                                                               user?.unlockedExams?.includes('COMBINED');
+                                                                               testCourseIds.some(cid => unlockedList.some(ul => ul.toUpperCase() === cid.toUpperCase())) ||
+                                                                               unlockedList.some(ul => ul.toUpperCase() === 'COMBINED');
                                                                     }
                                                                     return true;
                                                                 })
                                                                 .map(test => {
                                                                     const isPremium = test.premium || test.isPremium;
                                                                     const testCourseIds = test.courseIds || [];
+                                                                    const unlockedList = user?.unlockedExams || [];
                                                                     const hasAccess = isPro || 
                                                                                      purchasedIds.includes(test.id) || 
-                                                                                     testCourseIds.some(cid => user?.unlockedExams?.includes(cid)) ||
-                                                                                     user?.unlockedExams?.includes('COMBINED');
+                                                                                     testCourseIds.some(cid => unlockedList.some(ul => ul.toUpperCase() === cid.toUpperCase())) ||
+                                                                                     unlockedList.some(ul => ul.toUpperCase() === 'COMBINED');
 
                                                                     return (
                                                                         <div key={test.id} className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg hover:bg-white dark:hover:bg-gray-700 shadow-sm transition-all border border-transparent hover:border-red-100">

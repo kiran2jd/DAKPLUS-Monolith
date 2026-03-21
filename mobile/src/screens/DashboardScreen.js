@@ -72,7 +72,14 @@ export default function DashboardScreen({ navigation }) {
     // 2. DATA LOADING
     const loadDashboardData = async () => {
         try {
-            const userData = await authService.getUser();
+            // Fresh profile sync from server
+            let userData;
+            try {
+                userData = await authService.getProfile();
+            } catch (err) {
+                console.log("Profile refresh failed, using local", err);
+                userData = await authService.getUser();
+            }
             setUser(userData);
             
             if (userData) {
@@ -245,33 +252,45 @@ export default function DashboardScreen({ navigation }) {
                     )}
 
                     {/* DYNAMIC BUY BANNER (FOR LOCKED COURSES) */}
-                    {isStudent && !user?.unlockedExams?.includes(banners[currentSlide].id) && !user?.unlockedExams?.includes('COMBINED') && user?.subscriptionTier !== 'PREMIUM' && (
-                        <TouchableOpacity 
-                            style={styles.buyBanner}
-                            onPress={() => navigation.navigate('Payment', { courseId: banners[currentSlide].id })}
-                            activeOpacity={0.9}
-                        >
-                            <LinearGradient 
-                                colors={['#dc2626', '#991b1b']} 
-                                style={styles.buyBannerGradient}
-                                start={{ x: 0, y: 0 }}
-                                end={{ x: 1, y: 0 }}
-                            >
-                                <View style={styles.buyBannerContent}>
-                                    <View style={styles.buyBannerIconBg}>
-                                        <Ionicons name="lock-open" size={20} color="#fff" />
-                                    </View>
-                                    <View style={{ flex: 1 }}>
-                                        <Text style={styles.buyBannerTitle}>Unlock {banners[currentSlide].title}</Text>
-                                        <Text style={styles.buyBannerSub}>Full Access for just ₹{
-                                            banners[currentSlide].id === 'MTS' ? '10' : 
-                                            banners[currentSlide].id === 'COMBINED' ? '70' : '30'
-                                        }</Text>
-                                    </View>
-                                    <Ionicons name="chevron-forward" size={24} color="#fff" />
-                                </View>
-                            </LinearGradient>
-                        </TouchableOpacity>
+                    {isStudent && (
+                        (() => {
+                            const unlockedList = user?.unlockedExams || [];
+                            const currentBannerId = banners[currentSlide].id;
+                            const isAlreadyUnlocked = user?.subscriptionTier === 'PREMIUM' || 
+                                                       unlockedList.some(ul => ul.toUpperCase() === 'COMBINED') ||
+                                                       unlockedList.some(ul => ul.toUpperCase() === currentBannerId.toUpperCase());
+                            
+                            if (isAlreadyUnlocked) return null;
+
+                            return (
+                                <TouchableOpacity 
+                                    style={styles.buyBanner}
+                                    onPress={() => navigation.navigate('Payment', { courseId: banners[currentSlide].id })}
+                                    activeOpacity={0.9}
+                                >
+                                    <LinearGradient 
+                                        colors={['#dc2626', '#991b1b']} 
+                                        style={styles.buyBannerGradient}
+                                        start={{ x: 0, y: 0 }}
+                                        end={{ x: 1, y: 0 }}
+                                    >
+                                        <View style={styles.buyBannerContent}>
+                                            <View style={styles.buyBannerIconBg}>
+                                                <Ionicons name="lock-open" size={20} color="#fff" />
+                                            </View>
+                                            <View style={{ flex: 1 }}>
+                                                <Text style={styles.buyBannerTitle}>Unlock {banners[currentSlide].title}</Text>
+                                                <Text style={styles.buyBannerSub}>Full Access for just ₹{
+                                                    banners[currentSlide].id === 'MTS' ? '10' : 
+                                                    banners[currentSlide].id === 'COMBINED' ? '70' : '30'
+                                                }</Text>
+                                            </View>
+                                            <Ionicons name="chevron-forward" size={24} color="#fff" />
+                                        </View>
+                                    </LinearGradient>
+                                </TouchableOpacity>
+                            );
+                        })()
                     )}
                 </View>
             </ScrollView>
