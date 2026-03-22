@@ -55,6 +55,20 @@ export default function SyllabusManagementPage() {
         }
     };
 
+    const getFullPdfUrl = (url) => {
+        if (!url) return null;
+        if (url.startsWith('http')) return url;
+        const baseUrl = import.meta.env.VITE_API_BASE_URL || '';
+        let cleanBase = baseUrl.replace(/\/+$/, '');
+        if (cleanBase && !cleanBase.startsWith('http') && !cleanBase.startsWith('/')) {
+            cleanBase = 'https://' + cleanBase;
+        }
+        if (url.startsWith('/api') && cleanBase.endsWith('/api')) {
+            return cleanBase.substring(0, cleanBase.length - 4) + url;
+        }
+        return cleanBase + (url.startsWith('/') ? '' : '/') + url;
+    };
+
     const handleFileUpload = async (e, id, type) => {
         const file = e.target.files[0];
         if (!file) return;
@@ -163,7 +177,7 @@ export default function SyllabusManagementPage() {
                                                 <div className="flex items-center gap-3">
                                                     {topic.pdfUrl ? (
                                                         <a 
-                                                            href={topic.pdfUrl.startsWith('/') ? `${import.meta.env.VITE_API_BASE_URL?.replace('/api', '')}${topic.pdfUrl}` : topic.pdfUrl}
+                                                            href={getFullPdfUrl(topic.pdfUrl)}
                                                             target="_blank"
                                                             rel="noopener noreferrer"
                                                             className="flex items-center gap-2 text-xs font-bold text-blue-600 bg-blue-50 px-3 py-1.5 rounded-lg hover:bg-blue-100 transition"
@@ -201,7 +215,7 @@ export default function SyllabusManagementPage() {
                                                     <div className="flex items-center gap-3">
                                                         {sub.pdfUrl ? (
                                                             <a 
-                                                                href={sub.pdfUrl.startsWith('/') ? `${import.meta.env.VITE_API_BASE_URL?.replace('/api', '')}${sub.pdfUrl}` : sub.pdfUrl}
+                                                                href={getFullPdfUrl(sub.pdfUrl)}
                                                                 target="_blank"
                                                                 rel="noopener noreferrer"
                                                                 className="text-xs font-bold text-gray-500 hover:text-indigo-600 flex items-center gap-1"

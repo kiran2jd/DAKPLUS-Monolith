@@ -27,6 +27,20 @@ export default function SyllabusPage() {
         }
     };
 
+    const getFullPdfUrl = (url) => {
+        if (!url) return null;
+        if (url.startsWith('http')) return url;
+        const baseUrl = import.meta.env.VITE_API_BASE_URL || '';
+        let cleanBase = baseUrl.replace(/\/+$/, '');
+        if (cleanBase && !cleanBase.startsWith('http') && !cleanBase.startsWith('/')) {
+            cleanBase = 'https://' + cleanBase;
+        }
+        if (url.startsWith('/api') && cleanBase.endsWith('/api')) {
+            return cleanBase.substring(0, cleanBase.length - 4) + url;
+        }
+        return cleanBase + (url.startsWith('/') ? '' : '/') + url;
+    };
+
     useEffect(() => {
         fetchSyllabus();
         
@@ -142,7 +156,7 @@ export default function SyllabusPage() {
                                             <div className="flex items-center gap-2">
                                                 {sub.pdfUrl && (
                                                     <a 
-                                                        href={sub.pdfUrl.startsWith('/') ? `${import.meta.env.VITE_API_BASE_URL.replace('/api', '')}${sub.pdfUrl}` : sub.pdfUrl}
+                                                        href={getFullPdfUrl(sub.pdfUrl)}
                                                         target="_blank"
                                                         rel="noopener noreferrer"
                                                         className="p-2 bg-blue-100 text-blue-700 rounded-lg hover:bg-blue-200 transition-colors"
@@ -178,7 +192,7 @@ export default function SyllabusPage() {
 
                         {topic.pdfUrl && (
                             <a 
-                                href={topic.pdfUrl.startsWith('/') ? `${import.meta.env.VITE_API_BASE_URL.replace('/api', '')}${topic.pdfUrl}` : topic.pdfUrl}
+                                href={getFullPdfUrl(topic.pdfUrl)}
                                 target="_blank"
                                 rel="noopener noreferrer"
                                 className="mb-4 flex items-center justify-center gap-2 py-3 bg-red-50 border border-red-100 rounded-2xl text-xs font-black text-red-600 hover:bg-red-100 hover:border-red-200 transition-all transform active:scale-95"

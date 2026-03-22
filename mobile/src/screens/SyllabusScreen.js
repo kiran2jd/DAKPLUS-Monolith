@@ -17,6 +17,7 @@ import * as WebBrowser from 'expo-web-browser';
 import * as DocumentPicker from 'expo-document-picker';
 import * as SecureStore from 'expo-secure-store';
 import { topicService } from '../services/topic';
+import { API_BASE_URL } from '../services/api';
 
 const { width } = Dimensions.get('window');
 
@@ -31,6 +32,20 @@ export default function SyllabusScreen({ navigation, route }) {
     const [selectedCourseId, setSelectedCourseId] = useState(route.params?.courseId || null);
     const [isStaff, setIsStaff] = useState(false);
     const [uploadingId, setUploadingId] = useState(null);
+
+    const getFullPdfUrl = (url) => {
+        if (!url) return null;
+        if (url.startsWith('http')) return url;
+        const baseUrl = API_BASE_URL || '';
+        let cleanBase = baseUrl.replace(/\/+$/, '');
+        if (cleanBase && !cleanBase.startsWith('http') && !cleanBase.startsWith('/')) {
+            cleanBase = 'https://' + cleanBase;
+        }
+        if (url.startsWith('/api') && cleanBase.endsWith('/api')) {
+            return cleanBase.substring(0, cleanBase.length - 4) + url;
+        }
+        return cleanBase + (url.startsWith('/') ? '' : '/') + url;
+    };
 
     const COURSE_BANNERS = [
         { id: 'MTS', title: 'MTS Exam', sub: 'Target 2026', color: '#dc2626', icon: 'document-text' },
@@ -183,7 +198,7 @@ export default function SyllabusScreen({ navigation, route }) {
                                         {sub.pdfUrl && (
                                             <TouchableOpacity 
                                                 style={styles.pdfBadge}
-                                                onPress={() => WebBrowser.openBrowserAsync(sub.pdfUrl.startsWith('/') ? `https://api-v2.dakplus.in${sub.pdfUrl}` : sub.pdfUrl)}
+                                                onPress={() => WebBrowser.openBrowserAsync(getFullPdfUrl(sub.pdfUrl))}
                                             >
                                                 <LinearGradient colors={['#2563eb', '#1d4ed8']} style={styles.pdfButtonSub}>
                                                     <Ionicons name="download-outline" size={14} color="#fff" />
@@ -217,7 +232,7 @@ export default function SyllabusScreen({ navigation, route }) {
                         {topic.pdfUrl && (
                             <TouchableOpacity 
                                 style={styles.fullSyllabusBtn}
-                                onPress={() => WebBrowser.openBrowserAsync(topic.pdfUrl.startsWith('/') ? `https://api-v2.dakplus.in${topic.pdfUrl}` : topic.pdfUrl)}
+                                onPress={() => WebBrowser.openBrowserAsync(getFullPdfUrl(topic.pdfUrl))}
                             >
                                 <Ionicons name="copy" size={16} color="#fff" />
                                 <Text style={styles.fullSyllabusText}>View Full Topic Syllabus</Text>
