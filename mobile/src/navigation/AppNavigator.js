@@ -24,6 +24,7 @@ import HelpScreen from '../screens/HelpScreen';
 import NotificationsScreen from '../screens/NotificationsScreen';
 import SyllabusScreen from '../screens/SyllabusScreen';
 import AnalyticsScreen from '../screens/AnalyticsScreen';
+import ComingSoonScreen from '../screens/ComingSoonScreen';
 import { authService } from '../services/auth';
 import { pushNotificationService } from '../services/pushNotification';
 
@@ -172,6 +173,7 @@ export default function AppNavigator() {
                 <Stack.Screen name="Notifications" component={NotificationsScreen} />
                 <Stack.Screen name="Syllabus" component={SyllabusScreen} />
                 <Stack.Screen name="MyPurchases" component={MyPurchasesScreen} />
+                <Stack.Screen name="ComingSoon" component={ComingSoonScreen} />
             </Stack.Navigator>
         </NavigationContainer>
     );

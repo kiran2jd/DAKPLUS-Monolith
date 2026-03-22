@@ -215,13 +215,13 @@ export default function DashboardScreen({ navigation }) {
                             ...(isStaff ? [{ label: 'Create Test', icon: 'add-circle', route: 'CreateTest', color: '#f97316', sub: 'Question Bank' }] : []),
                             ...(isStaff ? [{ label: 'Manage All', icon: 'layers', route: 'ManageTests', color: '#3b82f6', sub: 'Edit Exams' }] : [{ label: 'Unlock PRO', icon: 'card', route: 'Payment', color: '#10b981', sub: 'Upgrade Now' }]),
                             { label: 'Analytics', icon: 'stats-chart', route: 'Performance', color: '#8b5cf6', sub: 'Score Reports' },
-                            ...(isStaff ? [{ label: 'Topics', icon: 'apps', route: 'TopicManagement', color: '#10b981', sub: 'Syllabus Map' }] : [{ label: 'Classes', icon: 'play-circle', route: 'Tests', color: '#f59e0b', sub: 'Video Portal' }]),
+                            ...(isStaff ? [{ label: 'Topics', icon: 'apps', route: 'TopicManagement', color: '#10b981', sub: 'Syllabus Map' }] : [{ label: 'Classes', icon: 'play-circle', route: 'ComingSoon', params: { title: 'Video Classes' }, color: '#f59e0b', sub: 'Video Portal' }]),
                             { label: 'Syllabus', icon: 'list', route: 'Syllabus', color: '#64748b', sub: 'Detailed PDF' },
                         ].map((item, idx) => (
                             <View key={idx} style={styles.gridSlot}>
                                 <TouchableOpacity
                                     style={styles.gridItem}
-                                    onPress={() => navigation.navigate(item.route)}
+                                    onPress={() => navigation.navigate(item.route, item.params || {})}
                                     activeOpacity={0.7}
                                 >
                                     <View style={[styles.gridIconBg, { backgroundColor: `${item.color}10` }]}>
@@ -374,8 +374,8 @@ const styles = StyleSheet.create({
     gridSlot: { width: '50%', padding: 8 },
     gridItem: { backgroundColor: '#ffffff', padding: 16, borderRadius: 24, alignItems: 'center', borderWidth: 1, borderColor: '#e2e8f0', minHeight: 125, elevation: 2, shadowColor: '#000', shadowOpacity: 0.05, shadowOffset: { width: 0, height: 3 }, shadowRadius: 5 },
     gridIconBg: { width: 44, height: 44, borderRadius: 12, justifyContent: 'center', alignItems: 'center', marginBottom: 10 },
-    gridLabel: { color: '#1e293b', fontWeight: 'bold', fontSize: 13, marginBottom: 2 },
-    gridSub: { color: '#64748b', fontSize: 9, textAlign: 'center' },
+    gridLabel: { color: '#1e293b', fontSize: 13, fontWeight: '700', marginTop: 10, textAlign: 'center' },
+    gridSub: { color: '#475569', fontSize: 11, fontWeight: '600', marginTop: 2, textAlign: 'center' },
     leaderboardCard: { backgroundColor: '#ffffff', padding: 12, borderRadius: 20, borderWidth: 1, borderColor: '#e2e8f0', elevation: 2, shadowColor: '#000', shadowOpacity: 0.05, shadowOffset: { width: 0, height: 2 } },
     leaderboardRow: { flexDirection: 'row', alignItems: 'center', paddingVertical: 10, borderBottomWidth: 1, borderBottomColor: '#f1f5f9' },
     rankBadge: { width: 22, height: 22, borderRadius: 11, backgroundColor: '#fee2e2', justifyContent: 'center', alignItems: 'center', marginRight: 12 },

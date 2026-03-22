@@ -25,18 +25,27 @@ const { width } = Dimensions.get('window');
 export default function SyllabusScreen({ navigation, route }) {
     const insets = useSafeAreaInsets();
     const [topics, setTopics] = useState([]);
-    const [loading, setLoading] = useState(true);
+    const [loading, setLoading] = useState(false);
+    const [selectedCourseId, setSelectedCourseId] = useState(route.params?.courseId || null);
+
+    const COURSE_BANNERS = [
+        { id: 'MTS', title: 'MTS Exam', sub: 'Target 2026', color: '#dc2626', icon: 'document-text' },
+        { id: 'PMMG', title: 'Postman / MG', sub: 'Paper 1 & 2', color: '#3b82f6', icon: 'mail' },
+        { id: 'PASA', title: 'PA / SA Special', sub: 'Target 2026', color: '#8b5cf6', icon: 'business' },
+        { id: 'COMBINED', title: 'Combined Pro', sub: 'All-in-One', color: '#10b981', icon: 'shield-checkmark' }
+    ];
 
     useEffect(() => {
-        const rawCourseId = route.params?.courseId;
-        const courseId = rawCourseId === 'COMBINED' ? null : rawCourseId;
-        fetchSyllabus(courseId);
-    }, [route.params?.courseId]);
+        if (selectedCourseId) {
+            const courseId = selectedCourseId === 'COMBINED' ? null : selectedCourseId;
+            fetchSyllabus(courseId);
+        }
+    }, [selectedCourseId]);
 
     const fetchSyllabus = async (courseId) => {
+        setLoading(true);
         try {
             const topicsData = await topicService.getAllTopics(courseId);
-            // Fetch subtopics for each topic
             const syllabus = await Promise.all(topicsData.map(async (topic) => {
                 try {
                     const subtopics = await topicService.getSubtopics(topic.id);
@@ -53,323 +62,191 @@ export default function SyllabusScreen({ navigation, route }) {
         }
     };
 
-    if (loading) {
-        return (
-            <View style={[styles.container, styles.center]}>
-                <ActivityIndicator size="large" color="#dc2626" />
-                <Text style={styles.loadingText}>Loading Course Syllabus...</Text>
+    const renderBanners = () => (
+        <ScrollView contentContainerStyle={styles.bannerContainer} showsVerticalScrollIndicator={false}>
+            <Text style={styles.sectionTitle}>Select Course Syllabus</Text>
+            {COURSE_BANNERS.map((banner) => (
+                <TouchableOpacity 
+                    key={banner.id}
+                    onPress={() => setSelectedCourseId(banner.id)}
+                    style={styles.bannerCard}
+                    activeOpacity={0.9}
+                >
+                    <LinearGradient 
+                        colors={[`${banner.color}CC`, banner.color]} 
+                        style={styles.bannerGradient}
+                        start={{ x: 0, y: 0 }}
+                        end={{ x: 1, y: 0 }}
+                    >
+                        <View style={styles.bannerIconContainer}>
+                            <Ionicons name={banner.icon} size={32} color="#fff" />
+                        </View>
+                        <View style={styles.bannerTextContainer}>
+                            <Text style={styles.bannerTitle}>{banner.title}</Text>
+                            <Text style={styles.bannerSub}>{banner.sub}</Text>
+                        </View>
+                        <Ionicons name="chevron-forward" size={24} color="rgba(255,255,255,0.5)" />
+                    </LinearGradient>
+                </TouchableOpacity>
+            ))}
+        </ScrollView>
+    );
+
+    const renderFolderView = () => (
+        <ScrollView contentContainerStyle={styles.scrollContainer} showsVerticalScrollIndicator={false}>
+            <View style={styles.pathContainer}>
+                <TouchableOpacity onPress={() => setSelectedCourseId(null)} style={styles.breadcrumb}>
+                    <Text style={styles.breadcrumbText}>Syllabus</Text>
+                </TouchableOpacity>
+                <Ionicons name="chevron-forward" size={14} color="#94a3b8" />
+                <Text style={styles.currentPath}>{selectedCourseId}</Text>
             </View>
-        );
-    }
+
+            {loading ? (
+                <View style={styles.loadingContainer}>
+                    <ActivityIndicator size="large" color="#dc2626" />
+                    <Text style={styles.loadingText}>Opening Module Folders...</Text>
+                </View>
+            ) : topics.length > 0 ? (
+                topics.map((topic) => (
+                    <View key={topic.id} style={styles.topicCard}>
+                        <View style={styles.topicHeader}>
+                            <View style={styles.folderIconBg}>
+                                <Ionicons name="folder" size={24} color="#f59e0b" />
+                            </View>
+                            <View style={{ flex: 1 }}>
+                                <Text style={styles.topicName}>{topic.name}</Text>
+                                <Text style={styles.topicDesc} numberOfLines={2}>{topic.description || 'Module Guide'}</Text>
+                            </View>
+                        </View>
+
+                        <View style={styles.moduleSection}>
+                            {topic.subtopics?.length > 0 ? (
+                                topic.subtopics.map((sub) => (
+                                    <View key={sub.id} style={styles.moduleRowContainer}>
+                                        <View style={styles.moduleRow}>
+                                            <Ionicons name="document-text-outline" size={18} color="#64748b" style={{ marginRight: 10 }} />
+                                            <Text style={styles.moduleName}>{sub.name}</Text>
+                                        </View>
+                                        {sub.pdfUrl && (
+                                            <TouchableOpacity 
+                                                style={styles.pdfBadge}
+                                                onPress={() => WebBrowser.openBrowserAsync(sub.pdfUrl.startsWith('/') ? `https://api-v2.dakplus.in${sub.pdfUrl}` : sub.pdfUrl)}
+                                            >
+                                                <LinearGradient colors={['#2563eb', '#1d4ed8']} style={styles.pdfButtonSub}>
+                                                    <Ionicons name="download-outline" size={14} color="#fff" />
+                                                    <Text style={styles.pdfButtonText}>View Syllabus PDF</Text>
+                                                </LinearGradient>
+                                            </TouchableOpacity>
+                                        )}
+                                    </View>
+                                ))
+                            ) : (
+                                <Text style={styles.emptyText}>No syllabus available in this folder.</Text>
+                            )}
+                        </View>
+                        
+                        {topic.pdfUrl && (
+                            <TouchableOpacity 
+                                style={styles.fullSyllabusBtn}
+                                onPress={() => WebBrowser.openBrowserAsync(topic.pdfUrl.startsWith('/') ? `https://api-v2.dakplus.in${topic.pdfUrl}` : topic.pdfUrl)}
+                            >
+                                <Ionicons name="copy" size={16} color="#fff" />
+                                <Text style={styles.fullSyllabusText}>View Full Topic Syllabus</Text>
+                            </TouchableOpacity>
+                        )}
+                    </View>
+                ))
+            ) : (
+                <View style={styles.emptyContainer}>
+                    <Ionicons name="folder-open-outline" size={64} color="#e2e8f0" />
+                    <Text style={styles.emptyTitle}>Folder is Empty</Text>
+                </View>
+            )}
+        </ScrollView>
+    );
 
     return (
         <SafeAreaView style={styles.container}>
             <LinearGradient 
-                colors={['#f59e0b', '#d97706']} 
-                start={{ x: 0, y: 0 }}
-                end={{ x: 1, y: 1 }}
+                colors={['#1e293b', '#0f172a']} 
                 style={[styles.premiumHeader, { paddingTop: Math.max(insets.top, 15) }]}
             >
                 <View style={styles.headerRow}>
                     <TouchableOpacity 
-                        onPress={() => navigation.goBack()} 
+                        onPress={() => selectedCourseId ? setSelectedCourseId(null) : navigation.goBack()} 
                         style={styles.headerIconButtonPremium}
-                        activeOpacity={0.7}
                     >
-                        <Ionicons name="chevron-back" size={24} color="#fff" />
+                        <Ionicons name="arrow-back" size={24} color="#fff" />
                     </TouchableOpacity>
                     <Text style={styles.headerTitlePremium}>SYLLABUS HUB</Text>
                     <View style={styles.headerIconButtonPremium}>
-                        <Ionicons name="book-outline" size={24} color="#fff" />
-                    </View>
-                </View>
-                <View style={styles.headerBottomRow}>
-                    <View style={{ flex: 1 }}>
-                        <Text style={styles.headerSubtitlePremium}>Study Navigator</Text>
-                        <Text style={styles.headerStatsPremium}>{topics.length} Expert Modules</Text>
+                        <Ionicons name="book" size={24} color="#3b82f6" />
                     </View>
                 </View>
             </LinearGradient>
 
-            <ScrollView contentContainerStyle={styles.scrollContainer} showsVerticalScrollIndicator={false}>
-                {topics && topics.length > 0 ? (
-                    topics.map((topic) => (
-                        <View key={topic.id} style={styles.topicCard}>
-                            {topic.imageUrl && (
-                                <View style={styles.topicImageContainer}>
-                                    <Image 
-                                        source={{ uri: (topic.imageUrl && topic.imageUrl.startsWith('/')) ? `https://api-v2.dakplus.in${topic.imageUrl}` : (topic.imageUrl || 'https://via.placeholder.com/400x200?text=Module+Image') }} 
-                                        style={styles.topicImage}
-                                        resizeMode="cover"
-                                    />
-                                    <LinearGradient colors={['transparent', 'rgba(0,0,0,0.6)']} style={styles.imageOverlay} />
-                                </View>
-                            )}
-                            <View style={styles.topicHeader}>
-                                <View style={styles.gradIconBg}>
-                                    <Ionicons name="school" size={22} color="#2563eb" />
-                                </View>
-                                <Text style={styles.topicName}>{topic.name}</Text>
-                            </View>
-                            <Text style={styles.topicDesc}>{topic.description || 'Comprehensive coverage of this subject area for postal exams.'}</Text>
-
-                            <View style={styles.moduleSection}>
-                                <Text style={styles.moduleHeader}>MODULES</Text>
-                                {topic.subtopics?.length > 0 ? (
-                                    topic.subtopics.map((sub) => (
-                                        <View key={sub.id} style={styles.moduleRowContainer}>
-                                            <View style={styles.moduleRow}>
-                                                <Text style={styles.moduleName}>{sub.name}</Text>
-                                                <Ionicons name="chevron-forward" size={14} color="#cbd5e1" />
-                                            </View>
-                                            {sub.pdfUrl && (
-                                                <TouchableOpacity 
-                                                    style={styles.pdfBadge}
-                                                    onPress={() => WebBrowser.openBrowserAsync(sub.pdfUrl && sub.pdfUrl.startsWith('/') ? `https://api-v2.dakplus.in${sub.pdfUrl}` : (sub.pdfUrl || ''))}
-                                                >
-                                                    <Ionicons name="document-text" size={12} color="#2563eb" />
-                                                    <Text style={styles.pdfBadgeText}>Study Material</Text>
-                                                </TouchableOpacity>
-                                            )}
-                                        </View>
-                                    ))
-                                ) : (
-                                    <Text style={styles.emptyText}>No subtopics available for this topic.</Text>
-                                )}
-                            </View>
-
-                            <View style={styles.cardActions}>
-                                {topic.pdfUrl && (
-                                    <TouchableOpacity 
-                                        style={[styles.actionBtn, styles.pdfBtn]}
-                                        onPress={() => WebBrowser.openBrowserAsync(topic.pdfUrl && topic.pdfUrl.startsWith('/') ? `https://api-v2.dakplus.in${topic.pdfUrl}` : (topic.pdfUrl || ''))}
-                                    >
-                                        <Ionicons name="download" size={18} color="#fff" style={{ marginRight: 8 }} />
-                                        <Text style={styles.actionBtnText}>Full Syllabus</Text>
-                                    </TouchableOpacity>
-                                )}
-                                <TouchableOpacity 
-                                    style={[styles.actionBtn, { flex: 1 }]}
-                                    onPress={() => navigation.navigate('Tests')}
-                                >
-                                    <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                                        <Ionicons name="list" size={18} color="#fff" style={{ marginRight: 8 }} />
-                                        <Text style={styles.actionBtnText}>View Tests</Text>
-                                    </View>
-                                </TouchableOpacity>
-                            </View>
-                        </View>
-                    ))
-                ) : (
-                    <View style={styles.emptyContainer}>
-                        <Ionicons name="documents-outline" size={64} color="#e2e8f0" />
-                        <Text style={styles.emptyTitle}>Syllabus Unavailable</Text>
-                        <Text style={styles.emptySubtitle}>No topics found. Please check back later.</Text>
-                    </View>
-                )}
-                
-                <View style={{ height: 40 }} />
-            </ScrollView>
+            {!selectedCourseId ? renderBanners() : renderFolderView()}
         </SafeAreaView>
     );
 }
 
 const styles = StyleSheet.create({
-    container: { flex: 1, backgroundColor: '#fcf9f2' },
+    container: { flex: 1, backgroundColor: '#f8fafc' },
     premiumHeader: {
-        paddingBottom: 30,
+        paddingBottom: 20,
         paddingHorizontal: 20,
-        borderBottomLeftRadius: 32,
-        borderBottomRightRadius: 32,
+        borderBottomLeftRadius: 28,
+        borderBottomRightRadius: 28,
         elevation: 8,
-        shadowColor: '#d97706',
+        shadowColor: '#000',
         shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.3,
+        shadowOpacity: 0.2,
         shadowRadius: 10,
     },
     headerRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
-    headerIconButtonPremium: { 
-        width: 44, 
-        height: 44, 
-        borderRadius: 12, 
-        backgroundColor: 'rgba(255,255,255,0.2)', 
-        justifyContent: 'center', 
-        alignItems: 'center',
-    },
-    headerTitlePremium: { 
-        color: '#fff', 
-        fontSize: 16, 
-        fontWeight: '900', 
-        letterSpacing: 2,
-        textTransform: 'uppercase',
-    },
-    headerBottomRow: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        marginTop: 25,
-    },
-    headerSubtitlePremium: { color: 'rgba(255,255,255,0.7)', fontSize: 11, fontWeight: '800', textTransform: 'uppercase', letterSpacing: 0.5 },
-    headerStatsPremium: { color: '#fff', fontSize: 24, fontWeight: '900', marginTop: 2 },
-    scrollContainer: {
-        padding: 20,
-    },
-    topicCard: {
-        backgroundColor: '#fff',
-        borderRadius: 28,
-        marginBottom: 20,
-        borderWidth: 1,
-        borderColor: '#f1f5f9',
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.05,
-        shadowRadius: 12,
-        elevation: 3,
-        overflow: 'hidden',
-    },
-    topicImageContainer: {
-        height: 160,
-        width: '100%',
-        backgroundColor: '#f1f5f9',
-    },
-    topicImage: {
-        width: '100%',
-        height: '100%',
-    },
-    imageOverlay: {
-        position: 'absolute',
-        top: 0,
-        left: 0,
-        right: 0,
-        bottom: 0,
-    },
-    topicHeader: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        paddingHorizontal: 24,
-        paddingTop: 24,
-        marginBottom: 12,
-    },
-    gradIconBg: {
-        width: 40,
-        height: 40,
-        borderRadius: 10,
-        backgroundColor: '#eff6ff',
-        justifyContent: 'center',
-        alignItems: 'center',
-        marginRight: 12,
-    },
-    topicName: {
-        fontSize: 18,
-        fontWeight: 'bold',
-        color: '#1e293b',
-        flex: 1,
-    },
-    topicDesc: {
-        fontSize: 14,
-        color: '#64748b',
-        lineHeight: 20,
-        marginBottom: 20,
-        paddingHorizontal: 24,
-    },
-    moduleSection: {
-        backgroundColor: '#f8fafc',
-        borderRadius: 20,
-        padding: 16,
-        marginHorizontal: 16,
-    },
-    moduleHeader: {
-        fontSize: 10,
-        fontWeight: '900',
-        color: '#94a3b8',
-        letterSpacing: 1.5,
-        marginBottom: 12,
-        marginLeft: 4,
-    },
-    moduleRowContainer: {
-        backgroundColor: '#fff',
-        borderRadius: 12,
-        marginBottom: 8,
-        borderWidth: 1,
-        borderColor: '#f1f5f9',
-        overflow: 'hidden',
-    },
-    moduleRow: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        paddingVertical: 10,
-        paddingHorizontal: 12,
-    },
-    pdfBadge: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        backgroundColor: '#eff6ff',
-        paddingVertical: 6,
-        paddingHorizontal: 10,
-        borderTopWidth: 1,
-        borderTopColor: '#f1f5f9',
-    },
-    pdfBadgeText: {
-        fontSize: 11,
-        fontWeight: '700',
-        color: '#2563eb',
-        marginLeft: 6,
-    },
-    moduleName: {
-        flex: 1,
-        fontSize: 13,
-        fontWeight: '600',
-        color: '#334155',
-    },
-    emptyText: {
-        fontSize: 12,
-        color: '#94a3b8',
-        fontStyle: 'italic',
-        textAlign: 'center',
-        padding: 10,
-    },
-    cardActions: {
-        flexDirection: 'row',
-        padding: 20,
-        gap: 12,
-    },
-    actionBtn: {
-        backgroundColor: '#1e293b',
-        paddingVertical: 14,
-        paddingHorizontal: 20,
-        borderRadius: 14,
-        alignItems: 'center',
-        justifyContent: 'center',
-        flexDirection: 'row',
-        shadowColor: '#1e293b',
-        shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.2,
-        shadowRadius: 8,
-    },
-    pdfBtn: {
-        backgroundColor: '#ef4444',
-    },
-    actionBtnText: {
-        color: '#fff',
-        fontSize: 14,
-        fontWeight: 'bold',
-    },
-    emptyContainer: {
-        alignItems: 'center',
-        justifyContent: 'center',
-        paddingVertical: 60,
-    },
-    emptyTitle: {
-        fontSize: 18,
-        fontWeight: 'bold',
-        color: '#1e293b',
-        marginTop: 16,
-    },
-    emptySubtitle: {
-        fontSize: 14,
-        color: '#64748b',
-        marginTop: 8,
-        textAlign: 'center',
-    },
+    headerIconButtonPremium: { width: 40, height: 40, borderRadius: 12, backgroundColor: 'rgba(255,255,255,0.1)', justifyContent: 'center', alignItems: 'center' },
+    headerTitlePremium: { color: '#fff', fontSize: 16, fontWeight: '900', letterSpacing: 1.5, textTransform: 'uppercase' },
+    
+    // Banner Styles
+    bannerContainer: { padding: 20 },
+    sectionTitle: { fontSize: 20, fontWeight: '900', color: '#1e293b', marginBottom: 20, marginLeft: 5 },
+    bannerCard: { marginBottom: 16, borderRadius: 24, overflow: 'hidden', elevation: 4, shadowColor: '#000', shadowOpacity: 0.1, shadowOffset: { width: 0, height: 4 }, shadowRadius: 8 },
+    bannerGradient: { flexDirection: 'row', alignItems: 'center', padding: 20 },
+    bannerIconContainer: { width: 60, height: 60, borderRadius: 18, backgroundColor: 'rgba(255,255,255,0.2)', justifyContent: 'center', alignItems: 'center', marginRight: 15 },
+    bannerTextContainer: { flex: 1 },
+    bannerTitle: { color: '#fff', fontSize: 18, fontWeight: 'bold' },
+    bannerSub: { color: 'rgba(255,255,255,0.8)', fontSize: 13, fontWeight: '500', marginTop: 2 },
+
+    // Path / Breadcrumb
+    pathContainer: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 20, paddingTop: 15, marginBottom: 5 },
+    breadcrumb: { paddingVertical: 4, paddingHorizontal: 8, backgroundColor: '#f1f5f9', borderRadius: 8 },
+    breadcrumbText: { fontSize: 12, color: '#64748b', fontWeight: '700' },
+    currentPath: { fontSize: 12, color: '#1e293b', fontWeight: '900', marginLeft: 8, textTransform: 'uppercase' },
+
+    // Folder View Styles
+    scrollContainer: { paddingHorizontal: 20, paddingTop: 10, paddingBottom: 40 },
+    topicCard: { backgroundColor: '#fff', borderRadius: 24, marginBottom: 20, borderWidth: 1, borderColor: '#f1f5f9', overflow: 'hidden', elevation: 2, shadowColor: '#000', shadowOpacity: 0.03, shadowRadius: 10 },
+    topicHeader: { flexDirection: 'row', alignItems: 'center', padding: 20, backgroundColor: '#fff' },
+    folderIconBg: { width: 44, height: 44, borderRadius: 12, backgroundColor: '#fef3c7', justifyContent: 'center', alignItems: 'center', marginRight: 15 },
+    topicName: { fontSize: 16, fontWeight: 'bold', color: '#1e293b' },
+    topicDesc: { fontSize: 12, color: '#64748b', marginTop: 2 },
+    
+    moduleSection: { paddingHorizontal: 15, paddingBottom: 15 },
+    moduleRowContainer: { backgroundColor: '#f8fafc', borderRadius: 16, padding: 12, marginBottom: 10, borderWidth: 1, borderColor: '#f1f5f9' },
+    moduleRow: { flexDirection: 'row', alignItems: 'center', marginBottom: 10 },
+    moduleName: { flex: 1, fontSize: 14, fontWeight: '600', color: '#334155' },
+    
+    pdfBadge: { width: '100%' },
+    pdfButtonSub: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', paddingVertical: 10, borderRadius: 12 },
+    pdfButtonText: { color: '#fff', fontSize: 12, fontWeight: 'bold', marginLeft: 8 },
+    
+    fullSyllabusBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', backgroundColor: '#1e293b', paddingVertical: 14, borderTopWidth: 1, borderTopColor: '#f1f5f9' },
+    fullSyllabusText: { color: '#fff', fontSize: 13, fontWeight: 'bold', marginLeft: 10 },
+
+    loadingContainer: { flex: 1, justifyContent: 'center', alignItems: 'center', padding: 100 },
+    loadingText: { marginTop: 15, color: '#64748b', fontWeight: '600' },
+    emptyContainer: { alignItems: 'center', justifyContent: 'center', padding: 60 },
+    emptyTitle: { fontSize: 16, fontWeight: 'bold', color: '#cbd5e1', marginTop: 10 },
+    emptyText: { fontSize: 13, color: '#94a3b8', textAlign: 'center', fontStyle: 'italic', padding: 20 },
 });

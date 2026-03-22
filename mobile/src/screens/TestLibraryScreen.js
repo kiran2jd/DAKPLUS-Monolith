@@ -214,14 +214,14 @@ export default function TestLibraryScreen({ navigation, route }) {
                                 if (selectedCourseId !== null && route.params?.courseId === undefined) {
                                     setSelectedCourseId(null);
                                 } else {
-                                    navigation.goBack();
+                                    navigation.navigate('Home');
                                 }
                             }} 
                             style={styles.headerIconButtonPremium} 
                             hitSlop={{ top: 15, bottom: 15, left: 15, right: 15 }}
                             activeOpacity={0.7}
                         >
-                            <Ionicons name="chevron-back" size={24} color="#fff" />
+                            <Ionicons name="arrow-back" size={24} color="#fff" />
                         </TouchableOpacity>
                         <Text style={styles.headerTitlePremium}>EXAM VAULT</Text>
                         <TouchableOpacity 
