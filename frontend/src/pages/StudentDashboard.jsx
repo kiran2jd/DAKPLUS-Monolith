@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { testService } from '../services/test';
 import { authService } from '../services/auth';
 import { Link, useNavigate } from 'react-router-dom';
-import { PlayCircle, Clock, BarChart2, BookOpen, Search, History, Bell, GraduationCap, FileText, ClipboardList } from 'lucide-react';
+import { PlayCircle, Clock, BarChart2, BookOpen, Search, History, Bell, GraduationCap, FileText, ClipboardList, ChevronRight } from 'lucide-react';
 import { resultService } from '../services/result';
 import { topicService } from '../services/topic';
 import CourseProgressBar from '../components/CourseProgressBar';
