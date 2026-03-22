@@ -230,6 +230,16 @@ export default function TopicManagementPage() {
                                     }}
                                     className="text-xs text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-xs file:font-semibold file:bg-gray-50 file:text-gray-700 hover:file:bg-gray-100"
                                 />
+                                {editingTopic?.pdfUrl && (
+                                    <a 
+                                        href={editingTopic.pdfUrl.startsWith('/') ? `${import.meta.env.VITE_API_BASE_URL?.replace('/api', '')}${editingTopic.pdfUrl}` : editingTopic.pdfUrl}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="text-xs text-blue-600 hover:underline mt-1 block"
+                                    >
+                                        Current: View PDF
+                                    </a>
+                                )}
                             </div>
                         </div>
                         <div className="flex gap-2">
@@ -313,6 +323,16 @@ export default function TopicManagementPage() {
                                     }}
                                     className="text-xs text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-xs file:font-semibold file:bg-gray-50 file:text-gray-700 hover:file:bg-gray-100"
                                 />
+                                {editingSubtopic?.pdfUrl && (
+                                    <a 
+                                        href={editingSubtopic.pdfUrl.startsWith('/') ? `${import.meta.env.VITE_API_BASE_URL?.replace('/api', '')}${editingSubtopic.pdfUrl}` : editingSubtopic.pdfUrl}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="text-xs text-blue-600 hover:underline mt-1 block"
+                                    >
+                                        Current: View PDF
+                                    </a>
+                                )}
                             </div>
                         </div>
                         <div className="flex gap-2">

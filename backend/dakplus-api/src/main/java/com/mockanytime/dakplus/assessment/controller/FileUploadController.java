@@ -20,6 +20,10 @@ public class FileUploadController {
     @Value("${app.upload.dir:uploads}")
     private String uploadDir;
 
+    private Path getUploadPath() {
+        return Paths.get(uploadDir).toAbsolutePath().normalize();
+    }
+
     @PostMapping("/upload")
     public ResponseEntity<Map<String, String>> uploadFile(@RequestParam("file") MultipartFile file) {
         try {
@@ -28,7 +32,7 @@ public class FileUploadController {
             }
 
             // Create upload directory if it doesn't exist
-            Path uploadPath = Paths.get(uploadDir);
+            Path uploadPath = getUploadPath();
             if (!Files.exists(uploadPath)) {
                 Files.createDirectories(uploadPath);
             }
@@ -47,6 +51,7 @@ public class FileUploadController {
 
             // Return file URL
             Map<String, String> response = new HashMap<>();
+            // Use the absolute path or a well-defined relative path
             response.put("url", "/api/files/download/" + fileName);
             response.put("fileName", fileName);
             return ResponseEntity.ok(response);
@@ -56,14 +61,27 @@ public class FileUploadController {
     }
 
     @GetMapping("/download/{fileName}")
-    public ResponseEntity<byte[]> downloadFile(@PathVariable String fileName) {
+    public ResponseEntity<org.springframework.core.io.Resource> downloadFile(@PathVariable String fileName) {
         try {
-            Path filePath = Paths.get(uploadDir).resolve(fileName);
+            Path filePath = getUploadPath().resolve(fileName).normalize();
             if (!Files.exists(filePath)) {
                 return ResponseEntity.notFound().build();
             }
-            byte[] content = Files.readAllBytes(filePath);
-            return ResponseEntity.ok(content);
+
+            org.springframework.core.io.Resource resource = new org.springframework.core.io.UrlResource(filePath.toUri());
+            String contentType = "application/octet-stream";
+            if (fileName.toLowerCase().endsWith(".pdf")) {
+                contentType = "application/pdf";
+            } else if (fileName.toLowerCase().endsWith(".jpg") || fileName.toLowerCase().endsWith(".jpeg")) {
+                contentType = "image/jpeg";
+            } else if (fileName.toLowerCase().endsWith(".png")) {
+                contentType = "image/png";
+            }
+
+            return ResponseEntity.ok()
+                    .header(org.springframework.http.HttpHeaders.CONTENT_TYPE, contentType)
+                    .header(org.springframework.http.HttpHeaders.CONTENT_DISPOSITION, "inline; filename=\"" + fileName + "\"")
+                    .body(resource);
         } catch (IOException e) {
             return ResponseEntity.internalServerError().build();
         }
