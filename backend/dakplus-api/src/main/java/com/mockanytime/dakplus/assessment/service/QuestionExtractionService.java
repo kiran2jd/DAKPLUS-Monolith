@@ -89,6 +89,7 @@ public class QuestionExtractionService {
                 4. If a question is incomplete, skip it rather than guessing.
                 5. Use professional Hindi terminology relevant to Indian postal exams.
                 6. IMPORTANT: Extract EVERY SINGLE question found in the text. Aim for exactly 100 questions per request if available in the text. Do not stop until you have reached the end of the text. I will handle high character counts.
+                7. METADATA PRESERVATION: If a question is followed by bracketed information (e.g., "(PA/SA Exam – 2020 UP – 2022 MH)"), you MUST include this text at the end of the "text" property. Do NOT strip it. It is essential for students to see the exam year and region.
 
                 FORMAT:
                 {

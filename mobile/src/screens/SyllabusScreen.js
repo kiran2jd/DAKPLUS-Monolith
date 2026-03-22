@@ -14,6 +14,8 @@ import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import * as WebBrowser from 'expo-web-browser';
+import * as DocumentPicker from 'expo-document-picker';
+import * as SecureStore from 'expo-secure-store';
 import { topicService } from '../services/topic';
 
 const { width } = Dimensions.get('window');
@@ -27,6 +29,8 @@ export default function SyllabusScreen({ navigation, route }) {
     const [topics, setTopics] = useState([]);
     const [loading, setLoading] = useState(false);
     const [selectedCourseId, setSelectedCourseId] = useState(route.params?.courseId || null);
+    const [isStaff, setIsStaff] = useState(false);
+    const [uploadingId, setUploadingId] = useState(null);
 
     const COURSE_BANNERS = [
         { id: 'MTS', title: 'MTS Exam', sub: 'Target 2026', color: '#dc2626', icon: 'document-text' },
@@ -36,11 +40,24 @@ export default function SyllabusScreen({ navigation, route }) {
     ];
 
     useEffect(() => {
+        checkAuth();
         if (selectedCourseId) {
             const courseId = selectedCourseId === 'COMBINED' ? null : selectedCourseId;
             fetchSyllabus(courseId);
         }
     }, [selectedCourseId]);
+
+    const checkAuth = async () => {
+        try {
+            const userStr = await SecureStore.getItemAsync('user');
+            if (userStr) {
+                const user = JSON.parse(userStr);
+                setIsStaff(user.role === 'STAFF' || user.role === 'ADMIN');
+            }
+        } catch (e) {
+            console.error("Auth check failed", e);
+        }
+    };
 
     const fetchSyllabus = async (courseId) => {
         setLoading(true);
@@ -59,6 +76,41 @@ export default function SyllabusScreen({ navigation, route }) {
             console.error("Failed to load syllabus", err);
         } finally {
             setLoading(false);
+        }
+    };
+
+    const pickAndUploadSyllabus = async (id, type) => {
+        try {
+            const result = await DocumentPicker.getDocumentAsync({
+                type: 'application/pdf',
+                copyToCacheDirectory: true,
+            });
+
+            if (result.canceled || !result.assets || result.assets.length === 0) return;
+
+            const file = result.assets[0];
+            setUploadingId(id);
+            
+            // 1. Upload the file to get URL
+            const uploadRes = await topicService.uploadSyllabusFile(file.uri, file.name, file.mimeType);
+            
+            if (uploadRes && uploadRes.url) {
+                // 2. Update the topic/subtopic record
+                if (type === 'topic') {
+                    await topicService.updateTopic(id, { pdfUrl: uploadRes.url });
+                } else {
+                    await topicService.updateSubtopic(id, { pdfUrl: uploadRes.url });
+                }
+                
+                // 3. Refresh data
+                const courseId = selectedCourseId === 'COMBINED' ? null : selectedCourseId;
+                await fetchSyllabus(courseId);
+            }
+        } catch (e) {
+            console.error("Upload failed", e);
+            alert("Syllabus upload failed. Please try again.");
+        } finally {
+            setUploadingId(null);
         }
     };
 
@@ -139,6 +191,22 @@ export default function SyllabusScreen({ navigation, route }) {
                                                 </LinearGradient>
                                             </TouchableOpacity>
                                         )}
+                                        {isStaff && (
+                                            <TouchableOpacity 
+                                                style={[styles.staffUploadBtn, sub.pdfUrl && { marginTop: 8 }]}
+                                                onPress={() => pickAndUploadSyllabus(sub.id, 'subtopic')}
+                                                disabled={uploadingId === sub.id}
+                                            >
+                                                {uploadingId === sub.id ? (
+                                                    <ActivityIndicator size="small" color="#1e293b" />
+                                                ) : (
+                                                    <>
+                                                        <Ionicons name="cloud-upload-outline" size={14} color="#1e293b" />
+                                                        <Text style={styles.staffUploadText}>{sub.pdfUrl ? 'Update Syllabus PDF' : 'Upload Syllabus PDF'}</Text>
+                                                    </>
+                                                )}
+                                            </TouchableOpacity>
+                                        )}
                                     </View>
                                 ))
                             ) : (
@@ -153,6 +221,24 @@ export default function SyllabusScreen({ navigation, route }) {
                             >
                                 <Ionicons name="copy" size={16} color="#fff" />
                                 <Text style={styles.fullSyllabusText}>View Full Topic Syllabus</Text>
+                            </TouchableOpacity>
+                        )}
+                        {isStaff && (
+                            <TouchableOpacity 
+                                style={[styles.fullSyllabusBtn, { backgroundColor: '#f1f5f9' }]}
+                                onPress={() => pickAndUploadSyllabus(topic.id, 'topic')}
+                                disabled={uploadingId === topic.id}
+                            >
+                                {uploadingId === topic.id ? (
+                                    <ActivityIndicator size="small" color="#1e293b" />
+                                ) : (
+                                    <>
+                                        <Ionicons name="cloud-upload" size={16} color="#1e293b" />
+                                        <Text style={[styles.fullSyllabusText, { color: '#1e293b' }]}>
+                                            {topic.pdfUrl ? 'Update Main Topic Syllabus' : 'Upload Main Topic Syllabus'}
+                                        </Text>
+                                    </>
+                                )}
                             </TouchableOpacity>
                         )}
                     </View>
@@ -249,4 +335,20 @@ const styles = StyleSheet.create({
     emptyContainer: { alignItems: 'center', justifyContent: 'center', padding: 60 },
     emptyTitle: { fontSize: 16, fontWeight: 'bold', color: '#cbd5e1', marginTop: 10 },
     emptyText: { fontSize: 13, color: '#94a3b8', textAlign: 'center', fontStyle: 'italic', padding: 20 },
+    staffUploadBtn: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'center',
+        paddingVertical: 10,
+        borderRadius: 12,
+        borderWidth: 1,
+        borderColor: '#e2e8f0',
+        backgroundColor: '#fff',
+    },
+    staffUploadText: {
+        fontSize: 12,
+        fontWeight: 'bold',
+        color: '#1e293b',
+        marginLeft: 8,
+    },
 });

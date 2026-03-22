@@ -64,7 +64,11 @@ public class FileUploadController {
     public ResponseEntity<org.springframework.core.io.Resource> downloadFile(@PathVariable String fileName) {
         try {
             Path filePath = getUploadPath().resolve(fileName).normalize();
+            System.out.println("DEBUG: Attempting to download file: " + fileName);
+            System.out.println("DEBUG: Resolved absolute path: " + filePath.toAbsolutePath());
+
             if (!Files.exists(filePath)) {
+                System.err.println("DEBUG ERROR: File does NOT exist at path: " + filePath.toAbsolutePath());
                 return ResponseEntity.notFound().build();
             }
 
