@@ -3,7 +3,8 @@ import logo from '../assets/logo.jpg';
 import ThemeToggle from './ThemeToggle';
 
 export default function Navbar({ hide }) {
-    if (hide) return null;
+    const isMinimal = typeof window !== 'undefined' && new URLSearchParams(window.location.search).get('minimal') === 'true';
+    if (hide || isMinimal) return null;
     return (
         <nav className="bg-white dark:bg-gray-800 shadow-md sticky top-0 z-50 transition-colors">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
