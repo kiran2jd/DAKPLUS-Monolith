@@ -69,6 +69,28 @@ export default function SyllabusManagementPage() {
         return cleanBase + (url.startsWith('/') ? '' : '/') + url;
     };
 
+    const handleDeletePdf = async (id, type) => {
+        if (!window.confirm('Are you sure you want to remove the PDF?')) return;
+        try {
+            if (type === 'topic') {
+                const topic = topics.find(t => t.id === id);
+                await topicService.updateTopic(id, { ...topic, pdfUrl: null });
+            } else {
+                // Find parent topic and then subtopic
+                for (const t of topics) {
+                    const sub = t.subtopics?.find(s => s.id === id);
+                    if (sub) {
+                        await topicService.updateSubtopic(id, { ...sub, pdfUrl: null });
+                        break;
+                    }
+                }
+            }
+            fetchTopics();
+        } catch (err) {
+            console.error("Failed to delete PDF", err);
+        }
+    };
+
     const handleFileUpload = async (e, id, type) => {
         const file = e.target.files[0];
         if (!file) return;
@@ -111,9 +133,9 @@ export default function SyllabusManagementPage() {
         setIsSaving(true);
         try {
             if (editingTopic) {
-                await topicService.updateTopic(editingTopic.id, { ...editingTopic, ...formData });
+                await topicService.updateTopic(editingTopic.id, { ...editingTopic, ...formData, syllabusOnly: true });
             } else {
-                await topicService.createTopic(formData);
+                await topicService.createTopic({ ...formData, syllabusOnly: true });
             }
             fetchTopics();
             setIsModalOpen(false);
@@ -174,20 +196,29 @@ export default function SyllabusManagementPage() {
                                                 </div>
                                             </td>
                                             <td className="p-6">
-                                                <div className="flex items-center gap-3">
+                                                <div className="flex items-center gap-2">
                                                     {topic.pdfUrl ? (
-                                                        <a 
-                                                            href={getFullPdfUrl(topic.pdfUrl)}
-                                                            target="_blank"
-                                                            rel="noopener noreferrer"
-                                                            className="flex items-center gap-2 text-xs font-bold text-blue-600 bg-blue-50 px-3 py-1.5 rounded-lg hover:bg-blue-100 transition"
-                                                        >
-                                                            <BookOpen size={14} /> View
-                                                        </a>
+                                                        <div className="flex items-center gap-1">
+                                                            <a 
+                                                                href={getFullPdfUrl(topic.pdfUrl)}
+                                                                target="_blank"
+                                                                rel="noopener noreferrer"
+                                                                className="flex items-center gap-2 text-xs font-bold text-blue-600 bg-blue-50 px-3 py-1.5 rounded-lg hover:bg-blue-100 transition"
+                                                            >
+                                                                <BookOpen size={14} /> View
+                                                            </a>
+                                                            <button 
+                                                                onClick={() => handleDeletePdf(topic.id, 'topic')}
+                                                                className="p-1.5 text-red-500 hover:bg-red-50 rounded-lg transition"
+                                                                title="Delete PDF"
+                                                            >
+                                                                <Trash2 size={14} />
+                                                            </button>
+                                                        </div>
                                                     ) : (
                                                         <span className="text-[10px] text-gray-400 italic font-bold">No PDF</span>
                                                     )}
-                                                    <label className="cursor-pointer p-1.5 bg-gray-100 hover:bg-indigo-600 hover:text-white rounded-lg transition group relative">
+                                                    <label className="cursor-pointer p-1.5 bg-gray-100 hover:bg-indigo-600 hover:text-white rounded-lg transition group relative" title="Upload PDF">
                                                         {uploadingId === topic.id ? <Loader2 size={14} className="animate-spin" /> : <Upload size={14} />}
                                                         <input type="file" className="hidden" accept=".pdf" onChange={(e) => handleFileUpload(e, topic.id, 'topic')} />
                                                     </label>
@@ -212,25 +243,34 @@ export default function SyllabusManagementPage() {
                                                     </div>
                                                 </td>
                                                 <td className="p-4">
-                                                    <div className="flex items-center gap-3">
+                                                    <div className="flex items-center gap-2">
                                                         {sub.pdfUrl ? (
-                                                            <a 
-                                                                href={getFullPdfUrl(sub.pdfUrl)}
-                                                                target="_blank"
-                                                                rel="noopener noreferrer"
-                                                                className="text-xs font-bold text-gray-500 hover:text-indigo-600 flex items-center gap-1"
-                                                            >
-                                                                <BookOpen size={12} /> Study Doc
-                                                            </a>
+                                                            <div className="flex items-center gap-1 text-[10px]">
+                                                                <a 
+                                                                    href={getFullPdfUrl(sub.pdfUrl)}
+                                                                    target="_blank"
+                                                                    rel="noopener noreferrer"
+                                                                    className="font-bold text-gray-500 hover:text-indigo-600 flex items-center gap-1"
+                                                                >
+                                                                    <BookOpen size={12} /> Study Doc
+                                                                </a>
+                                                                <button 
+                                                                    onClick={() => handleDeletePdf(sub.id, 'subtopic')}
+                                                                    className="p-1 text-red-400 hover:text-red-600 transition"
+                                                                    title="Delete PDF"
+                                                                >
+                                                                    <Trash2 size={12} />
+                                                                </button>
+                                                            </div>
                                                         ) : (
                                                             <span className="text-[10px] text-gray-300">No doc</span>
                                                         )}
-                                                        <label className="cursor-pointer p-1 bg-gray-50 hover:bg-gray-200 rounded-lg text-gray-400 hover:text-indigo-600 transition">
+                                                        <label className="cursor-pointer p-1 bg-gray-50 hover:bg-gray-200 rounded-lg text-gray-400 hover:text-indigo-600 transition" title="Upload PDF">
                                                             {uploadingId === sub.id ? <Loader2 size={12} className="animate-spin" /> : <Upload size={12} />}
                                                             <input type="file" className="hidden" accept=".pdf" onChange={(e) => handleFileUpload(e, sub.id, 'subtopic')} />
                                                         </label>
                                                     </div>
-                                                </td>
+                                                  </td>
                                                 <td className="p-4 text-right">
                                                     <button onClick={() => handleDelete(sub.id, 'subtopic')} className="p-2 text-red-400 hover:text-red-600 transition">
                                                         <Trash2 size={14} />

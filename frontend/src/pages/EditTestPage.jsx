@@ -35,7 +35,8 @@ export default function EditTestPage() {
             try {
                 // Fetch topics first
                 const topicsData = await topicService.getAllTopics();
-                setTopics(topicsData);
+                const testTopics = topicsData.filter(t => !t.syllabusOnly);
+                setTopics(testTopics);
 
                 // Fetch test details
                 const test = await testService.getTestById(testId);

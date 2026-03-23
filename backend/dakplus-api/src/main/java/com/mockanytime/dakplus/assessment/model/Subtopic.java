@@ -16,13 +16,15 @@ public class Subtopic {
     private String topicId; // Links to Exam Category
     private String imageUrl; // URL for subtopic image
     private String pdfUrl; // URL for subtopic PDF
+    private boolean syllabusOnly = false;
 
-    public Subtopic(String id, String name, String description, String topicId, String imageUrl, String pdfUrl) {
+    public Subtopic(String id, String name, String description, String topicId, String imageUrl, String pdfUrl, boolean syllabusOnly) {
         this.id = id;
         this.name = name;
         this.description = description;
         this.topicId = topicId;
         this.imageUrl = imageUrl;
         this.pdfUrl = pdfUrl;
+        this.syllabusOnly = syllabusOnly;
     }
 }

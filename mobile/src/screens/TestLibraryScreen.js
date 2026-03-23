@@ -67,7 +67,7 @@ export default function TestLibraryScreen({ navigation, route }) {
                 testService.getAvailableTests(courseIdFilter)
             ]);
 
-            setTopics(topicsData);
+            setTopics((topicsData || []).filter(t => !t.syllabusOnly));
             setTests(testsData);
 
             if (topicsData && topicsData.length > 0) {

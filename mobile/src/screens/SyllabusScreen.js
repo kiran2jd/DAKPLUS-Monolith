@@ -77,7 +77,10 @@ export default function SyllabusScreen({ navigation, route }) {
     const fetchSyllabus = async (courseId) => {
         setLoading(true);
         try {
-            const topicsData = await topicService.getAllTopics(courseId);
+            const rawTopics = await topicService.getAllTopics(courseId);
+            // Only show syllabus-specific categories
+            const topicsData = (rawTopics || []).filter(t => t.syllabusOnly === true);
+            
             const syllabus = await Promise.all(topicsData.map(async (topic) => {
                 try {
                     const subtopics = await topicService.getSubtopics(topic.id);
@@ -92,6 +95,32 @@ export default function SyllabusScreen({ navigation, route }) {
         } finally {
             setLoading(false);
         }
+    };
+
+    const handleDeletePdf = async (id, type) => {
+        Alert.alert(
+            'Confirm Delete',
+            'Are you sure you want to remove this PDF?',
+            [
+                { text: 'Cancel', style: 'cancel' },
+                {
+                    text: 'Delete',
+                    style: 'destructive',
+                    onPress: async () => {
+                        try {
+                            if (type === 'topic') {
+                                await topicService.updateTopic(id, { pdfUrl: null });
+                            } else {
+                                await topicService.updateSubtopic(id, { pdfUrl: null });
+                            }
+                            fetchSyllabus(selectedCourseId === 'COMBINED' ? null : selectedCourseId);
+                        } catch (err) {
+                            Alert.alert('Error', 'Failed to delete PDF');
+                        }
+                    }
+                }
+            ]
+        );
     };
 
     const pickAndUploadSyllabus = async (id, type) => {
@@ -207,20 +236,30 @@ export default function SyllabusScreen({ navigation, route }) {
                                             </TouchableOpacity>
                                         )}
                                         {isStaff && (
-                                            <TouchableOpacity 
-                                                style={[styles.staffUploadBtn, sub.pdfUrl && { marginTop: 8 }]}
-                                                onPress={() => pickAndUploadSyllabus(sub.id, 'subtopic')}
-                                                disabled={uploadingId === sub.id}
-                                            >
-                                                {uploadingId === sub.id ? (
-                                                    <ActivityIndicator size="small" color="#1e293b" />
-                                                ) : (
-                                                    <>
-                                                        <Ionicons name="cloud-upload-outline" size={14} color="#1e293b" />
-                                                        <Text style={styles.staffUploadText}>{sub.pdfUrl ? 'Update Syllabus PDF' : 'Upload Syllabus PDF'}</Text>
-                                                    </>
+                                            <View style={{ flexDirection: 'row', gap: 10, marginTop: 8 }}>
+                                                <TouchableOpacity 
+                                                    style={[styles.staffUploadBtn, { flex: 1 }]}
+                                                    onPress={() => pickAndUploadSyllabus(sub.id, 'subtopic')}
+                                                    disabled={uploadingId === sub.id}
+                                                >
+                                                    {uploadingId === sub.id ? (
+                                                        <ActivityIndicator size="small" color="#1e293b" />
+                                                    ) : (
+                                                        <>
+                                                            <Ionicons name="cloud-upload-outline" size={14} color="#1e293b" />
+                                                            <Text style={styles.staffUploadText}>{sub.pdfUrl ? 'Update PDF' : 'Upload PDF'}</Text>
+                                                        </>
+                                                    )}
+                                                </TouchableOpacity>
+                                                {sub.pdfUrl && (
+                                                    <TouchableOpacity 
+                                                        style={styles.staffDeleteBtn}
+                                                        onPress={() => handleDeletePdf(sub.id, 'subtopic')}
+                                                    >
+                                                        <Ionicons name="trash-outline" size={16} color="#ef4444" />
+                                                    </TouchableOpacity>
                                                 )}
-                                            </TouchableOpacity>
+                                            </View>
                                         )}
                                     </View>
                                 ))
@@ -239,22 +278,32 @@ export default function SyllabusScreen({ navigation, route }) {
                             </TouchableOpacity>
                         )}
                         {isStaff && (
-                            <TouchableOpacity 
-                                style={[styles.fullSyllabusBtn, { backgroundColor: '#f1f5f9' }]}
-                                onPress={() => pickAndUploadSyllabus(topic.id, 'topic')}
-                                disabled={uploadingId === topic.id}
-                            >
-                                {uploadingId === topic.id ? (
-                                    <ActivityIndicator size="small" color="#1e293b" />
-                                ) : (
-                                    <>
-                                        <Ionicons name="cloud-upload" size={16} color="#1e293b" />
-                                        <Text style={[styles.fullSyllabusText, { color: '#1e293b' }]}>
-                                            {topic.pdfUrl ? 'Update Main Topic Syllabus' : 'Upload Main Topic Syllabus'}
-                                        </Text>
-                                    </>
+                            <View style={{ flexDirection: 'row', borderTopWidth: 1, borderTopColor: '#f1f5f9' }}>
+                                <TouchableOpacity 
+                                    style={[styles.fullSyllabusBtn, { flex: 1, backgroundColor: '#f1f5f9', borderTopWidth: 0 }]}
+                                    onPress={() => pickAndUploadSyllabus(topic.id, 'topic')}
+                                    disabled={uploadingId === topic.id}
+                                >
+                                    {uploadingId === topic.id ? (
+                                        <ActivityIndicator size="small" color="#1e293b" />
+                                    ) : (
+                                        <>
+                                            <Ionicons name="cloud-upload" size={16} color="#1e293b" />
+                                            <Text style={[styles.fullSyllabusText, { color: '#1e293b' }]}>
+                                                {topic.pdfUrl ? 'Update Main PDF' : 'Upload Main PDF'}
+                                            </Text>
+                                        </>
+                                    )}
+                                </TouchableOpacity>
+                                {topic.pdfUrl && (
+                                    <TouchableOpacity 
+                                        style={[styles.fullSyllabusBtn, { width: 60, backgroundColor: '#fef2f2', borderTopWidth: 0 }]}
+                                        onPress={() => handleDeletePdf(topic.id, 'topic')}
+                                    >
+                                        <Ionicons name="trash" size={18} color="#ef4444" />
+                                    </TouchableOpacity>
                                 )}
-                            </TouchableOpacity>
+                            </View>
                         )}
                     </View>
                 ))
@@ -365,5 +414,15 @@ const styles = StyleSheet.create({
         fontWeight: 'bold',
         color: '#1e293b',
         marginLeft: 8,
+    },
+    staffDeleteBtn: {
+        width: 44,
+        height: 44,
+        borderRadius: 12,
+        backgroundColor: '#fef2f2',
+        justifyContent: 'center',
+        alignItems: 'center',
+        borderWidth: 1,
+        borderColor: '#fecaca',
     },
 });

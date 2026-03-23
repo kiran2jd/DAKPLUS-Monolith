@@ -1,6 +1,6 @@
 import { useEffect, useState, useRef } from 'react';
 import { topicService } from '../services/topic';
-import { BookOpen, ChevronRight, GraduationCap, Upload, Loader2, FileText } from 'lucide-react';
+import { BookOpen, ChevronRight, GraduationCap, Upload, Loader2, FileText, Trash2 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
 export default function SyllabusPage() {
@@ -15,7 +15,9 @@ export default function SyllabusPage() {
         setLoading(true);
         try {
             const topicsData = await topicService.getAllTopics();
-            const syllabus = await Promise.all(topicsData.map(async (topic) => {
+            // Filter to only show topics marked as syllabusOnly
+            const syllabusTopics = topicsData.filter(t => t.syllabusOnly);
+            const syllabus = await Promise.all(syllabusTopics.map(async (topic) => {
                 const subtopics = await topicService.getSubtopics(topic.id);
                 return { ...topic, subtopics };
             }));
@@ -49,6 +51,20 @@ export default function SyllabusPage() {
         const role = (user.role || '').toUpperCase();
         setIsStaff(role === 'STAFF' || role === 'ADMIN');
     }, []);
+
+    const handleDeletePdf = async (id, type) => {
+        if (!window.confirm('Are you sure you want to remove the PDF?')) return;
+        try {
+            if (type === 'topic') {
+                await topicService.updateTopic(id, { pdfUrl: null });
+            } else {
+                await topicService.updateSubtopic(id, { pdfUrl: null });
+            }
+            fetchSyllabus();
+        } catch (err) {
+            console.error("Failed to delete PDF", err);
+        }
+    };
 
     const handleFileUpload = async (e, id, type) => {
         const file = e.target.files[0];
@@ -122,20 +138,31 @@ export default function SyllabusPage() {
                             </div>
                             
                             {isStaff && (
-                                <label className="cursor-pointer p-2 bg-gray-50 hover:bg-gray-100 rounded-lg transition-colors group relative" title="Upload Main Syllabus">
-                                    {uploadingId === topic.id ? (
-                                        <Loader2 className="h-4 w-4 animate-spin text-gray-400" />
-                                    ) : (
-                                        <Upload className="h-4 w-4 text-gray-400 group-hover:text-blue-600" />
+                                <div className="flex items-center gap-1">
+                                    <label className="cursor-pointer p-2 bg-gray-50 hover:bg-gray-100 rounded-lg transition-colors group relative" title="Upload Main Syllabus">
+                                        {uploadingId === topic.id ? (
+                                            <Loader2 className="h-4 w-4 animate-spin text-gray-400" />
+                                        ) : (
+                                            <Upload className="h-4 w-4 text-gray-400 group-hover:text-blue-600" />
+                                        )}
+                                        <input 
+                                            type="file" 
+                                            accept=".pdf" 
+                                            className="hidden" 
+                                            onChange={(e) => handleFileUpload(e, topic.id, 'topic')}
+                                            disabled={uploadingId === topic.id}
+                                        />
+                                    </label>
+                                    {topic.pdfUrl && (
+                                        <button 
+                                            onClick={() => handleDeletePdf(topic.id, 'topic')}
+                                            className="p-2 text-red-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition"
+                                            title="Delete PDF"
+                                        >
+                                            <Trash2 size={16} />
+                                        </button>
                                     )}
-                                    <input 
-                                        type="file" 
-                                        accept=".pdf" 
-                                        className="hidden" 
-                                        onChange={(e) => handleFileUpload(e, topic.id, 'topic')}
-                                        disabled={uploadingId === topic.id}
-                                    />
-                                </label>
+                                </div>
                             )}
                         </div>
                         <p className="text-gray-600 text-sm mb-6 line-clamp-2">{topic.description}</p>
@@ -166,20 +193,31 @@ export default function SyllabusPage() {
                                                     </a>
                                                 )}
                                                 {isStaff && (
-                                                    <label className="cursor-pointer p-2 bg-gray-200/50 text-gray-500 rounded-lg hover:bg-gray-200 transition-colors" title="Change PDF">
-                                                        {uploadingId === sub.id ? (
-                                                            <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                                                        ) : (
-                                                            <Upload className="h-3.5 w-3.5" />
+                                                    <div className="flex items-center gap-1">
+                                                        <label className="cursor-pointer p-2 bg-gray-200/50 text-gray-500 rounded-lg hover:bg-gray-200 transition-colors" title="Change PDF">
+                                                            {uploadingId === sub.id ? (
+                                                                <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                                                            ) : (
+                                                                <Upload className="h-3.5 w-3.5" />
+                                                            )}
+                                                            <input 
+                                                                type="file" 
+                                                                accept=".pdf" 
+                                                                className="hidden" 
+                                                                onChange={(e) => handleFileUpload(e, sub.id, 'subtopic')}
+                                                                disabled={uploadingId === sub.id}
+                                                            />
+                                                        </label>
+                                                        {sub.pdfUrl && (
+                                                            <button 
+                                                                onClick={() => handleDeletePdf(sub.id, 'subtopic')}
+                                                                className="p-2 text-red-500 hover:text-red-700 hover:bg-red-100/50 rounded-lg transition"
+                                                                title="Delete PDF"
+                                                            >
+                                                                <Trash2 size={14} />
+                                                            </button>
                                                         )}
-                                                        <input 
-                                                            type="file" 
-                                                            accept=".pdf" 
-                                                            className="hidden" 
-                                                            onChange={(e) => handleFileUpload(e, sub.id, 'subtopic')}
-                                                            disabled={uploadingId === sub.id}
-                                                        />
-                                                    </label>
+                                                    </div>
                                                 )}
                                             </div>
                                         </div>

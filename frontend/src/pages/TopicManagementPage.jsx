@@ -19,8 +19,10 @@ export default function TopicManagementPage() {
         setLoading(true);
         try {
             const data = await topicService.getAllTopics();
+            // Filter out syllabus-only topics from test management
+            const testTopics = data.filter(t => !t.syllabusOnly);
             // Fetch subtopics for each topic
-            const topicsWithSubtopics = await Promise.all(data.map(async (topic) => {
+            const topicsWithSubtopics = await Promise.all(testTopics.map(async (topic) => {
                 const subtopics = await topicService.getSubtopics(topic.id);
                 return { ...topic, subtopics };
             }));

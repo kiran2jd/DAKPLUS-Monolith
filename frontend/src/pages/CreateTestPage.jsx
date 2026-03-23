@@ -33,7 +33,9 @@ export default function CreateTestPage() {
         const fetchTopics = async () => {
             try {
                 const data = await topicService.getAllTopics();
-                setTopics(data);
+                // Filter out syllabus-only topics from test creation
+                const testTopics = data.filter(t => !t.syllabusOnly);
+                setTopics(testTopics);
             } catch (err) {
                 console.error("Failed to fetch topics", err);
             }
