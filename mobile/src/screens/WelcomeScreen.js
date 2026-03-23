@@ -8,7 +8,7 @@ import {
     SafeAreaView,
     StatusBar,
 } from 'react-native';
-import logo from '../../assets/logo.jpg';
+import logo from '../../assets/logo.png';
 import { LinearGradient } from 'expo-linear-gradient';
 
 export default function WelcomeScreen({ navigation }) {

@@ -17,7 +17,7 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { authService } from '../services/auth';
-import logo from '../../assets/logo.jpg';
+import logo from '../../assets/logo.png';
 
 export default function LoginScreen({ navigation }) {
     const [loginMethod, setLoginMethod] = useState('password'); // 'password' or 'otp'
