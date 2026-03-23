@@ -8,16 +8,29 @@ export default function SyllabusPage() {
     const [loading, setLoading] = useState(true);
     const [isStaff, setIsStaff] = useState(false);
     const [uploadingId, setUploadingId] = useState(null);
+    const [selectedCourseId, setSelectedCourseId] = useState(null);
     const navigate = useNavigate();
     const fileInputRef = useRef(null);
+
+    const COURSE_BANNERS = [
+        { id: 'MTS', title: 'GDS to MTS', sub: 'Multi Tasking Staff', color: 'indigo' },
+        { id: 'PMMG', title: 'PM / MG', sub: 'Postman & Mail Guard', color: 'cyan' },
+        { id: 'PASA', title: 'PA / SA', sub: 'Postal & Sorting Assistant', color: 'red' },
+    ];
 
     const fetchSyllabus = async () => {
         setLoading(true);
         try {
-            const topicsData = await topicService.getAllTopics();
+            const data = await topicService.getAllTopics();
             // Filter to only show topics marked as syllabusOnly
-            const syllabusTopics = topicsData.filter(t => t.syllabusOnly);
-            const syllabus = await Promise.all(syllabusTopics.map(async (topic) => {
+            let filtered = data.filter(t => t.syllabusOnly);
+            
+            // Filter by course if selected
+            if (selectedCourseId) {
+                filtered = filtered.filter(t => t.courseIds && t.courseIds.includes(selectedCourseId));
+            }
+
+            const syllabus = await Promise.all(filtered.map(async (topic) => {
                 const subtopics = await topicService.getSubtopics(topic.id);
                 return { ...topic, subtopics };
             }));
@@ -50,8 +63,8 @@ export default function SyllabusPage() {
         const user = JSON.parse(localStorage.getItem('user') || '{}');
         const role = (user.role || '').toUpperCase();
         setIsStaff(role === 'STAFF' || role === 'ADMIN');
-    }, []);
-
+    }, [selectedCourseId]);
+  
     const handleDeletePdf = async (id, type) => {
         if (!window.confirm('Are you sure you want to remove the PDF?')) return;
         try {
@@ -105,21 +118,67 @@ export default function SyllabusPage() {
 
     return (
         <div className="p-6 max-w-5xl mx-auto">
-            <div className="flex items-center justify-between mb-8">
-                <div className="flex items-center gap-3">
-                    <div className="p-3 bg-red-100 rounded-2xl">
-                        <BookOpen className="text-red-600 h-8 w-8" />
+            <div className="flex items-center justify-between mb-10">
+                <div className="flex items-center gap-4">
+                    <div className="p-4 bg-red-600 rounded-2xl shadow-lg shadow-red-200">
+                        <BookOpen className="text-white h-8 w-8" />
                     </div>
                     <div>
-                        <h1 className="text-3xl font-bold text-gray-900 font-sans">Course Syllabus</h1>
-                        <p className="text-gray-500 text-sm">Explore topics and areas covered in mock exams</p>
+                        <h1 className="text-4xl font-black text-gray-900 tracking-tight">Syllabus Hub</h1>
+                        <p className="text-gray-500 font-medium">Selected: {selectedCourseId || 'All Courses'}</p>
                     </div>
                 </div>
                 {isStaff && (
-                    <div className="px-4 py-2 bg-blue-50 text-blue-700 rounded-xl text-xs font-bold border border-blue-100 uppercase tracking-wider">
-                        Admin Mode: Direct Edit Enabled
-                    </div>
+                    <button
+                        onClick={() => navigate('/dashboard/admin/syllabus')}
+                        className="px-6 py-3 bg-indigo-600 text-white rounded-2xl text-xs font-black uppercase tracking-widest hover:bg-indigo-700 transition shadow-xl shadow-indigo-200"
+                    >
+                        Manage Syllabus
+                    </button>
                 )}
+            </div>
+
+            {/* Course Banners */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-12">
+                {COURSE_BANNERS.map((banner) => {
+                    const isActive = selectedCourseId === banner.id;
+                    const colors = {
+                        indigo: isActive ? 'border-indigo-600 bg-indigo-50 shadow-indigo-100 text-indigo-900' : 'border-transparent bg-white text-gray-900',
+                        cyan: isActive ? 'border-cyan-600 bg-cyan-50 shadow-cyan-100 text-cyan-900' : 'border-transparent bg-white text-gray-900',
+                        red: isActive ? 'border-red-600 bg-red-50 shadow-red-100 text-red-900' : 'border-transparent bg-white text-gray-900'
+                    };
+                    const iconColors = {
+                        indigo: isActive ? 'bg-indigo-600 text-white' : 'bg-indigo-50 text-indigo-600',
+                        cyan: isActive ? 'bg-cyan-600 text-white' : 'bg-cyan-50 text-cyan-600',
+                        red: isActive ? 'bg-red-600 text-white' : 'bg-red-50 text-red-600'
+                    };
+
+                    return (
+                        <button
+                            key={banner.id}
+                            onClick={() => setSelectedCourseId(isActive ? null : banner.id)}
+                            className={`relative overflow-hidden group p-6 rounded-[2rem] border-2 transition-all duration-300 text-left shadow-xl ${
+                                isActive ? 'shadow-2xl' : 'shadow-gray-100 hover:border-gray-200'
+                            } ${colors[banner.color]}`}
+                        >
+                            <div className={`p-3 rounded-2xl mb-4 w-fit transition-colors ${iconColors[banner.color]}`}>
+                                {banner.id === 'MTS' ? <FileText size={24} /> : banner.id === 'PMMG' ? <GraduationCap size={24} /> : <BookOpen size={24} />}
+                            </div>
+                            <h3 className="text-xl font-black tracking-tight">
+                                {banner.title}
+                            </h3>
+                            <p className="text-sm font-bold opacity-60">
+                                {banner.sub}
+                            </p>
+                            
+                            {isActive && (
+                                <div className={`absolute top-4 right-4 w-2 h-2 rounded-full animate-ping ${
+                                    banner.color === 'indigo' ? 'bg-indigo-600' : banner.color === 'cyan' ? 'bg-cyan-600' : 'bg-red-600'
+                                }`} />
+                            )}
+                        </button>
+                    );
+                })}
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">

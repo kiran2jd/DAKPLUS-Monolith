@@ -7,7 +7,7 @@ export default function SyllabusManagementPage() {
     const [loading, setLoading] = useState(true);
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [editingTopic, setEditingTopic] = useState(null);
-    const [formData, setFormData] = useState({ name: '', description: '' });
+    const [formData, setFormData] = useState({ name: '', description: '', courseIds: [] });
     const [isSaving, setIsSaving] = useState(false);
     const [expandedTopics, setExpandedTopics] = useState(new Set());
     const [uploadingId, setUploadingId] = useState(null);
@@ -120,10 +120,14 @@ export default function SyllabusManagementPage() {
     const handleOpenModal = (topic = null) => {
         if (topic) {
             setEditingTopic(topic);
-            setFormData({ name: topic.name, description: topic.description || '' });
+            setFormData({ 
+                name: topic.name, 
+                description: topic.description || '',
+                courseIds: topic.courseIds || []
+            });
         } else {
             setEditingTopic(null);
-            setFormData({ name: '', description: '' });
+            setFormData({ name: '', description: '', courseIds: [] });
         }
         setIsModalOpen(true);
     };
@@ -324,6 +328,32 @@ export default function SyllabusManagementPage() {
                                     className="w-full px-6 py-4 bg-gray-50 border-2 border-transparent focus:border-indigo-600 focus:bg-white rounded-2xl outline-none transition-all font-bold text-gray-900 shadow-inner"
                                     placeholder="Brief details about this topic..."
                                 />
+                            </div>
+
+                            <div>
+                                <label className="block text-[10px] font-black uppercase tracking-widest text-gray-400 mb-3 ml-1">Available In Courses</label>
+                                <div className="flex flex-wrap gap-2">
+                                    {['MTS', 'PMMG', 'PASA'].map(id => (
+                                        <button
+                                            key={id}
+                                            type="button"
+                                            onClick={() => {
+                                                const current = formData.courseIds || [];
+                                                const next = current.includes(id) 
+                                                    ? current.filter(c => c !== id)
+                                                    : [...current, id];
+                                                setFormData({ ...formData, courseIds: next });
+                                            }}
+                                            className={`px-4 py-2 rounded-xl border-2 transition-all font-bold text-xs ${
+                                                (formData.courseIds || []).includes(id)
+                                                    ? 'bg-indigo-600 border-indigo-600 text-white shadow-lg shadow-indigo-200'
+                                                    : 'bg-white border-gray-100 text-gray-400 hover:border-indigo-200'
+                                            }`}
+                                        >
+                                            {id}
+                                        </button>
+                                    ))}
+                                </div>
                             </div>
 
                             <button
