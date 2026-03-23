@@ -74,7 +74,7 @@ const styles = StyleSheet.create({
     },
     logoImage: {
         width: 180,
-        height: '100%',
+        height: 60,
         marginBottom: 10,
     },
     logoText: {

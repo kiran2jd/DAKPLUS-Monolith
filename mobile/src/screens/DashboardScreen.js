@@ -354,7 +354,7 @@ const styles = StyleSheet.create({
     },
     logoMini: { 
         width: 140, 
-        height: '100%',
+        height: 45,
     },
     headerWrapperPadding: { paddingHorizontal: 20 },
     welcomeTextSection: { marginBottom: 24 },

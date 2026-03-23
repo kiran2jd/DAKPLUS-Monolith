@@ -387,7 +387,7 @@ const styles = StyleSheet.create({
     },
     logoImage: {
         width: 140,
-        height: '100%',
+        height: 48,
     },
     title: {
         fontSize: 34,
