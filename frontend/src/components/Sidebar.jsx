@@ -1,7 +1,7 @@
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { LayoutDashboard, PlusCircle, FileText, User, LogOut, X } from 'lucide-react';
 import { authService } from '../services/auth';
-import logo from '../assets/logo.png';
+import logo from '../assets/logo.jpg';
 
 export default function Sidebar({ isOpen, onClose }) {
     const location = useLocation();

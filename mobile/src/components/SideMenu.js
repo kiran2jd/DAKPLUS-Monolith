@@ -87,7 +87,7 @@ const SideMenu = (props) => {
             <View style={styles.header}>
                 <View style={styles.profileImageContainer}>
                     <Image
-                        source={require('../../assets/logo.png')}
+                        source={require('../../assets/logo.jpg')}
                         style={styles.profileImage}
                         resizeMode="contain"
                     />
