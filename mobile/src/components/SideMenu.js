@@ -168,8 +168,8 @@ const styles = StyleSheet.create({
         marginBottom: 12,
     },
     profileImage: {
-        width: 140,
-        height: 45,
+        width: 130,
+        height: '100%',
     },
     onlineStatus: {
         position: 'absolute',

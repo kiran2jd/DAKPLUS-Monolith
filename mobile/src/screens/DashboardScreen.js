@@ -341,18 +341,21 @@ const styles = StyleSheet.create({
     logoContainer: { 
         backgroundColor: '#fff', 
         borderRadius: 20, 
-        paddingHorizontal: 12, 
-        paddingVertical: 4, 
+        paddingHorizontal: 20, 
+        paddingVertical: 6, 
         shadowColor: '#000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.1, shadowRadius: 8, 
         elevation: 5, 
         borderWidth: 1.5, borderColor: '#e2e8f0',
         alignItems: 'center',
         justifyContent: 'center',
-        overflow: 'hidden',
-        minWidth: 200,
-        height: 70
+        height: 60,
+        minWidth: 160,
+        alignSelf: 'center'
     },
-    logoMini: { width: 180, height: 60 },
+    logoMini: { 
+        width: 140, 
+        height: '100%',
+    },
     headerWrapperPadding: { paddingHorizontal: 20 },
     welcomeTextSection: { marginBottom: 24 },
     greetingText: { color: '#64748b', fontSize: 13, fontWeight: '600' },

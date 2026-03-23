@@ -386,8 +386,8 @@ const styles = StyleSheet.create({
         borderColor: '#f1f5f9',
     },
     logoImage: {
-        width: 150,
-        height: 50,
+        width: 140,
+        height: '100%',
     },
     title: {
         fontSize: 34,
