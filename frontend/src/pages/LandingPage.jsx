@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import logo from '../assets/logo.jpg';
+import logo from '../assets/logo.png';
 import { ArrowRight, CheckCircle, Smartphone, Globe, Shield, Star, Users, Zap } from 'lucide-react';
 
 export default function LandingPage() {

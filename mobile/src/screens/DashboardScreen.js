@@ -20,7 +20,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { authService } from '../services/auth';
 import { resultService } from '../services/result';
 import { Ionicons } from '@expo/vector-icons';
-import logo from '../../assets/logo.jpg';
+import logo from '../../assets/logo.png';
 
 const { width } = Dimensions.get('window');
 
