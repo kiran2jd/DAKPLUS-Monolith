@@ -31,9 +31,9 @@ public class DataInitializer implements CommandLineRunner {
 
     private void seedPostalData() {
         // Seed Real Postal Exam Courses as Topics (Tags)
-        Topic mts = new Topic(null, "GDS to MTS", "Complete preparation for MTS examination", "mail", null, null, Arrays.asList("MTS"));
-        Topic pmmg = new Topic(null, "Postman & Mail Guard", "Covers Paper 1 & 2 for PM/MG", "cube", null, null, Arrays.asList("PMMG"));
-        Topic pasa = new Topic(null, "PA/SA Special", "Target oriented batch for PA/SA", "school", null, null, Arrays.asList("PASA"));
+        Topic mts = new Topic(null, "GDS to MTS", "Complete preparation for MTS examination", "mail", null, null, Arrays.asList("MTS"), false);
+        Topic pmmg = new Topic(null, "Postman & Mail Guard", "Covers Paper 1 & 2 for PM/MG", "cube", null, null, Arrays.asList("PMMG"), false);
+        Topic pasa = new Topic(null, "PA/SA Special", "Target oriented batch for PA/SA", "school", null, null, Arrays.asList("PASA"), false);
 
         mts = topicRepository.save(mts);
         pmmg = topicRepository.save(pmmg);
@@ -41,11 +41,11 @@ public class DataInitializer implements CommandLineRunner {
 
         // Seed Subtopics for MTS
         Subtopic poGuide1Mts = subtopicRepository
-                .save(new Subtopic(null, "PO Guide Part 1", "Section 1 - Control of the Post Office", mts.getId(), null, null));
+                .save(new Subtopic(null, "PO Guide Part 1", "Section 1 - Control of the Post Office", mts.getId(), null, null, false));
         
         // Seed Subtopics for PMMG
         Subtopic poGuide1Pm = subtopicRepository
-                .save(new Subtopic(null, "PO Guide Part 1", "Detailed coverage for PM/MG", pmmg.getId(), null, null));
+                .save(new Subtopic(null, "PO Guide Part 1", "Detailed coverage for PM/MG", pmmg.getId(), null, null, false));
 
         // Seed Sample Shared Test (Shared between MTS and PMMG)
         Test sharedMock = new Test();
