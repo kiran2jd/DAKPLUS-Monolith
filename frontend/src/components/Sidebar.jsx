@@ -1,7 +1,7 @@
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { LayoutDashboard, PlusCircle, FileText, User, LogOut, X } from 'lucide-react';
 import { authService } from '../services/auth';
-import logo from '../assets/logo.jpg';
+import logo from '../assets/logo.png';
 
 export default function Sidebar({ isOpen, onClose }) {
     const location = useLocation();
@@ -39,8 +39,10 @@ export default function Sidebar({ isOpen, onClose }) {
                 flex flex-col
             `}>
                 <div className="p-4 border-b dark:border-gray-700 flex justify-between items-center bg-white dark:bg-gray-800 transition-colors">
-                    <Link to="/dashboard" onClick={onClose} className="flex flex-col items-center space-y-2 w-full">
-                        <img src={logo} alt="DAK Plus Logo" className="h-20 w-auto object-contain flex-shrink-0" />
+                    <Link to="/dashboard" onClick={onClose} className="flex flex-col items-center space-y-4 w-full py-4">
+                        <div className="bg-white rounded-2xl p-2 shadow-sm border border-gray-100">
+                            <img src={logo} alt="DAK Plus Logo" className="h-28 w-auto object-contain flex-shrink-0" />
+                        </div>
                         <div className="flex items-center space-x-1">
                             <span className="text-2xl font-extrabold text-gray-900 dark:text-white tracking-tight">
                                 DAK <span className="text-red-600">Plus</span>

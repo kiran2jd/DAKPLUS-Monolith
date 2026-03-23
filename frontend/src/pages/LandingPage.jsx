@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import logo from '../assets/logo.jpg';
+import logo from '../assets/logo.png';
 import { ArrowRight, CheckCircle, Smartphone, Globe, Shield, Star, Users, Zap } from 'lucide-react';
 
 export default function LandingPage() {
@@ -9,7 +9,7 @@ export default function LandingPage() {
             <nav className="bg-white/80 dark:bg-gray-900/80 backdrop-blur-md sticky top-0 z-50 border-b border-gray-100 dark:border-gray-800 transition-colors">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
                     <div className="flex items-center space-x-2">
-                        <img src={logo} alt="DAKPlus Logo" className="h-10 w-auto" />
+                        <img src={logo} alt="DAKPlus Logo" className="h-14 w-auto" />
                         <span className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-red-600 to-orange-600 dark:from-red-400 dark:to-orange-400">
                             DAK Plus
                         </span>

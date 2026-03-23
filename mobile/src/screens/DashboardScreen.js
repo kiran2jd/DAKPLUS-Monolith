@@ -20,7 +20,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { authService } from '../services/auth';
 import { resultService } from '../services/result';
 import { Ionicons } from '@expo/vector-icons';
-import logo from '../../assets/logo.jpg';
+import logo from '../../assets/logo.png';
 
 const { width } = Dimensions.get('window');
 
@@ -340,19 +340,19 @@ const styles = StyleSheet.create({
     logoCenter: { flex: 1, alignItems: 'center' },
     logoContainer: { 
         backgroundColor: '#fff', 
-        borderRadius: 16, 
-        paddingHorizontal: 0, 
-        paddingVertical: 0, 
+        borderRadius: 20, 
+        paddingHorizontal: 12, 
+        paddingVertical: 4, 
         shadowColor: '#000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.1, shadowRadius: 8, 
         elevation: 5, 
         borderWidth: 1.5, borderColor: '#e2e8f0',
         alignItems: 'center',
         justifyContent: 'center',
         overflow: 'hidden',
-        minWidth: 240,
-        height: 100
+        minWidth: 200,
+        height: 70
     },
-    logoMini: { width: 240, height: 100 },
+    logoMini: { width: 180, height: 60 },
     headerWrapperPadding: { paddingHorizontal: 20 },
     welcomeTextSection: { marginBottom: 24 },
     greetingText: { color: '#64748b', fontSize: 13, fontWeight: '600' },
