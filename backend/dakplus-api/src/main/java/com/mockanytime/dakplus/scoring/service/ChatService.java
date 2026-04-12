@@ -26,7 +26,12 @@ public class ChatService {
                 +
                 "Stay within the context of DAK Plus and postal studies.";
 
-        return chatClient.call(new Prompt(systemPersona + "\n\nUser Question: " + message))
-                .getResult().getOutput().getContent();
+        try {
+            return chatClient.call(new Prompt(systemPersona + "\n\nUser Question: " + message))
+                    .getResult().getOutput().getContent();
+        } catch (Exception e) {
+            System.err.println("ChatService AI call failed: " + e.getMessage());
+            return "I'm sorry, but I'm having a little trouble connecting to my knowledge base right now. Please try again in 30 seconds.";
+        }
     }
 }

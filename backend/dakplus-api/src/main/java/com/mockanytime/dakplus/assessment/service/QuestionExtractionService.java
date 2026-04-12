@@ -68,6 +68,36 @@ public class QuestionExtractionService {
     }
 
     public List<Question> extractQuestions(String text, String topicId, String subtopicId) {
+        if (text == null || text.isBlank()) return List.of();
+        
+        // Chunking parameters: 8000 chars is roughly 2000-3000 tokens including prompt
+        int maxChunkSize = 8000;
+        List<Question> allQuestions = new java.util.ArrayList<>();
+        
+        System.out.println("Beginning chunked extraction for text of length: " + text.length());
+        
+        for (int i = 0; i < text.length(); i += maxChunkSize) {
+            int end = Math.min(i + maxChunkSize, text.length());
+            String chunk = text.substring(i, end);
+            
+            System.out.println("Processing chunk " + (i / maxChunkSize + 1) + " (length: " + chunk.length() + ")");
+            List<Question> chunkQuestions = extractQuestionsFromSingleChunk(chunk, topicId, subtopicId);
+            
+            if (chunkQuestions != null && !chunkQuestions.isEmpty()) {
+                allQuestions.addAll(chunkQuestions);
+            }
+            
+            // Brief pause between chunks to avoid Burst Rate Limits on free tier
+            if (end < text.length()) {
+                try { Thread.sleep(2000); } catch (InterruptedException ignored) {}
+            }
+        }
+        
+        System.out.println("Total questions extracted across all chunks: " + allQuestions.size());
+        return allQuestions;
+    }
+
+    private List<Question> extractQuestionsFromSingleChunk(String text, String topicId, String subtopicId) {
         String promptString = """
                 Extract all multiple choice questions from the provided text.
                 The text may contain OCR noise or fragments labeled "[Image Text Content]:".
@@ -88,7 +118,7 @@ public class QuestionExtractionService {
                 3. Clean OCR noise (random symbols, broken words).
                 4. If a question is incomplete, skip it rather than guessing.
                 5. Use professional Hindi terminology relevant to Indian postal exams.
-                6. IMPORTANT: Extract EVERY SINGLE question found in the text. Aim for exactly 100 questions per request if available in the text. Do not stop until you have reached the end of the text. I will handle high character counts.
+                6. IMPORTANT: Extract EVERY SINGLE question found in the text.
                 7. METADATA PRESERVATION: If a question is followed by bracketed information (e.g., "(PA/SA Exam – 2020 UP – 2022 MH)"), you MUST include this text at the end of the "text" property. Do NOT strip it. It is essential for students to see the exam year and region.
 
                 FORMAT:
@@ -117,21 +147,18 @@ public class QuestionExtractionService {
         Prompt prompt = new Prompt(promptString.replace("{text}", text));
         long startTime = System.currentTimeMillis();
         System.out.println("Sending extraction prompt to Groq...");
-        System.out.println("Text Preview (500 chars): " + (text.length() > 500 ? text.substring(0, 500) : text));
-        System.out.println("Total Text Length: " + text.length());
-
+        
         String response;
         try {
             response = chatClient.call(prompt).getResult().getOutput().getContent();
             System.out.println("Groq Response received in " + (System.currentTimeMillis() - startTime) + "ms");
         } catch (Exception e) {
-            System.err.println("ChatClient call failed: " + e.getMessage());
+            System.err.println("ChatClient call failed in chunk: " + e.getMessage());
             return List.of();
         }
 
         // Robust cleanup of response
         response = response.trim();
-        System.out.println("RAW AI RESPONSE PREVIEW: " + (response.length() > 200 ? response.substring(0, 200) : response));
         
         // Remove markdown code blocks if present
         if (response.contains("```")) {
@@ -139,7 +166,6 @@ public class QuestionExtractionService {
             int lastBlock = response.lastIndexOf("```");
             
             if (firstBlock != -1 && lastBlock != -1 && firstBlock != lastBlock) {
-                // Try to extract content between backticks
                 String content = response.substring(firstBlock);
                 if (content.startsWith("```json")) {
                     content = content.substring(7);
@@ -153,7 +179,6 @@ public class QuestionExtractionService {
                     response = content.trim();
                 }
             } else if (firstBlock != -1) {
-                // Only one backtick block start, strip it
                 response = response.substring(firstBlock);
                 if (response.startsWith("```json")) response = response.substring(7);
                 else if (response.startsWith("```")) response = response.substring(3);
@@ -162,60 +187,38 @@ public class QuestionExtractionService {
         
         response = response.trim();
 
-        // Handle Truncation or invalid ending:
-        // Case 1: Doesn't end with }
+        // Recovery for truncated JSON
         if (!response.endsWith("}")) {
-            System.out.println("Response does not end with '}'. Attempting recovery.");
-            // Find last closed object
             int lastObjectEnd = response.lastIndexOf("}");
             if (lastObjectEnd != -1) {
-                 // Check if we are inside a list []
                  int lastListStart = response.lastIndexOf("[");
                  int lastListEnd = response.lastIndexOf("]");
-                 
                  if (lastListStart > lastListEnd) {
-                     // We are inside an unfinished list
                      response = response.substring(0, response.lastIndexOf("}") + 1) + "]}";
                  } else {
                      response = response.substring(0, lastObjectEnd + 1);
                  }
             } else {
-                // Extremely truncated, let's try to just close it if it has [
                 if (response.contains("[") && !response.contains("]")) response += "]}";
                 else if (!response.endsWith("}")) response += "}";
             }
         }
 
         try {
-            // Using simple structure for the output parser or manual mapping if needed.
             QuestionList parsed = parser.parse(response);
             List<Question> questions = parsed.getQuestions();
             if (questions != null) {
-                // Remove invalid questions (must have text, 4 options, and correct answer)
                 questions.removeIf(q -> !isValidQuestion(q));
-
                 questions.forEach(q -> {
                     q.setTopicId(topicId);
                     q.setSubtopicId(subtopicId);
-                    if (q.getType() == null)
-                        q.setType("mcq");
-                    if (q.getPoints() == 0)
-                        q.setPoints(1);
+                    if (q.getType() == null) q.setType("mcq");
+                    if (q.getPoints() == 0) q.setPoints(1);
                 });
-                System.out.println("Successfully extracted " + questions.size() + " valid questions.");
                 return questions;
             }
         } catch (Exception e) {
-            System.err.println("Failed to parse AI response as JSON: " + e.getMessage());
-            // Fallback: try to find a JSON array manually if parser fails
-            if (response.contains("[") && response.contains("]")) {
-                try {
-                    System.out.println("Attempting fallback parsing for potential array.");
-                    // In a real scenario, we'd use Jackson to parse this if BeanOutputParser fails
-                } catch (Exception e2) {
-                    System.err.println("Fallback parsing also failed.");
-                }
-            }
+            System.err.println("Failed to parse chunk JSON: " + e.getMessage());
         }
         return List.of();
     }

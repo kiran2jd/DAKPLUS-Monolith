@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from 'react';
 import { MessageSquare, X, Send, User, Bot, Loader2 } from 'lucide-react';
-import axios from 'axios';
+import api from '../services/api';
 
 export default function ChatWidget() {
     const [isOpen, setIsOpen] = useState(false);
@@ -29,9 +29,7 @@ export default function ChatWidget() {
         setLoading(true);
 
         try {
-            // Updated to use the api-gateway route
-            const apiUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080';
-            const response = await axios.post(`${apiUrl}/chat`, {
+            const response = await api.post('/chat', {
                 message: input
             });
 

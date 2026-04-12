@@ -12,6 +12,7 @@ import { ScrollView } from 'react-native-gesture-handler';
 import { LinearGradient } from 'expo-linear-gradient';
 import { resultService } from '../services/result';
 import { authService } from '../services/auth';
+import { reportService } from '../services/report';
 import { Ionicons } from '@expo/vector-icons';
 
 import ConfettiCannon from 'react-native-confetti-cannon';
@@ -24,6 +25,22 @@ export default function ResultScreen({ navigation, route }) {
     const [result, setResult] = useState(null);
     const [loading, setLoading] = useState(true);
     const [language, setLanguage] = useState('en'); // 'en' or 'hi'
+
+    // Reporting state
+    const [reportModalVisible, setReportModalVisible] = useState(false);
+    const [selectedQuestion, setSelectedQuestion] = useState(null);
+    const [reportReason, setReportReason] = useState('Wrong Options');
+    const [reportComment, setReportComment] = useState('');
+    const [isReporting, setIsReporting] = useState(false);
+
+    const reportReasons = [
+        'Wrong Options',
+        'Spelling Error',
+        'Incorrect Hindi Translation',
+        'Out of Syllabus',
+        'Image Issue',
+        'Other'
+    ];
 
     useEffect(() => {
         if (!resultId) {
@@ -54,6 +71,38 @@ export default function ResultScreen({ navigation, route }) {
         };
         fetchResult();
     }, [resultId, navigation]);
+
+    const submitReport = async () => {
+        if (!reportComment.trim()) {
+            Alert.alert("Required", "Please add a brief comment.");
+            return;
+        }
+
+        setIsReporting(true);
+        try {
+            await reportService.submitReport({
+                testId: result.testId,
+                questionId: selectedQuestion.questionId,
+                userId: user?.id || user?._id,
+                userName: user?.name || 'Student',
+                reason: reportReason,
+                comment: reportComment
+            });
+            Alert.alert("Report Submitted", "Thank you for your feedback. We will review this question.");
+            setReportModalVisible(false);
+            setReportComment('');
+        } catch (err) {
+            console.error("Report failed:", err);
+            Alert.alert("Error", "Failed to submit report. Please try again.");
+        } finally {
+            setIsReporting(false);
+        }
+    };
+
+    const openReportModal = (question) => {
+        setSelectedQuestion(question);
+        setReportModalVisible(true);
+    };
 
     const [filter, setFilter] = useState('all'); // all, correct, incorrect
 
@@ -274,7 +323,16 @@ export default function ResultScreen({ navigation, route }) {
                                 {detail.correct ? (
                                     <Text style={styles.correctBadge}>✓ Correct</Text>
                                 ) : (
-                                    <Text style={styles.wrongBadge}>✗ Incorrect</Text>
+                                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+                                        <TouchableOpacity 
+                                            onPress={() => openReportModal(detail)}
+                                            style={styles.flagBtnSmall}
+                                        >
+                                            <Ionicons name="flag-outline" size={14} color="#dc2626" />
+                                            <Text style={styles.flagBtnTextSmall}>Report</Text>
+                                        </TouchableOpacity>
+                                        <Text style={styles.wrongBadge}>✗ Incorrect</Text>
+                                    </View>
                                 )}
                             </View>
                             {!detail.correct && (
@@ -301,6 +359,60 @@ export default function ResultScreen({ navigation, route }) {
                     )}
                 </View>
             </ScrollView>
+
+            {/* Reporting Modal */}
+            <Modal
+                animationType="slide"
+                transparent={true}
+                visible={reportModalVisible}
+                onRequestClose={() => setReportModalVisible(false)}
+            >
+                <View style={styles.modalOverlay}>
+                    <View style={styles.modalContent}>
+                        <View style={styles.modalHeader}>
+                            <Text style={styles.modalTitle}>Report Question</Text>
+                            <TouchableOpacity onPress={() => setReportModalVisible(false)}>
+                                <Ionicons name="close" size={24} color="#64748b" />
+                            </TouchableOpacity>
+                        </View>
+
+                        <Text style={styles.label}>Reason for reporting:</Text>
+                        <View style={styles.reasonsContainer}>
+                            {reportReasons.map((reason) => (
+                                <TouchableOpacity 
+                                    key={reason}
+                                    style={[styles.reasonBtn, reportReason === reason ? styles.activeReason : null]}
+                                    onPress={() => setReportReason(reason)}
+                                >
+                                    <Text style={[styles.reasonText, reportReason === reason ? styles.activeReasonText : null]}>
+                                        {reason}
+                                    </Text>
+                                </TouchableOpacity>
+                            ))}
+                        </View>
+
+                        <Text style={styles.label}>Additional Comment:</Text>
+                        <TextInput
+                            style={styles.textArea}
+                            multiline
+                            numberOfLines={4}
+                            placeholder="Tell us what's wrong..."
+                            value={reportComment}
+                            onChangeText={setReportComment}
+                        />
+
+                        <TouchableOpacity 
+                            style={[styles.submitReportBtn, isReporting ? { opacity: 0.7 } : null]}
+                            onPress={submitReport}
+                            disabled={isReporting}
+                        >
+                            <Text style={styles.submitReportText}>
+                                {isReporting ? 'Submitting...' : 'Submit Report'}
+                            </Text>
+                        </TouchableOpacity>
+                    </View>
+                </View>
+            </Modal>
         </SafeAreaView>
     );
 }
@@ -652,5 +764,96 @@ const styles = StyleSheet.create({
     },
     activeLangText: {
         color: '#059669',
+    },
+    flagBtnSmall: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        backgroundColor: '#fee2e2',
+        paddingHorizontal: 8,
+        paddingVertical: 4,
+        borderRadius: 8,
+        gap: 4,
+    },
+    flagBtnTextSmall: {
+        fontSize: 10,
+        color: '#dc2626',
+        fontWeight: 'bold',
+    },
+    modalOverlay: {
+        flex: 1,
+        backgroundColor: 'rgba(0,0,0,0.5)',
+        justifyContent: 'flex-end',
+    },
+    modalContent: {
+        backgroundColor: '#fff',
+        borderTopLeftRadius: 24,
+        borderTopRightRadius: 24,
+        padding: 24,
+        minHeight: '50%',
+    },
+    modalHeader: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        marginBottom: 20,
+    },
+    modalTitle: {
+        fontSize: 20,
+        fontWeight: 'bold',
+        color: '#1e293b',
+    },
+    label: {
+        fontSize: 14,
+        fontWeight: '600',
+        color: '#64748b',
+        marginBottom: 8,
+        marginTop: 12,
+    },
+    reasonsContainer: {
+        flexDirection: 'row',
+        flexWrap: 'wrap',
+        gap: 8,
+        marginBottom: 16,
+    },
+    reasonBtn: {
+        paddingHorizontal: 12,
+        paddingVertical: 6,
+        borderRadius: 20,
+        borderWidth: 1,
+        borderColor: '#e2e8f0',
+        backgroundColor: '#f8fafc',
+    },
+    activeReason: {
+        backgroundColor: '#dc2626',
+        borderColor: '#dc2626',
+    },
+    reasonText: {
+        fontSize: 12,
+        color: '#64748b',
+    },
+    activeReasonText: {
+        color: '#fff',
+        fontWeight: 'bold',
+    },
+    textArea: {
+        backgroundColor: '#f8fafc',
+        borderRadius: 12,
+        borderWidth: 1,
+        borderColor: '#e2e8f0',
+        padding: 12,
+        height: 100,
+        textAlignVertical: 'top',
+        marginBottom: 24,
+    },
+    submitReportBtn: {
+        backgroundColor: '#dc2626',
+        padding: 16,
+        borderRadius: 16,
+        alignItems: 'center',
+    },
+    submitReportText: {
+        color: '#fff',
+        fontSize: 16,
+        fontWeight: 'bold',
     },
 });

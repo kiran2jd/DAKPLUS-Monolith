@@ -32,7 +32,7 @@ spring:
       api-key: ${GROQ_API_KEY:${SPRING_AI_OPENAI_API_KEY:${OPENAI_API_KEY:}}}
       chat:
         options:
-          model: llama-3.3-70b-versatile
+          model: llama-3.1-8b-instant
           max-tokens: 16384 # Increased for very large document extraction (up to 100 questions)
   servlet:
     multipart:

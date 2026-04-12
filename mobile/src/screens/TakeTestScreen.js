@@ -11,6 +11,8 @@ import {
     Dimensions,
     TouchableOpacity,
     ScrollView,
+    Modal,
+    TextInput
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
@@ -21,6 +23,7 @@ import { BackHandler } from 'react-native';
 import { testService } from '../services/test';
 import { resultService } from '../services/result';
 import { authService } from '../services/auth';
+import { reportService } from '../services/report';
 
 export default function TakeTestScreen({ navigation, route }) {
 
@@ -34,6 +37,21 @@ export default function TakeTestScreen({ navigation, route }) {
     const [language, setLanguage] = useState('en'); // 'en' or 'hi'
     const [alreadySubmitted, setAlreadySubmitted] = useState(false);
     const timerRef = useRef(null);
+
+    // Reporting state
+    const [reportModalVisible, setReportModalVisible] = useState(false);
+    const [reportReason, setReportReason] = useState('Wrong Options');
+    const [reportComment, setReportComment] = useState('');
+    const [isReporting, setIsReporting] = useState(false);
+
+    const reportReasons = [
+        'Wrong Options',
+        'Spelling Error',
+        'Incorrect Hindi Translation',
+        'Out of Syllabus',
+        'Image Issue',
+        'Other'
+    ];
 
     // PREVENT ACCIDENTS: Deep Back Button Protection
     useFocusEffect(
@@ -136,6 +154,34 @@ export default function TakeTestScreen({ navigation, route }) {
             console.error("Submission failed:", err);
             Alert.alert('Error', 'Failed to submit test. Please check your connection.');
             setIsSubmitting(false);
+        }
+    };
+
+    const submitReport = async () => {
+        if (!reportComment.trim()) {
+            Alert.alert("Required", "Please add a brief comment.");
+            return;
+        }
+
+        setIsReporting(true);
+        try {
+            const user = await authService.getUser();
+            await reportService.submitReport({
+                testId,
+                questionId: question.id,
+                userId: user?.id || user?._id,
+                userName: user?.name || 'Student',
+                reason: reportReason,
+                comment: reportComment
+            });
+            Alert.alert("Report Submitted", "Thank you for your feedback. We will review this question.");
+            setReportModalVisible(false);
+            setReportComment('');
+        } catch (err) {
+            console.error("Report failed:", err);
+            Alert.alert("Error", "Failed to submit report. Please try again.");
+        } finally {
+            setIsReporting(false);
         }
     };
 
@@ -305,9 +351,19 @@ export default function TakeTestScreen({ navigation, route }) {
 
             <View style={styles.progressContainer}>
                 <View style={styles.progressBar}>
-                    <View style={[styles.progressFill, { width: `${((currentQuestion + 1) / test.questions.length) * 100}%` }]} />
+                <View style={[styles.progressFill, { width: `${((currentQuestion + 1) / test.questions.length) * 100}%` }]} />
                 </View>
-                <Text style={styles.progressText}>Question {currentQuestion + 1} of {test.questions.length}</Text>
+                <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <Text style={styles.progressText}>Question {currentQuestion + 1} of {test.questions.length}</Text>
+                    <TouchableOpacity 
+                        style={styles.reportIconBtn} 
+                        onPress={() => setReportModalVisible(true)}
+                        activeOpacity={0.7}
+                    >
+                        <Ionicons name="flag-outline" size={16} color="#dc2626" />
+                        <Text style={styles.reportIconText}>Report</Text>
+                    </TouchableOpacity>
+                </View>
             </View>
 
             <ScrollView contentContainerStyle={styles.questionContainer}>
@@ -373,10 +429,63 @@ export default function TakeTestScreen({ navigation, route }) {
                         style={StyleSheet.absoluteFillObject}
                     />
                     <Text style={[styles.navButtonText, styles.nextButtonText]}>
-                        {currentQuestion === test.questions.length - 1 ? 'Finish' : 'Next'}
                     </Text>
                 </TouchableOpacity>
             </View>
+
+            {/* Reporting Modal */}
+            <Modal
+                animationType="slide"
+                transparent={true}
+                visible={reportModalVisible}
+                onRequestClose={() => setReportModalVisible(false)}
+            >
+                <View style={styles.modalOverlay}>
+                    <View style={styles.modalContent}>
+                        <View style={styles.modalHeader}>
+                            <Text style={styles.modalTitle}>Report Question</Text>
+                            <TouchableOpacity onPress={() => setReportModalVisible(false)}>
+                                <Ionicons name="close" size={24} color="#64748b" />
+                            </TouchableOpacity>
+                        </View>
+
+                        <Text style={styles.label}>Reason for reporting:</Text>
+                        <View style={styles.reasonsContainer}>
+                            {reportReasons.map((reason) => (
+                                <TouchableOpacity 
+                                    key={reason}
+                                    style={[styles.reasonBtn, reportReason === reason ? styles.activeReason : null]}
+                                    onPress={() => setReportReason(reason)}
+                                >
+                                    <Text style={[styles.reasonText, reportReason === reason ? styles.activeReasonText : null]}>
+                                        {reason}
+                                    </Text>
+                                </TouchableOpacity>
+                            ))}
+                        </View>
+
+                        <Text style={styles.label}>Additional Comment:</Text>
+                        <TextInput
+                            style={styles.textArea}
+                            multiline
+                            numberOfLines={4}
+                            placeholder="Tell us what's wrong..."
+                            value={reportComment}
+                            onChangeText={setReportComment}
+                        />
+
+                        <TouchableOpacity 
+                            style={[styles.submitReportBtn, isReporting ? { opacity: 0.7 } : null]}
+                            onPress={submitReport}
+                            disabled={isReporting}
+                        >
+                            <Text style={styles.submitReportText}>
+                                {isReporting ? 'Submitting...' : 'Submit Report'}
+                            </Text>
+                        </TouchableOpacity>
+                    </View>
+                </View>
+            </Modal>
         </SafeAreaView>
     );
 }
@@ -554,10 +663,42 @@ const styles = StyleSheet.create({
     langText: {
         color: '#ffffff',
         fontSize: 10,
+        borderWidth: 1,
+        borderColor: '#e2e8f0',
+        backgroundColor: '#f8fafc',
+    },
+    activeReason: {
+        backgroundColor: '#dc2626',
+        borderColor: '#dc2626',
+    },
+    reasonText: {
+        fontSize: 12,
+        color: '#64748b',
+    },
+    activeReasonText: {
+        color: '#fff',
         fontWeight: 'bold',
     },
-    activeLangText: {
-        color: '#1e3a8a',
+    textArea: {
+        backgroundColor: '#f8fafc',
+        borderRadius: 12,
+        borderWidth: 1,
+        borderColor: '#e2e8f0',
+        padding: 12,
+        height: 100,
+        textAlignVertical: 'top',
+        marginBottom: 24,
+    },
+    submitReportBtn: {
+        backgroundColor: '#dc2626',
+        padding: 16,
+        borderRadius: 16,
+        alignItems: 'center',
+    },
+    submitReportText: {
+        color: '#fff',
+        fontSize: 16,
+        fontWeight: 'bold',
     },
     alreadyCard: {
         backgroundColor: '#fcf9f2',
