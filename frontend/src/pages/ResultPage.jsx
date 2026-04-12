@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
+import { CheckCircle, XCircle, BarChart2, Share2, Flag } from 'lucide-react';
+import ReportModal from '../components/ReportModal';
 import { resultService } from '../services/result';
-import { CheckCircle, XCircle, BarChart2, Share2 } from 'lucide-react';
 import confetti from 'canvas-confetti';
 
 export default function ResultPage() {
@@ -9,6 +10,8 @@ export default function ResultPage() {
     const [result, setResult] = useState(null);
     const [loading, setLoading] = useState(true);
     const [filter, setFilter] = useState('ALL');
+    const [reportModalOpen, setReportModalOpen] = useState(false);
+    const [selectedQuestion, setSelectedQuestion] = useState(null);
 
     useEffect(() => {
         const loadResult = async () => {
@@ -117,9 +120,21 @@ export default function ResultPage() {
                                 key={idx}
                                 className={`bg-white rounded-2xl p-5 shadow-sm border-l-4 ${detail.correct ? 'border-green-600' : 'border-red-600'}`}
                             >
-                                <p className="text-gray-900 font-bold text-base mb-3">
-                                    {detail.index + 1}. {detail.questionText}
-                                </p>
+                                <div className="flex justify-between items-start mb-3">
+                                    <p className="text-gray-900 font-bold text-base pr-4">
+                                        {detail.index + 1}. {detail.questionText}
+                                    </p>
+                                    <button 
+                                        onClick={() => {
+                                            setSelectedQuestion(detail);
+                                            setReportModalOpen(true);
+                                        }}
+                                        className="p-1 text-gray-400 hover:text-red-500 transition-colors shrink-0"
+                                        title="Report an issue"
+                                    >
+                                        <Flag size={14} />
+                                    </button>
+                                </div>
 
                                 <div className="flex justify-between items-center mb-2">
                                     <p className={`text-sm font-semibold ${detail.correct ? 'text-green-600' : 'text-red-600'}`}>
@@ -159,6 +174,16 @@ export default function ResultPage() {
                     </div>
                 )}
             </div>
+
+            {selectedQuestion && (
+                <ReportModal 
+                    isOpen={reportModalOpen}
+                    onClose={() => setReportModalOpen(false)}
+                    questionId={selectedQuestion.questionId}
+                    testId={result.testId}
+                    questionText={selectedQuestion.questionText}
+                />
+            )}
         </div>
     );
 }

@@ -71,6 +71,7 @@ public class ResultService {
 
             // Build detailed answer for review
             Result.AnswerDetail detail = new Result.AnswerDetail(
+                    q.getId(),
                     q.getText(),
                     userAnswer != null ? userAnswer : "Not Answered",
                     correctAnswer,

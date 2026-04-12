@@ -3,6 +3,7 @@ package com.mockanytime.dakplus.assessment.service;
 import com.mockanytime.dakplus.assessment.model.Question;
 import org.springframework.ai.chat.ChatClient;
 import org.springframework.ai.chat.prompt.Prompt;
+import org.springframework.ai.openai.OpenAiChatOptions;
 import org.springframework.ai.parser.BeanOutputParser;
 import org.springframework.stereotype.Service;
 import org.springframework.beans.factory.annotation.Value;
@@ -150,7 +151,9 @@ public class QuestionExtractionService {
         
         String response;
         try {
-            response = chatClient.call(prompt).getResult().getOutput().getContent();
+            response = chatClient.call(new Prompt(prompt.getContents(), 
+                    OpenAiChatOptions.builder().withMaxTokens(3000).build()))
+                    .getResult().getOutput().getContent();
             System.out.println("Groq Response received in " + (System.currentTimeMillis() - startTime) + "ms");
         } catch (Exception e) {
             System.err.println("ChatClient call failed in chunk: " + e.getMessage());

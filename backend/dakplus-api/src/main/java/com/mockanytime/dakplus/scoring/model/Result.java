@@ -38,6 +38,7 @@ public class Result {
 
     // Inner class for detailed answer breakdown
     public static class AnswerDetail {
+        private String questionId;
         private String questionText;
         private String userAnswer;
         private String correctAnswer;
@@ -48,9 +49,10 @@ public class Result {
         public AnswerDetail() {
         }
 
-        public AnswerDetail(String questionText, String userAnswer, String correctAnswer, String explanation,
+        public AnswerDetail(String questionId, String questionText, String userAnswer, String correctAnswer, String explanation,
                 boolean isCorrect,
                 int points) {
+            this.questionId = questionId;
             this.questionText = questionText;
             this.userAnswer = userAnswer;
             this.correctAnswer = correctAnswer;
@@ -60,6 +62,14 @@ public class Result {
         }
 
         // Getters and setters
+        public String getQuestionId() {
+            return questionId;
+        }
+
+        public void setQuestionId(String questionId) {
+            this.questionId = questionId;
+        }
+
         public String getQuestionText() {
             return questionText;
         }

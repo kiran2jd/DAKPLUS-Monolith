@@ -33,7 +33,7 @@ spring:
       chat:
         options:
           model: llama-3.1-8b-instant
-          max-tokens: 16384 # Increased for very large document extraction (up to 100 questions)
+          max-tokens: 1024 # Standard limit to stay within free-tier TPM (6000)
   servlet:
     multipart:
       max-file-size: 100MB

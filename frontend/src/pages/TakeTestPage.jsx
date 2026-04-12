@@ -2,7 +2,8 @@ import { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { testService } from '../services/test';
 import { resultService } from '../services/result';
-import { Clock, ChevronLeft, ChevronRight, CheckCircle } from 'lucide-react';
+import { Clock, ChevronLeft, ChevronRight, CheckCircle, Flag } from 'lucide-react';
+import ReportModal from '../components/ReportModal';
 
 export default function TakeTestPage() {
     const { testId } = useParams();
@@ -19,6 +20,7 @@ export default function TakeTestPage() {
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [language, setLanguage] = useState('en'); // 'en' or 'hi'
     const [alreadySubmitted, setAlreadySubmitted] = useState(false);
+    const [isReportModalOpen, setIsReportModalOpen] = useState(false);
 
     useEffect(() => {
         const loadTest = async () => {
@@ -284,9 +286,18 @@ export default function TakeTestPage() {
                         <span className="text-xs font-black text-indigo-600 dark:text-indigo-400 uppercase tracking-widest bg-indigo-50 dark:bg-indigo-900/30 px-3 py-1 rounded-full">
                             Q{currentQuestion + 1}
                         </span>
-                        <span className="text-xs font-black text-gray-500 dark:text-gray-400 uppercase tracking-widest">
-                            {question.points} {question.points === 1 ? 'Point' : 'Points'}
-                        </span>
+                        <div className="flex items-center space-x-3">
+                            <span className="text-xs font-black text-gray-500 dark:text-gray-400 uppercase tracking-widest">
+                                {question.points} {question.points === 1 ? 'Point' : 'Points'}
+                            </span>
+                            <button 
+                                onClick={() => setIsReportModalOpen(true)}
+                                className="p-1.5 text-gray-400 hover:text-red-500 transition-colors"
+                                title="Report an issue with this question"
+                            >
+                                <Flag size={14} />
+                            </button>
+                        </div>
                     </div>
 
                     <div className="flex-1">
@@ -397,6 +408,14 @@ export default function TakeTestPage() {
                     </div>
                 </div>
             </div>
+
+            <ReportModal 
+                isOpen={isReportModalOpen}
+                onClose={() => setIsReportModalOpen(false)}
+                questionId={question.id || question._id}
+                testId={testId}
+                questionText={question.text}
+            />
         </div>
     );
 }
