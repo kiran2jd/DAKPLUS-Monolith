@@ -71,31 +71,71 @@ public class QuestionExtractionService {
     public List<Question> extractQuestions(String text, String topicId, String subtopicId) {
         if (text == null || text.isBlank()) return List.of();
         
-        // Safe Batching: 3000 chars ensures output translations don't exceed token limits
-        int maxChunkSize = 3000;
+        // Smart Batching: 4500 chars for 70B model to allow context while ensuring full output
+        int maxChunkSize = 4500;
         List<Question> allQuestions = new java.util.ArrayList<>();
         
-        System.out.println("Beginning chunked extraction for text of length: " + text.length());
+        System.out.println("Beginning smart-chunked extraction for text of length: " + text.length());
         
-        for (int i = 0; i < text.length(); i += maxChunkSize) {
-            int end = Math.min(i + maxChunkSize, text.length());
-            String chunk = text.substring(i, end);
+        int currentPos = 0;
+        int chunkCount = 1;
+        while (currentPos < text.length()) {
+            int endPos = Math.min(currentPos + maxChunkSize, text.length());
             
-            System.out.println("Processing chunk " + (i / maxChunkSize + 1) + " (length: " + chunk.length() + ")");
+            // Try to find a smart split point (newline or question number) if we aren't at the very end
+            if (endPos < text.length()) {
+                int smartSplit = findSmartSplitPoint(text, currentPos, endPos);
+                if (smartSplit > currentPos) {
+                    endPos = smartSplit;
+                }
+            }
+            
+            String chunk = text.substring(currentPos, endPos);
+            System.out.println("Processing chunk " + chunkCount + " (range: " + currentPos + "-" + endPos + ", length: " + chunk.length() + ")");
+            
             List<Question> chunkQuestions = extractQuestionsFromSingleChunk(chunk, topicId, subtopicId);
-            
             if (chunkQuestions != null && !chunkQuestions.isEmpty()) {
                 allQuestions.addAll(chunkQuestions);
             }
             
-            // Brief pause between chunks to avoid Burst Rate Limits on free tier
-            if (end < text.length()) {
+            currentPos = endPos;
+            chunkCount++;
+            
+            // Pause between chunks
+            if (currentPos < text.length()) {
                 try { Thread.sleep(2000); } catch (InterruptedException ignored) {}
             }
         }
         
-        System.out.println("Total questions extracted across all chunks: " + allQuestions.size());
+        System.out.println("Total questions extracted across all smart chunks: " + allQuestions.size());
         return allQuestions;
+    }
+
+    /**
+     * Finds a natural breaking point (newline or start of a question) before the hard max limit
+     */
+    private int findSmartSplitPoint(String text, int start, int end) {
+        // Look back up to 500 characters for a natural break
+        int lookback = Math.min(500, end - start);
+        String window = text.substring(end - lookback, end);
+        
+        // Priority 1: Question start pattern (newline + number + dot)
+        java.util.regex.Matcher questionMatcher = java.util.regex.Pattern.compile("\n\\d+\\.").matcher(window);
+        int lastQuestionStart = -1;
+        while (questionMatcher.find()) {
+            lastQuestionStart = questionMatcher.start();
+        }
+        if (lastQuestionStart != -1) {
+            return (end - lookback) + lastQuestionStart;
+        }
+        
+        // Priority 2: Simple newline
+        int lastNewline = window.lastIndexOf("\n");
+        if (lastNewline != -1) {
+            return (end - lookback) + lastNewline;
+        }
+        
+        return end; // No smart split found
     }
 
     private List<Question> extractQuestionsFromSingleChunk(String text, String topicId, String subtopicId) {
@@ -117,10 +157,11 @@ public class QuestionExtractionService {
                 1. JSON ONLY. No explanation text outside the JSON.
                 2. "correctAnswer" must match one of the "options" exactly.
                 3. Clean OCR noise (random symbols, broken words).
-                4. If a question is incomplete, skip it rather than guessing.
+                4. If a question is incomplete and missing vital parts, skip it. But if it is coherent, you MUST extract it.
                 5. Use professional Hindi terminology relevant to Indian postal exams.
-                6. IMPORTANT: Extract EVERY SINGLE question found in the text.
-                7. METADATA PRESERVATION: If a question is followed by bracketed information (e.g., "(PA/SA Exam – 2020 UP – 2022 MH)"), you MUST include this text at the end of the "text" property. Do NOT strip it. It is essential for students to see the exam year and region.
+                6. EXHAUSTIVE EXTRACTION: Extract EVERY SINGLE question found in the text. DO NOT summarize. DO NOT skip questions to save tokens. If there are 20 questions, I expect 20 JSON objects.
+                7. METADATA PRESERVATION: If a question is followed by bracketed information (e.g., "(PA/SA Exam – 2020 UP – 2022 MH)"), you MUST include this text at the end of the "text" property.
+                8. TRANSLATION QUALITY: Ensure both English and Hindi versions are high quality and maintain the same meaning.
 
                 FORMAT:
                 {
@@ -152,9 +193,9 @@ public class QuestionExtractionService {
         String response;
         try {
             response = chatClient.call(new Prompt(prompt.getContents(), 
-                    OpenAiChatOptions.builder().withMaxTokens(3000).build()))
+                    OpenAiChatOptions.builder().withMaxTokens(3500).build()))
                     .getResult().getOutput().getContent();
-            System.out.println("Groq Response received in " + (System.currentTimeMillis() - startTime) + "ms");
+            System.out.println("Groq 70B Response received in " + (System.currentTimeMillis() - startTime) + "ms");
         } catch (Exception e) {
             System.err.println("ChatClient call failed in chunk: " + e.getMessage());
             return List.of();
