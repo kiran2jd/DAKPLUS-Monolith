@@ -32,8 +32,8 @@ spring:
       api-key: ${GROQ_API_KEY:${SPRING_AI_OPENAI_API_KEY:${OPENAI_API_KEY:}}}
       chat:
         options:
-          model: llama-3.1-8b-instant
-          max-tokens: 1024 # Standard limit to stay within free-tier TPM (6000)
+          model: llama-3.3-70b-versatile
+          max-tokens: 2048 # Increased limit for the beefier model
   servlet:
     multipart:
       max-file-size: 100MB

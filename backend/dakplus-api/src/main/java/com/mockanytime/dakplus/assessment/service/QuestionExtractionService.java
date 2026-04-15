@@ -152,7 +152,7 @@ public class QuestionExtractionService {
         String response;
         try {
             response = chatClient.call(new Prompt(prompt.getContents(), 
-                    OpenAiChatOptions.builder().withMaxTokens(4096).build()))
+                    OpenAiChatOptions.builder().withMaxTokens(3000).build()))
                     .getResult().getOutput().getContent();
             System.out.println("Groq Response received in " + (System.currentTimeMillis() - startTime) + "ms");
         } catch (Exception e) {
