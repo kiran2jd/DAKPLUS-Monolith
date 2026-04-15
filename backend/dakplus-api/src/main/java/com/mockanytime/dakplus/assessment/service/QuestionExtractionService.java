@@ -71,8 +71,8 @@ public class QuestionExtractionService {
     public List<Question> extractQuestions(String text, String topicId, String subtopicId) {
         if (text == null || text.isBlank()) return List.of();
         
-        // Chunking parameters: 8000 chars is roughly 2000-3000 tokens including prompt
-        int maxChunkSize = 8000;
+        // Safe Batching: 3000 chars ensures output translations don't exceed token limits
+        int maxChunkSize = 3000;
         List<Question> allQuestions = new java.util.ArrayList<>();
         
         System.out.println("Beginning chunked extraction for text of length: " + text.length());
@@ -152,7 +152,7 @@ public class QuestionExtractionService {
         String response;
         try {
             response = chatClient.call(new Prompt(prompt.getContents(), 
-                    OpenAiChatOptions.builder().withMaxTokens(3000).build()))
+                    OpenAiChatOptions.builder().withMaxTokens(4096).build()))
                     .getResult().getOutput().getContent();
             System.out.println("Groq Response received in " + (System.currentTimeMillis() - startTime) + "ms");
         } catch (Exception e) {
@@ -192,16 +192,26 @@ public class QuestionExtractionService {
 
         // Recovery for truncated JSON
         if (!response.endsWith("}")) {
-            int lastObjectEnd = response.lastIndexOf("}");
-            if (lastObjectEnd != -1) {
-                 int lastListStart = response.lastIndexOf("[");
-                 int lastListEnd = response.lastIndexOf("]");
-                 if (lastListStart > lastListEnd) {
-                     response = response.substring(0, response.lastIndexOf("}") + 1) + "]}";
-                 } else {
-                     response = response.substring(0, lastObjectEnd + 1);
-                 }
+            // Find the last complete question object
+            int lastClosingBrace = response.lastIndexOf("}");
+            if (lastClosingBrace != -1) {
+                // Check if we are inside the questions array
+                int lastQuestionEnd = response.lastIndexOf("},");
+                if (lastQuestionEnd != -1 && lastQuestionEnd < lastClosingBrace) {
+                    // Try to wrap at the last complete question
+                    response = response.substring(0, lastClosingBrace + 1);
+                    if (!response.endsWith("]}")) {
+                        response += "]}";
+                    }
+                } else if (lastClosingBrace != -1) {
+                    // Just close the object and array
+                    response = response.substring(0, lastClosingBrace + 1);
+                    if (!response.endsWith("]}")) {
+                        response += "]}";
+                    }
+                }
             } else {
+                // Absolute fallback
                 if (response.contains("[") && !response.contains("]")) response += "]}";
                 else if (!response.endsWith("}")) response += "}";
             }
