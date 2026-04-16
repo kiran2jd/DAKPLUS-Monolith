@@ -17,6 +17,9 @@ public class QuestionExtractionService {
     @org.springframework.beans.factory.annotation.Autowired(required = false)
     private ChatClient chatClient;
 
+    @org.springframework.beans.factory.annotation.Autowired
+    private com.mockanytime.dakplus.assessment.repository.TestRepository testRepository;
+
     @Value("${spring.ai.openai.api-key:}")
     private String apiKey;
 
@@ -141,39 +144,25 @@ public class QuestionExtractionService {
     private List<Question> extractQuestionsFromSingleChunk(String text, String topicId, String subtopicId) {
         String promptString = """
                 Extract all multiple choice questions from the provided text.
-                The text may contain OCR noise or fragments labeled "[Image Text Content]:".
-                Synthesize coherent questions from these fragments if they appear to belong together.
-
-                EXTRACT BOTH ENGLISH AND HINDI TRANSLATIONS:
-                - Question text in English ("text")
-                - Question text in Hindi ("textHi")
-                - Options in English (exactly four: a, b, c, d in "options")
-                - Options in Hindi (exactly four corresponding to English in "optionsHi")
-                - Correct Answer (one of the original option strings in "correctAnswer")
-                - Explanation in English ("explanation")
-                - Explanation in Hindi ("explanationHi")
-
+                ONLY EXTRACT ENGLISH CONTENT for now.
+                
                 RULES:
-                1. JSON ONLY. No explanation text outside the JSON.
+                1. JSON ONLY.
                 2. "correctAnswer" must match one of the "options" exactly.
-                3. Clean OCR noise (random symbols, broken words).
-                4. If a question is incomplete and missing vital parts, skip it. But if it is coherent, you MUST extract it.
-                5. Use professional Hindi terminology relevant to Indian postal exams.
-                6. EXHAUSTIVE EXTRACTION: Extract EVERY SINGLE question found in the text. DO NOT summarize. DO NOT skip questions to save tokens. If there are 20 questions, I expect 20 JSON objects.
-                7. METADATA PRESERVATION: If a question is followed by bracketed information (e.g., "(PA/SA Exam – 2020 UP – 2022 MH)"), you MUST include this text at the end of the "text" property.
-                8. TRANSLATION QUALITY: Ensure both English and Hindi versions are high quality and maintain the same meaning.
-
+                3. Clean OCR noise.
+                4. "textHis", "optionsHi", "explanation", "explanationHi" should be empty strings for now.
+                
                 FORMAT:
                 {
                   "questions": [
                     {
-                      "text": "...",
-                      "textHi": "...",
-                      "options": ["...", "...", "...", "..."],
-                      "optionsHi": ["...", "...", "...", "..."],
-                      "correctAnswer": "...",
-                      "explanation": "...",
-                      "explanationHi": "...",
+                      "text": "English question text here...",
+                      "textHi": "",
+                      "options": ["A", "B", "C", "D"],
+                      "optionsHi": ["", "", "", ""],
+                      "correctAnswer": "A",
+                      "explanation": "",
+                      "explanationHi": "",
                       "type": "mcq",
                       "points": 1
                     }
@@ -375,6 +364,125 @@ public class QuestionExtractionService {
                 .replaceAll("^[a-dA-D][\\s\\.\\)\\-\\]]+", "")
                 .replaceAll("^[\\(\\[][a-dA-D][\\s\\.\\)\\-\\]]+", "")
                 .trim();
+    }
+
+    /**
+     * BACKGROUND STAGE: Enriches lightweight questions with Hindi translation and explanations.
+     * This runs in the background to avoid blocking the user and bypass rate limits by using 
+     * a very slow/steady pace.
+     */
+    @org.springframework.scheduling.annotation.Async
+    public void enrichQuestionsAsync(String testId, List<Question> questions) {
+        if (questions == null || questions.isEmpty()) return;
+        
+        System.out.println("Starting background enrichment for " + questions.size() + " questions in test: " + testId);
+        
+        int count = 0;
+        for (Question q : questions) {
+            count++;
+            // Skip if already enriched
+            if (q.getTextHi() != null && !q.getTextHi().isBlank()) continue;
+            
+            System.out.println("Enriching question " + count + " of " + questions.size() + "...");
+            
+            enrichSingleQuestion(q);
+            
+            // Save progress every question to ensure stability
+            testRepository.findById(testId).ifPresent(test -> {
+                // Find and update the specific question in the test list
+                for (int i = 0; i < test.getQuestions().size(); i++) {
+                    if (test.getQuestions().get(i).getId().equals(q.getId())) {
+                        test.getQuestions().set(i, q);
+                        break;
+                    }
+                }
+                testRepository.save(test);
+            });
+            
+            // Wait 12-15 seconds between questions to stay far below TPD/TPM limits
+            try { Thread.sleep(12000); } catch (InterruptedException ignored) {}
+        }
+        
+        System.out.println("Background enrichment complete for test: " + testId);
+    }
+
+    private void enrichSingleQuestion(Question q) {
+        String enrichPrompt = """
+            Complete this question by adding Hindi translation and detailed explanation.
+            
+            CONTEXT: Indian Postal Exams (MTS, GDS, Postman, PA/SA).
+            
+            INPUT QUESTION (English):
+            Question: {question}
+            Options: {options}
+            Correct Answer: {answer}
+            
+            TASK:
+            1. Provide "textHi" - High quality Hindi translation of the question.
+            2. Provide "optionsHi" - High quality Hindi translation of all 4 options.
+            3. Provide "explanation" - Concise English explanation of WHY the answer is correct.
+            4. Provide "explanationHi" - Hindi translation of the explanation.
+            
+            RULES:
+            - JSON ONLY.
+            - Use professional Hindi terminology.
+            
+            FORMAT:
+            {
+              "textHi": "...",
+              "optionsHi": ["...", "...", "...", "..."],
+              "explanation": "...",
+              "explanationHi": "..."
+            }
+            """;
+        
+        String optionsStr = String.join(", ", q.getOptions());
+        String finalPrompt = enrichPrompt
+                .replace("{question}", q.getText())
+                .replace("{options}", optionsStr)
+                .replace("{answer}", q.getCorrectAnswer());
+
+        int maxRetries = 2;
+        int attempt = 0;
+        String response = null;
+        
+        // Use a lightweight model for enrichment to save 70B tokens
+        String enrichmentModel = "llama-3.1-8b-instant";
+
+        while (attempt < maxRetries) {
+            try {
+                attempt++;
+                OpenAiChatOptions options = OpenAiChatOptions.builder()
+                        .withModel(enrichmentModel)
+                        .withMaxTokens(1500)
+                        .build();
+                
+                response = chatClient.call(new org.springframework.ai.chat.prompt.Prompt(finalPrompt, options))
+                        .getResult().getOutput().getContent();
+                break;
+            } catch (Exception e) {
+                if (attempt >= maxRetries) return;
+                try { Thread.sleep(20000); } catch (InterruptedException ignored) {}
+            }
+        }
+
+        if (response == null) return;
+
+        try {
+            // Simple manual parse to avoid overhead of BeanOutputParser for a single object
+            // You can use Jackson or similar here, but for simplicity:
+            String cleanJson = response.replaceAll("```json|```", "").trim();
+            com.fasterxml.jackson.databind.ObjectMapper mapper = new com.fasterxml.jackson.databind.ObjectMapper();
+            java.util.Map<String, Object> map = mapper.readValue(cleanJson, java.util.Map.class);
+            
+            if (map.containsKey("textHi")) q.setTextHi((String) map.get("textHi"));
+            if (map.containsKey("optionsHi")) q.setOptionsHi((java.util.List<String>) map.get("optionsHi"));
+            if (map.containsKey("explanation")) q.setExplanation((String) map.get("explanation"));
+            if (map.containsKey("explanationHi")) q.setExplanationHi((String) map.get("explanationHi"));
+            
+        } catch (Exception e) {
+            System.err.println("Enrichment parsing failed for question: " + e.getMessage());
+        }
     }
 
     public static class QuestionList {

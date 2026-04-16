@@ -29,7 +29,12 @@ public class TestController {
         if (userId != null) {
             test.setCreatedBy(userId);
         }
-        return ResponseEntity.ok(testService.createTest(test));
+        Test savedTest = testService.createTest(test);
+        
+        // Trigger background enrichment for translations and explanations
+        questionExtractionService.enrichQuestionsAsync(savedTest.getId(), savedTest.getQuestions());
+        
+        return ResponseEntity.ok(savedTest);
     }
 
     @PutMapping("/{id}")

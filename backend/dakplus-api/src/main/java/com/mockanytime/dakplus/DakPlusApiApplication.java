@@ -8,6 +8,7 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 @SpringBootApplication
 @EnableMongoAuditing
 @EnableScheduling
+@org.springframework.scheduling.annotation.EnableAsync
 public class DakPlusApiApplication {
 
     public static void main(String[] args) {
