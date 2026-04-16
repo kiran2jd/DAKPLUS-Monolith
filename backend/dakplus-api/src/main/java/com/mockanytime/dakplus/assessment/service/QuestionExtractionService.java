@@ -71,8 +71,8 @@ public class QuestionExtractionService {
     public List<Question> extractQuestions(String text, String topicId, String subtopicId) {
         if (text == null || text.isBlank()) return List.of();
         
-        // Smart Batching: 3000 chars for 70B model to reduce TPM usage while keeping context
-        int maxChunkSize = 3000;
+        // Smart Batching: 1800 chars to fit within narrow 6000 TPM limits
+        int maxChunkSize = 1800;
         List<Question> allQuestions = new java.util.ArrayList<>();
         
         System.out.println("Beginning smart-chunked extraction for text of length: " + text.length());
@@ -201,7 +201,7 @@ public class QuestionExtractionService {
                 attempt++;
                 
                 OpenAiChatOptions.Builder optionsBuilder = OpenAiChatOptions.builder()
-                        .withMaxTokens(2000);
+                        .withMaxTokens(1500);
                 
                 if (currentModel != null) {
                     optionsBuilder.withModel(currentModel);
