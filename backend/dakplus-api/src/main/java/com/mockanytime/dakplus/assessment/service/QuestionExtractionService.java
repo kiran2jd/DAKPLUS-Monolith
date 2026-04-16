@@ -193,12 +193,22 @@ public class QuestionExtractionService {
         String response = null;
         int maxRetries = 3;
         int attempt = 0;
+        String fallbackModel = "llama-3.1-8b-instant";
+        String currentModel = null; // Will use default from config unless switched
 
         while (attempt < maxRetries) {
             try {
                 attempt++;
-                response = chatClient.call(new Prompt(prompt.getContents(),
-                                OpenAiChatOptions.builder().withMaxTokens(2000).build()))
+                
+                OpenAiChatOptions.Builder optionsBuilder = OpenAiChatOptions.builder()
+                        .withMaxTokens(2000);
+                
+                if (currentModel != null) {
+                    optionsBuilder.withModel(currentModel);
+                    System.out.println("Using model override for attempt " + attempt + ": " + currentModel);
+                }
+
+                response = chatClient.call(new Prompt(prompt.getContents(), optionsBuilder.build()))
                         .getResult().getOutput().getContent();
                 break; // Success!
             } catch (Exception e) {
@@ -210,18 +220,28 @@ public class QuestionExtractionService {
                     return List.of();
                 }
 
-                long waitTime = 5000; // Default 5s
+                long waitTime = 3000; // Default lower wait if we are switching models
                 if (errorMsg.contains("rate_limit_exceeded") || errorMsg.contains("429")) {
-                    // Try to parse wait time from Groq error message: "Please try again in 18.73s"
-                    java.util.regex.Matcher m = java.util.regex.Pattern.compile("again in ([\\d\\.]+)s").matcher(errorMsg);
-                    if (m.find()) {
-                        waitTime = (long) (Double.parseDouble(m.group(1)) * 1000) + 2000; // Add 2s buffer
+                    // Logic to switch models
+                    if (currentModel == null || !currentModel.equals(fallbackModel)) {
+                        System.out.println("Rate limit hit! Switching to fallback model: " + fallbackModel);
+                        currentModel = fallbackModel;
+                        waitTime = 2000; // 8B model usually has higher limits, short wait is fine
                     } else {
-                        waitTime = 20000; // Default 20s if we can't parse
+                        // Already using fallback but still hit limit, parse wait time
+                        java.util.regex.Matcher m = java.util.regex.Pattern.compile("again in ([\\d\\.]+)s").matcher(errorMsg);
+                        if (m.find()) {
+                            waitTime = (long) (Double.parseDouble(m.group(1)) * 1000) + 2000;
+                        } else if (errorMsg.contains("TPD")) {
+                            waitTime = 30000; // TPD on 8B is high, but if hit, wait longer
+                        } else {
+                            waitTime = 20000;
+                        }
+                        System.out.println("Rate limit detected on fallback. Backing off for " + waitTime + "ms...");
                     }
-                    System.out.println("Rate limit detected. Backing off for " + waitTime + "ms...");
                 } else {
                     System.out.println("Wait 5s before retrying transient error...");
+                    waitTime = 5000;
                 }
 
                 try { Thread.sleep(waitTime); } catch (InterruptedException ignored) {}
