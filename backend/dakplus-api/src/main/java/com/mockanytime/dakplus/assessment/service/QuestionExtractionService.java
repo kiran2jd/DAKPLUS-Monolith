@@ -101,9 +101,9 @@ public class QuestionExtractionService {
             currentPos = endPos;
             chunkCount++;
             
-            // Pause between chunks
+            // Pause between chunks - increased to 5s to avoid TPM limits
             if (currentPos < text.length()) {
-                try { Thread.sleep(2000); } catch (InterruptedException ignored) {}
+                try { Thread.sleep(5000); } catch (InterruptedException ignored) {}
             }
         }
         
@@ -190,15 +190,42 @@ public class QuestionExtractionService {
         long startTime = System.currentTimeMillis();
         System.out.println("Sending extraction prompt to Groq...");
         
-        String response;
-        try {
-            response = chatClient.call(new Prompt(prompt.getContents(), 
-                    OpenAiChatOptions.builder().withMaxTokens(3500).build()))
-                    .getResult().getOutput().getContent();
-            System.out.println("Groq 70B Response received in " + (System.currentTimeMillis() - startTime) + "ms");
-        } catch (Exception e) {
-            System.err.println("ChatClient call failed in chunk: " + e.getMessage());
-            return List.of();
+        String response = null;
+        int maxRetries = 3;
+        int attempt = 0;
+
+        while (attempt < maxRetries) {
+            try {
+                attempt++;
+                response = chatClient.call(new Prompt(prompt.getContents(),
+                                OpenAiChatOptions.builder().withMaxTokens(3500).build()))
+                        .getResult().getOutput().getContent();
+                break; // Success!
+            } catch (Exception e) {
+                String errorMsg = e.getMessage() != null ? e.getMessage() : "Unknown Error";
+                System.err.println("Groq call attempt " + attempt + " failed: " + errorMsg);
+
+                if (attempt >= maxRetries) {
+                    System.err.println("Max retries exceeded for chunk. Skipping.");
+                    return List.of();
+                }
+
+                long waitTime = 5000; // Default 5s
+                if (errorMsg.contains("rate_limit_exceeded") || errorMsg.contains("429")) {
+                    // Try to parse wait time from Groq error message: "Please try again in 18.73s"
+                    java.util.regex.Matcher m = java.util.regex.Pattern.compile("again in ([\\d\\.]+)s").matcher(errorMsg);
+                    if (m.find()) {
+                        waitTime = (long) (Double.parseDouble(m.group(1)) * 1000) + 2000; // Add 2s buffer
+                    } else {
+                        waitTime = 20000; // Default 20s if we can't parse
+                    }
+                    System.out.println("Rate limit detected. Backing off for " + waitTime + "ms...");
+                } else {
+                    System.out.println("Wait 5s before retrying transient error...");
+                }
+
+                try { Thread.sleep(waitTime); } catch (InterruptedException ignored) {}
+            }
         }
 
         // Robust cleanup of response
@@ -285,16 +312,49 @@ public class QuestionExtractionService {
         if (q.getCorrectAnswer() == null || q.getCorrectAnswer().isBlank())
             return false;
 
-        // Ensure correct answer is one of the options
-        boolean answerInOptions = q.getOptions().stream()
-                .anyMatch(opt -> opt.equals(q.getCorrectAnswer()));
+        String correctAnswer = q.getCorrectAnswer().trim();
+        List<String> options = q.getOptions();
 
-        if (!answerInOptions) {
-            System.err.println("Validation Failed: Correct answer '" + q.getCorrectAnswer()
-                    + "' not found in options for queston: " + q.getText());
+        // 1. Try Exact Match (Ignored Case & Trimmed)
+        for (String opt : options) {
+            if (opt.trim().equalsIgnoreCase(correctAnswer)) {
+                q.setCorrectAnswer(opt); // Synchronize
+                return true;
+            }
         }
 
-        return answerInOptions;
+        // 2. Try Normalized Match (Remove prefixes like a), b), (c) etc.)
+        String normalizedCorrect = normalizeOption(correctAnswer);
+        for (String opt : options) {
+            if (normalizeOption(opt).equalsIgnoreCase(normalizedCorrect)) {
+                q.setCorrectAnswer(opt); // Synchronize
+                return true;
+            }
+        }
+
+        // 3. Handle single lette matches (AI just says "a" or "b")
+        String cleanAnswer = correctAnswer.replaceAll("[^a-dA-D]", "").toLowerCase();
+        if (cleanAnswer.length() == 1 && (correctAnswer.length() <= 3)) {
+            int index = cleanAnswer.charAt(0) - 'a';
+            if (index >= 0 && index < options.size()) {
+                q.setCorrectAnswer(options.get(index));
+                return true;
+            }
+        }
+
+        System.err.println("Validation Failed: Correct answer '" + q.getCorrectAnswer()
+                + "' not found in options for queston: " + q.getText());
+
+        return false;
+    }
+
+    private String normalizeOption(String opt) {
+        if (opt == null) return "";
+        // Remove prefixes like "a) ", "b. ", "(c) ", "[d] ", "a- " at the start
+        return opt.trim()
+                .replaceAll("^[a-dA-D][\\s\\.\\)\\-\\]]+", "")
+                .replaceAll("^[\\(\\[][a-dA-D][\\s\\.\\)\\-\\]]+", "")
+                .trim();
     }
 
     public static class QuestionList {
