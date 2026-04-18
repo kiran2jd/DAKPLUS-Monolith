@@ -157,14 +157,15 @@ public class QuestionExtractionService {
                 RULES:
                 1. JSON ONLY.
                 2. "correctAnswer" must match one of the "options" exactly.
-                3. Clean OCR noise.
-                4. "textHis", "optionsHi", "explanation", "explanationHi" should be empty strings for now.
+                3. Preserve all text in brackets at the end of questions (e.g., "(PA/SA Exam - 2020 UP - 2022 MH)"). This is critical exam metadata.
+                4. Clean OCR noise but don't lose the metadata mentioned above.
+                5. "textHis", "optionsHi", "explanation", "explanationHi" should be empty strings for now.
                 
                 FORMAT:
                 {
                   "questions": [
                     {
-                      "text": "English question text here...",
+                      "text": "English question text here... (Metadata in brackets here)",
                       "textHi": "",
                       "options": ["A", "B", "C", "D"],
                       "optionsHi": ["", "", "", ""],
@@ -426,7 +427,7 @@ public class QuestionExtractionService {
             Correct Answer: {answer}
             
             TASK:
-            1. Provide "textHi" - High quality Hindi translation of the question.
+            1. Provide "textHi" - High quality Hindi translation of the question. PRESERVE the metadata in brackets at the end.
             2. Provide "optionsHi" - High quality Hindi translation of all 4 options.
             3. Provide "explanation" - Concise English explanation of WHY the answer is correct.
             4. Provide "explanationHi" - Hindi translation of the explanation.
@@ -434,6 +435,7 @@ public class QuestionExtractionService {
             RULES:
             - JSON ONLY.
             - Use professional Hindi terminology.
+            - Ensure bracketed metadata (like exam years) from the input question is KEPT in "textHi".
             
             FORMAT:
             {
