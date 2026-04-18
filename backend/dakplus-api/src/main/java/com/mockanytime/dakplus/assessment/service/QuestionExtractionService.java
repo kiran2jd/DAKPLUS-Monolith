@@ -10,9 +10,17 @@ import org.springframework.beans.factory.annotation.Value;
 
 import jakarta.annotation.PostConstruct;
 import java.util.List;
+import java.util.Map;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.core.JsonParser;
+import com.fasterxml.jackson.databind.DeserializationFeature;
 
 @Service
 public class QuestionExtractionService {
+
+    private static final ObjectMapper mapper = new ObjectMapper()
+            .configure(JsonParser.Feature.ALLOW_TRAILING_COMMA, true)
+            .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
 
     @org.springframework.beans.factory.annotation.Autowired(required = false)
     private ChatClient chatClient;
@@ -237,65 +245,9 @@ public class QuestionExtractionService {
             }
         }
 
-        // Robust cleanup of response
-        response = response.trim();
-        
-        // Remove markdown code blocks if present
-        if (response.contains("```")) {
-            int firstBlock = response.indexOf("```");
-            int lastBlock = response.lastIndexOf("```");
-            
-            if (firstBlock != -1 && lastBlock != -1 && firstBlock != lastBlock) {
-                String content = response.substring(firstBlock);
-                if (content.startsWith("```json")) {
-                    content = content.substring(7);
-                } else if (content.startsWith("```")) {
-                    content = content.substring(3);
-                }
-                
-                if (content.contains("```")) {
-                    response = content.substring(0, content.lastIndexOf("```")).trim();
-                } else {
-                    response = content.trim();
-                }
-            } else if (firstBlock != -1) {
-                response = response.substring(firstBlock);
-                if (response.startsWith("```json")) response = response.substring(7);
-                else if (response.startsWith("```")) response = response.substring(3);
-            }
-        }
-        
-        response = response.trim();
-
-        // Recovery for truncated JSON
-        if (!response.endsWith("}")) {
-            // Find the last complete question object
-            int lastClosingBrace = response.lastIndexOf("}");
-            if (lastClosingBrace != -1) {
-                // Check if we are inside the questions array
-                int lastQuestionEnd = response.lastIndexOf("},");
-                if (lastQuestionEnd != -1 && lastQuestionEnd < lastClosingBrace) {
-                    // Try to wrap at the last complete question
-                    response = response.substring(0, lastClosingBrace + 1);
-                    if (!response.endsWith("]}")) {
-                        response += "]}";
-                    }
-                } else if (lastClosingBrace != -1) {
-                    // Just close the object and array
-                    response = response.substring(0, lastClosingBrace + 1);
-                    if (!response.endsWith("]}")) {
-                        response += "]}";
-                    }
-                }
-            } else {
-                // Absolute fallback
-                if (response.contains("[") && !response.contains("]")) response += "]}";
-                else if (!response.endsWith("}")) response += "}";
-            }
-        }
-
         try {
-            QuestionList parsed = parser.parse(response);
+            String sanitizedJson = sanitizeAndParseJson(response, true);
+            QuestionList parsed = mapper.readValue(sanitizedJson, QuestionList.class);
             List<Question> questions = parsed.getQuestions();
             if (questions != null) {
                 questions.removeIf(q -> !isValidQuestion(q));
@@ -311,6 +263,62 @@ public class QuestionExtractionService {
             System.err.println("Failed to parse chunk JSON: " + e.getMessage());
         }
         return List.of();
+    }
+
+    /**
+     * Cleans up LLM response, handles markdown blocks, trailing commas, and truncated JSON.
+     */
+    private String sanitizeAndParseJson(String response, boolean isList) {
+        if (response == null || response.isBlank()) return isList ? "{\"questions\":[]}" : "{}";
+        
+        response = response.trim();
+        
+        // 1. Remove Markdown code blocks
+        if (response.contains("```")) {
+            // Find the first occurrence of { or [
+            int firstBrace = response.indexOf("{");
+            int firstBracket = response.indexOf("[");
+            int start = -1;
+            
+            if (firstBrace != -1 && (firstBracket == -1 || firstBrace < firstBracket)) start = firstBrace;
+            else if (firstBracket != -1) start = firstBracket;
+            
+            if (start != -1) {
+                // Find the last occurrence of } or ]
+                int lastBrace = response.lastIndexOf("}");
+                int lastBracket = response.lastIndexOf("]");
+                int end = Math.max(lastBrace, lastBracket);
+                
+                if (end > start) {
+                    response = response.substring(start, end + 1);
+                }
+            }
+        }
+        
+        // 2. Recovery for truncated JSON
+        response = response.trim();
+        if (!response.endsWith("}") && !response.endsWith("]")) {
+            System.out.println("Applying truncated JSON recovery logic...");
+            int lastClosingBrace = response.lastIndexOf("}");
+            int lastClosingBracket = response.lastIndexOf("]");
+            int lastSeparator = response.lastIndexOf(",");
+            
+            // If it ends mid-object but has a previous closed object
+            if (lastClosingBrace != -1) {
+                response = response.substring(0, lastClosingBrace + 1);
+                if (isList && !response.endsWith("]}")) {
+                    if (response.endsWith("]")) response += "}";
+                    else response += "]}";
+                }
+            } else {
+                // Absolute fallback for severely truncated
+                if (isList) response = "{\"questions\":[]}";
+                else response = "{}";
+            }
+        }
+        
+        // Final cleanup of common LLM artifacts
+        return response.trim();
     }
 
     private boolean isValidQuestion(Question q) {
@@ -461,18 +469,31 @@ public class QuestionExtractionService {
                         .getResult().getOutput().getContent();
                 break;
             } catch (Exception e) {
-                if (attempt >= maxRetries) return;
-                try { Thread.sleep(20000); } catch (InterruptedException ignored) {}
+                String errorMsg = e.getMessage() != null ? e.getMessage() : "Unknown Error";
+                System.err.println("Enrichment Groq call attempt " + attempt + " failed for question: " + errorMsg);
+                
+                if (attempt >= maxRetries) {
+                    System.err.println("Max retries exceeded for enrichment of question: " + q.getText());
+                    return;
+                }
+
+                long waitTime = 20000; // Default substantial wait for enrichment
+                if (errorMsg.contains("rate_limit_exceeded") || errorMsg.contains("429")) {
+                    java.util.regex.Matcher m = java.util.regex.Pattern.compile("again in ([\\d\\.]+)s").matcher(errorMsg);
+                    if (m.find()) {
+                        waitTime = (long) (Double.parseDouble(m.group(1)) * 1000) + 3000; // Add 3s safety buffer
+                    }
+                    System.out.println("Rate limit detected during enrichment. Backing off for " + waitTime + "ms...");
+                }
+
+                try { Thread.sleep(waitTime); } catch (InterruptedException ignored) {}
             }
         }
 
         if (response == null) return;
 
         try {
-            // Simple manual parse to avoid overhead of BeanOutputParser for a single object
-            // You can use Jackson or similar here, but for simplicity:
-            String cleanJson = response.replaceAll("```json|```", "").trim();
-            com.fasterxml.jackson.databind.ObjectMapper mapper = new com.fasterxml.jackson.databind.ObjectMapper();
+            String cleanJson = sanitizeAndParseJson(response, false);
             java.util.Map<String, Object> map = mapper.readValue(cleanJson, java.util.Map.class);
             
             if (map.containsKey("textHi")) q.setTextHi((String) map.get("textHi"));
@@ -482,6 +503,7 @@ public class QuestionExtractionService {
             
         } catch (Exception e) {
             System.err.println("Enrichment parsing failed for question: " + e.getMessage());
+            System.err.println("Raw response was: " + response);
         }
     }
 
