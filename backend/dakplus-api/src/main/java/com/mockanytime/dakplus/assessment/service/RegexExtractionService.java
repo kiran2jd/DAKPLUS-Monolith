@@ -106,6 +106,23 @@ public class RegexExtractionService {
             options.add(optContent);
         }
 
+        // --- NEW: Metadata Pull-back Logic ---
+        // If the last option contains exam metadata in brackets at the end, move it to the question text
+        if (!options.isEmpty()) {
+            String lastOption = options.get(options.size() - 1);
+            // Look for bracketed text at the very end of the last option
+            Pattern metadataPattern = Pattern.compile("\\s*(\\([^\\)]+\\))\\s*$");
+            Matcher metaMatcher = metadataPattern.matcher(lastOption);
+            if (metaMatcher.find()) {
+                String metadata = metaMatcher.group(1);
+                // Remove from option
+                options.set(options.size() - 1, lastOption.substring(0, metaMatcher.start()).trim());
+                // Append to question
+                questionText = questionText + " " + metadata;
+            }
+        }
+        // -------------------------------------
+
         // Handle cases where we found more than 4 things that look like options
         // Usually we only want the first 4 for DAKPlus
         if (options.size() > 4) {
@@ -115,7 +132,7 @@ public class RegexExtractionService {
         }
 
         // Try to identify the correct answer if it's marked with a (*) or similar
-        String correctAnswer = options.get(0); // Default to first (AI will fix later)
+        String correctAnswer = options.isEmpty() ? "" : options.get(0); // Default to first (AI will fix later)
         for (String opt : options) {
             if (opt.startsWith("*") || opt.contains("(Correct)")) {
                 correctAnswer = opt.replace("*", "").replace("(Correct)", "").trim();
@@ -124,7 +141,7 @@ public class RegexExtractionService {
         }
 
         Question q = new Question();
-        q.setText(questionText);
+        q.setText(questionText.trim());
         q.setOptions(options);
         q.setCorrectAnswer(correctAnswer);
         q.setType("mcq");
