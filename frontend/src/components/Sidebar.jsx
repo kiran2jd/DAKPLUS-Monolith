@@ -103,13 +103,22 @@ export default function Sidebar({ isOpen, onClose }) {
                                 <span className="font-medium">Manage Tests</span>
                             </Link>
 
-                            <Link
+                             <Link
                                 to="/dashboard/manage-topics"
                                 onClick={onClose}
                                 className={`flex items-center space-x-3 px-4 py-3 rounded-lg transition ${isActive('/dashboard/manage-topics') ? 'bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-400' : 'text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700'}`}
                             >
                                 <PlusCircle size={20} />
                                 <span className="font-medium">Manage Topics</span>
+                            </Link>
+
+                            <Link
+                                to="/dashboard/admin/reports"
+                                onClick={onClose}
+                                className={`flex items-center space-x-3 px-4 py-3 rounded-lg transition ${isActive('/dashboard/admin/reports') ? 'bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-400' : 'text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700'}`}
+                            >
+                                <TrendingUp size={20} />
+                                <span className="font-medium">System Intel</span>
                             </Link>
                         </>
                     )}
