@@ -1,5 +1,6 @@
 package com.mockanytime.dakplus.assessment.service;
 
+import com.mockanytime.dakplus.assessment.dto.TestSummary;
 import com.mockanytime.dakplus.assessment.model.Test;
 import com.mockanytime.dakplus.assessment.repository.TestRepository;
 import org.springframework.stereotype.Service;
@@ -34,6 +35,10 @@ public class TestService {
 
     public List<Test> getTestsByTeacher(String teacherId) {
         return testRepository.findByCreatedBy(teacherId);
+    }
+
+    public List<TestSummary> getTestsByTeacherSummary(String teacherId) {
+        return testRepository.findSummaryByCreatedBy(teacherId);
     }
 
     public Optional<Test> getTestById(String id) {

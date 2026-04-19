@@ -2,6 +2,7 @@ package com.mockanytime.dakplus.assessment.controller;
 
 import com.mockanytime.dakplus.assessment.model.Question;
 import com.mockanytime.dakplus.assessment.model.Test;
+import com.mockanytime.dakplus.assessment.dto.TestSummary;
 import com.mockanytime.dakplus.assessment.service.DocumentParsingService;
 import com.mockanytime.dakplus.assessment.service.QuestionExtractionService;
 import com.mockanytime.dakplus.assessment.service.TestService;
@@ -55,10 +56,10 @@ public class TestController {
     }
 
     @GetMapping("/my-tests")
-    public List<Test> getMyTests(@RequestHeader(value = "X-User-Id", required = false) String userId) {
+    public List<TestSummary> getMyTests(@RequestHeader(value = "X-User-Id", required = false) String userId) {
         if (userId == null)
             return List.of();
-        return testService.getTestsByTeacher(userId);
+        return testService.getTestsByTeacherSummary(userId);
     }
 
     @GetMapping("/{id}")

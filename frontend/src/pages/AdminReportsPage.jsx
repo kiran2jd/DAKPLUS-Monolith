@@ -31,7 +31,7 @@ export default function AdminReportsPage() {
 
     const fetchReports = async () => {
         try {
-            const response = await api.get('/reports');
+            const response = await api.get('/reports/');
             // Sort by latest first
             const sortedReports = (response.data || []).sort((a, b) => 
                 new Date(b.createdAt || 0) - new Date(a.createdAt || 0)
