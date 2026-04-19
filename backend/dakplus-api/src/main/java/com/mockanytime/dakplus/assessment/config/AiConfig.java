@@ -35,10 +35,10 @@ public class AiConfig {
     @Value("${spring.ai.gemini.api-key:}")
     private String geminiApiKey;
 
-    @Value("${spring.ai.gemini.base-url:https://generativelanguage.googleapis.com/v1beta/openai}")
+    @Value("${spring.ai.gemini.base-url:https://generativelanguage.googleapis.com/v1beta}")
     private String geminiBaseUrl;
 
-    @Value("${spring.ai.gemini.chat.options.model:gemini-1.5-flash}")
+    @Value("${spring.ai.gemini.chat.options.model:models/gemini-1.5-flash}")
     private String geminiModel;
 
     @Value("${spring.ai.gemini.chat.options.max-tokens:8192}")
@@ -46,6 +46,7 @@ public class AiConfig {
 
     @Bean(name = "geminiChatClient")
     public ChatClient geminiChatClient() {
+        System.out.println("CONFIG: Initializing Gemini Client with Model: " + geminiModel + " and Base URL: " + geminiBaseUrl);
         return createOpenAiClient(geminiBaseUrl, geminiApiKey, geminiModel, geminiMaxTokens);
     }
 
