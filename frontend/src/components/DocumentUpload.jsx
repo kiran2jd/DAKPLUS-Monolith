@@ -30,8 +30,8 @@ export default function DocumentUpload({ onQuestionsExtracted, topicId, subtopic
         setUploading(true);
         setError('');
         try {
-            // Use hybrid extraction (Script first, then AI fallback) for maximum reliability
-            const questions = await testService.extractQuestionsByScript(file, topicId, subtopicId);
+            // FORCE PURE AI METHOD (Gemini Flash) for superior metadata preservation
+            const questions = await testService.extractQuestions(file, topicId, subtopicId);
             
             if (!questions || questions.length === 0) {
                 throw new Error("No questions could be extracted. Please ensure the document contains clear MCQ text.");
