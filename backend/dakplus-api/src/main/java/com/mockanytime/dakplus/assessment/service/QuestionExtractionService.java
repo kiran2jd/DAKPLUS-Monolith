@@ -25,6 +25,10 @@ public class QuestionExtractionService {
     @org.springframework.beans.factory.annotation.Autowired(required = false)
     private ChatClient chatClient;
 
+    @org.springframework.beans.factory.annotation.Autowired(required = false)
+    @org.springframework.beans.factory.annotation.Qualifier("geminiChatClient")
+    private ChatClient geminiChatClient;
+
     @org.springframework.beans.factory.annotation.Autowired
     private com.mockanytime.dakplus.assessment.repository.TestRepository testRepository;
 
@@ -206,7 +210,13 @@ public class QuestionExtractionService {
                     System.out.println("Using model override for attempt " + attempt + ": " + currentModel);
                 }
 
-                response = chatClient.call(new Prompt(prompt.getContents(), optionsBuilder.build()))
+                ChatClient activeClient = (currentModel != null && currentModel.equals("gemini-fallback")) ? geminiChatClient : chatClient;
+                
+                if (activeClient == null) {
+                    activeClient = chatClient; // Guard against missing gemini config
+                }
+
+                response = activeClient.call(new Prompt(prompt.getContents(), optionsBuilder.build()))
                         .getResult().getOutput().getContent();
                 break; // Success!
             } catch (Exception e) {
@@ -225,6 +235,10 @@ public class QuestionExtractionService {
                         System.out.println("Rate limit hit! Switching to fallback model: " + fallbackModel);
                         currentModel = fallbackModel;
                         waitTime = 2000; // 8B model usually has higher limits, short wait is fine
+                    } else if (geminiChatClient != null && !currentModel.equals("gemini-fallback")) {
+                        System.out.println("Persistent rate limits on Groq. Switching to GOOGLE GEMINI fallback...");
+                        currentModel = "gemini-fallback"; // Marker to use geminiChatClient
+                        waitTime = 1000;
                     } else {
                         // Already using fallback but still hit limit, parse wait time
                         java.util.regex.Matcher m = java.util.regex.Pattern.compile("again in ([\\d\\.]+)s").matcher(errorMsg);
@@ -467,7 +481,13 @@ public class QuestionExtractionService {
                         .withMaxTokens(1500)
                         .build();
                 
-                response = chatClient.call(new org.springframework.ai.chat.prompt.Prompt(finalPrompt, options))
+                ChatClient activeClient = chatClient;
+                if (currentModel != null && currentModel.equals("gemini-fallback") && geminiChatClient != null) {
+                    activeClient = geminiChatClient;
+                    System.out.println("Using Gemini for enrichment fallback...");
+                }
+
+                response = activeClient.call(new org.springframework.ai.chat.prompt.Prompt(finalPrompt, options))
                         .getResult().getOutput().getContent();
                 break;
             } catch (Exception e) {
@@ -486,6 +506,12 @@ public class QuestionExtractionService {
                         waitTime = (long) (Double.parseDouble(m.group(1)) * 1000) + 3000; // Add 3s safety buffer
                     }
                     System.out.println("Rate limit detected during enrichment. Backing off for " + waitTime + "ms...");
+                    
+                    if (geminiChatClient != null && (currentModel == null || !currentModel.equals("gemini-fallback"))) {
+                        System.out.println("Switching Enrichment to Gemini to bypass rate limit.");
+                        currentModel = "gemini-fallback";
+                        waitTime = 1000;
+                    }
                 }
 
                 try { Thread.sleep(waitTime); } catch (InterruptedException ignored) {}

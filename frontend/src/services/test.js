@@ -61,5 +61,17 @@ export const testService = {
             }
         });
         return response.data;
-    }
+    },
+
+    extractQuestionsByScript: async (file, topicId, subtopicId) => {
+        const formData = new FormData();
+        formData.append('file', file);
+        if (topicId) formData.append('topicId', topicId);
+        if (subtopicId) formData.append('subtopicId', subtopicId);
+
+        const response = await api.post('/tests/extract-questions-script', formData, {
+            headers: { 'Content-Type': 'multipart/form-data' }
+        });
+        return response.data;
+    },
 };

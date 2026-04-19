@@ -21,6 +21,7 @@ public class TestController {
     private final TestService testService;
     private final DocumentParsingService documentParsingService;
     private final QuestionExtractionService questionExtractionService;
+    private final com.mockanytime.dakplus.assessment.service.RegexExtractionService regexExtractionService;
 
     @PostMapping("/")
     public ResponseEntity<Test> createTest(@RequestBody Test test,
@@ -93,6 +94,45 @@ public class TestController {
             return ResponseEntity.badRequest().body("The document appears to be empty or contains no readable text. Please try a different file.");
         }
         List<Question> questions = questionExtractionService.extractQuestions(text, topicId, subtopicId);
+        
+        // Check for duplicates if topicId is available
+        if (topicId != null) {
+            questions.forEach(q -> {
+                if (testService.isQuestionDuplicate(q.getText(), topicId)) {
+                    q.setDuplicate(true);
+                }
+            });
+        }
+        
+        return ResponseEntity.ok(questions);
+    }
+
+    @PostMapping("/extract-questions-script")
+    public ResponseEntity<?> extractQuestionsScript(
+            @RequestParam("file") MultipartFile file,
+            @RequestParam(value = "topicId", required = false) String topicId,
+            @RequestParam(value = "subtopicId", required = false) String subtopicId) throws Exception {
+        String text = documentParsingService.extractText(file);
+        if (text == null || text.trim().isEmpty()) {
+            return ResponseEntity.badRequest().body("The document appears to be empty or contains no readable text.");
+        }
+        
+        System.out.println("Processing bulk script extraction for file: " + file.getOriginalFilename());
+        List<Question> questions = regexExtractionService.parseQuestions(text, topicId, subtopicId);
+        
+        if (questions.isEmpty()) {
+            return ResponseEntity.ok(List.of());
+        }
+        
+        // Check for duplicates if topicId is available
+        if (topicId != null) {
+            questions.forEach(q -> {
+                if (testService.isQuestionDuplicate(q.getText(), topicId)) {
+                    q.setDuplicate(true);
+                }
+            });
+        }
+        
         return ResponseEntity.ok(questions);
     }
 }

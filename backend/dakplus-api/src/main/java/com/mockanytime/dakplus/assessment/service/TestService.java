@@ -63,4 +63,26 @@ public class TestService {
     public void deleteTest(String id) {
         testRepository.deleteById(id);
     }
+
+    /**
+     * Checks if a question with similar text already exists in any test within the same topic.
+     * Normalized for case and whitespace.
+     */
+    public boolean isQuestionDuplicate(String text, String topicId) {
+        if (text == null || topicId == null) return false;
+        
+        String normalizedText = text.trim().toLowerCase().replaceAll("\\s+", " ");
+        
+        // Fetch all tests in this topic
+        List<Test> testsInTopic = testRepository.findByTopicId(topicId);
+        
+        // Scan all questions in all tests for a match
+        return testsInTopic.stream()
+                .flatMap(test -> test.getQuestions().stream())
+                .anyMatch(q -> {
+                    String existingText = q.getText();
+                    if (existingText == null) return false;
+                    return existingText.trim().toLowerCase().replaceAll("\\s+", " ").equals(normalizedText);
+                });
+    }
 }

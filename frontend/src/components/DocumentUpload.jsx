@@ -7,6 +7,9 @@ export default function DocumentUpload({ onQuestionsExtracted, topicId, subtopic
     const [uploading, setUploading] = useState(false);
     const [error, setError] = useState('');
     const [success, setSuccess] = useState(false);
+    const [extractionMode, setExtractionMode] = useState('bulk'); // 'regular' or 'bulk'
+    const [duplicateCount, setDuplicateCount] = useState(0);
+    const [extractedQuestions, setExtractedQuestions] = useState([]);
 
     const handleFileChange = (e) => {
         const selectedFile = e.target.files[0];
@@ -25,17 +28,31 @@ export default function DocumentUpload({ onQuestionsExtracted, topicId, subtopic
 
     const handleUpload = async () => {
         if (!file) return;
-
         setUploading(true);
         setError('');
         try {
-            const questions = await testService.extractQuestions(file, topicId, subtopicId);
-            onQuestionsExtracted(questions);
-            setSuccess(true);
-            setFile(null);
+            let questions;
+            if (extractionMode === 'bulk') {
+                questions = await testService.extractQuestionsByScript(file, topicId, subtopicId);
+                if (questions.length === 0) {
+                    throw new Error("Bulk script could not find any questions in this format. Try 'Regular' mode.");
+                }
+            } else {
+                questions = await testService.extractQuestions(file, topicId, subtopicId);
+            }
+            
+            const dups = questions.filter(q => q.isDuplicate).length;
+            setDuplicateCount(dups);
+            setExtractedQuestions(questions);
+            
+            if (dups === 0) {
+                onQuestionsExtracted(questions);
+                setSuccess(true);
+                setFile(null);
+            }
         } catch (err) {
             console.error("Extraction Error:", err);
-            setError("Failed to extract questions. Please ensure the document is in the correct format.");
+            setError(err.message || "Failed to extract questions. Please ensure the document is in the correct format.");
         } finally {
             setUploading(false);
         }
@@ -55,9 +72,27 @@ export default function DocumentUpload({ onQuestionsExtracted, topicId, subtopic
                 )}
             </div>
 
+            <div className="flex bg-white dark:bg-gray-800 p-1 rounded-lg mb-4 border border-indigo-100 dark:border-indigo-900 shadow-sm">
+                <button
+                    onClick={() => setExtractionMode('bulk')}
+                    className={`flex-1 py-1.5 text-xs font-bold rounded-md transition ${extractionMode === 'bulk' ? 'bg-indigo-600 text-white shadow-md' : 'text-gray-500 hover:bg-gray-50 dark:hover:bg-gray-700'}`}
+                >
+                    Bulk (Fast Script)
+                </button>
+                <button
+                    onClick={() => setExtractionMode('regular')}
+                    className={`flex-1 py-1.5 text-xs font-bold rounded-md transition ${extractionMode === 'regular' ? 'bg-indigo-600 text-white shadow-md' : 'text-gray-500 hover:bg-gray-50 dark:hover:bg-gray-700'}`}
+                >
+                    Regular (AI)
+                </button>
+            </div>
+
             <div className="space-y-4">
-                <p className="text-sm text-gray-600 dark:text-gray-400">
-                    Upload a PDF or Word document containing your questions. Our AI will automatically extract MCQs, options, and correct answers.
+                <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 leading-relaxed">
+                    {extractionMode === 'bulk' 
+                        ? "FAST & FREE: Uses high-speed scripts to extract structured MCQs (1. A, B, C, D). Perfect for clean documents."
+                        : "ADVANCED AI: Uses deep analysis to extract complex layouts. Slower and uses AI tokens."
+                    }
                 </p>
 
                 <div className="relative group">
@@ -89,23 +124,46 @@ export default function DocumentUpload({ onQuestionsExtracted, topicId, subtopic
                     </div>
                 )}
 
-                <button
-                    onClick={handleUpload}
-                    disabled={!file || uploading}
-                    className="w-full py-3 bg-indigo-600 text-white rounded-lg font-bold flex items-center justify-center space-x-2 hover:bg-indigo-700 disabled:bg-gray-400 transition shadow-lg shadow-indigo-500/20"
-                >
-                    {uploading ? (
-                        <>
-                            <Loader2 className="animate-spin" size={18} />
-                            <span>Processing Document...</span>
-                        </>
-                    ) : (
-                        <>
-                            <Upload size={18} />
-                            <span>Extract Questions</span>
-                        </>
-                    )}
                 </button>
+
+                {duplicateCount > 0 && (
+                    <div className="p-4 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg">
+                        <div className="flex items-center justify-between">
+                            <div className="flex items-center space-x-2 text-amber-800 dark:text-amber-200">
+                                <AlertCircle size={18} />
+                                <span className="text-sm font-bold">{duplicateCount} Duplicates Found</span>
+                            </div>
+                            <div className="flex space-x-2">
+                                <button
+                                    onClick={() => {
+                                        const cleanQuestions = extractedQuestions.filter(q => !q.isDuplicate);
+                                        onQuestionsExtracted(cleanQuestions);
+                                        setSuccess(true);
+                                        setDuplicateCount(0);
+                                        setFile(null);
+                                    }}
+                                    className="px-3 py-1 bg-amber-600 text-white text-xs font-bold rounded hover:bg-amber-700 transition"
+                                >
+                                    Remove All & Add
+                                </button>
+                                <button
+                                    onClick={() => {
+                                        onQuestionsExtracted(extractedQuestions);
+                                        setSuccess(true);
+                                        setDuplicateCount(0);
+                                        setFile(null);
+                                    }}
+                                    className="px-3 py-1 bg-amber-100 text-amber-800 text-xs font-bold rounded hover:bg-amber-200 transition"
+                                >
+                                    Add All Anyway
+                                </button>
+                            </div>
+                        </div>
+                        <p className="text-[10px] text-amber-600 dark:text-amber-400 mt-2">
+                            A duplicate means this question already exists in another test within this Topic.
+                        </p>
+                    </div>
+                )}
             </div>
 
             <div className="mt-4 pt-4 border-t border-indigo-100 dark:border-indigo-800/50">

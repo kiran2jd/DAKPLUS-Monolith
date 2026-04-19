@@ -1,9 +1,10 @@
-package com.mockanytime.dakplus.assessment.model;
-
+import org.springframework.data.annotation.Transient;
 import java.util.List;
 import java.util.UUID;
 
 public class Question {
+    @Transient
+    private boolean isDuplicate;
     private String id;
     private String text;
     private String textHi; // Hindi translation
@@ -144,5 +145,13 @@ public class Question {
 
     public void setImageUrl(String imageUrl) {
         this.imageUrl = imageUrl;
+    }
+
+    public boolean isDuplicate() {
+        return isDuplicate;
+    }
+
+    public void setDuplicate(boolean duplicate) {
+        isDuplicate = duplicate;
     }
 }

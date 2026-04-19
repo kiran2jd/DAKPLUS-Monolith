@@ -57,7 +57,12 @@ export default function QuestionBuilder({ questions, setQuestions }) {
     return (
         <div className="space-y-6">
             {questions.map((q, qIndex) => (
-                <div key={qIndex} className="bg-white dark:bg-gray-800/50 p-4 sm:p-6 rounded-lg border border-gray-200 dark:border-gray-700 relative">
+                <div key={qIndex} className={`p-4 sm:p-6 rounded-lg border relative transition-all ${q.isDuplicate ? 'bg-amber-50/50 dark:bg-amber-900/10 border-amber-300 dark:border-amber-700 shadow-sm' : 'bg-white dark:bg-gray-800/50 border-gray-200 dark:border-gray-700'}`}>
+                    {q.isDuplicate && (
+                        <div className="absolute -top-3 left-4 px-2 py-0.5 bg-amber-600 text-white text-[10px] font-bold rounded shadow-sm z-10 flex items-center">
+                            <span className="mr-1">⚠️</span> DUPLICATE QUESTION
+                        </div>
+                    )}
                     <button
                         type="button"
                         onClick={() => removeQuestion(qIndex)}

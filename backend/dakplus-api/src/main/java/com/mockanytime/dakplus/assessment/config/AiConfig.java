@@ -29,6 +29,27 @@ public class AiConfig {
     @Bean
     @Primary
     public ChatClient chatClient() {
+        return createOpenAiClient(baseUrl, apiKey, model, maxTokens);
+    }
+
+    @Value("${spring.ai.gemini.api-key:}")
+    private String geminiApiKey;
+
+    @Value("${spring.ai.gemini.base-url:}")
+    private String geminiBaseUrl;
+
+    @Value("${spring.ai.gemini.chat.options.model:gemini-1.5-flash}")
+    private String geminiModel;
+
+    @Value("${spring.ai.gemini.chat.options.max-tokens:4096}")
+    private Integer geminiMaxTokens;
+
+    @Bean(name = "geminiChatClient")
+    public ChatClient geminiChatClient() {
+        return createOpenAiClient(geminiBaseUrl, geminiApiKey, geminiModel, geminiMaxTokens);
+    }
+
+    private ChatClient createOpenAiClient(String url, String key, String modelName, Integer tokens) {
         // Increase timeout to 2 minutes (120,000 ms)
         SimpleClientHttpRequestFactory factory = new SimpleClientHttpRequestFactory();
         factory.setConnectTimeout(120_000);
@@ -37,11 +58,11 @@ public class AiConfig {
         RestClient.Builder builder = RestClient.builder()
                 .requestFactory(factory);
 
-        OpenAiApi openAiApi = new OpenAiApi(baseUrl, apiKey, builder);
+        OpenAiApi openAiApi = new OpenAiApi(url, key, builder);
         
         OpenAiChatOptions options = OpenAiChatOptions.builder()
-                .withModel(model)
-                .withMaxTokens(maxTokens)
+                .withModel(modelName)
+                .withMaxTokens(tokens)
                 .build();
                 
         return new OpenAiChatClient(openAiApi, options);
