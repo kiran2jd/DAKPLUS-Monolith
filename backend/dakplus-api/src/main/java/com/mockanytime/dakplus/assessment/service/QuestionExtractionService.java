@@ -206,7 +206,7 @@ public class QuestionExtractionService {
                 OpenAiChatOptions.Builder optionsBuilder = OpenAiChatOptions.builder()
                         .withMaxTokens(1500);
                 
-                if (currentModel != null) {
+                if (currentModel != null && !currentModel.equals("gemini-fallback")) {
                     optionsBuilder.withModel(currentModel);
                     System.out.println("Using model override for attempt " + attempt + ": " + currentModel);
                 }
@@ -478,10 +478,12 @@ public class QuestionExtractionService {
         while (attempt < maxRetries) {
             try {
                 attempt++;
-                OpenAiChatOptions options = OpenAiChatOptions.builder()
-                        .withModel(enrichmentModel)
-                        .withMaxTokens(1500)
-                        .build();
+                OpenAiChatOptions.Builder optionsBuilder = OpenAiChatOptions.builder()
+                        .withMaxTokens(1500);
+                
+                if (currentModel != null && !currentModel.equals("gemini-fallback")) {
+                    optionsBuilder.withModel(currentModel);
+                }
                 
                 ChatClient activeClient = chatClient;
                 if (currentModel != null && currentModel.equals("gemini-fallback") && geminiChatClient != null) {
@@ -489,7 +491,7 @@ public class QuestionExtractionService {
                     System.out.println("Using Gemini for enrichment fallback...");
                 }
 
-                response = activeClient.call(new org.springframework.ai.chat.prompt.Prompt(finalPrompt, options))
+                response = activeClient.call(new org.springframework.ai.chat.prompt.Prompt(finalPrompt, optionsBuilder.build()))
                         .getResult().getOutput().getContent();
                 break;
             } catch (Exception e) {
