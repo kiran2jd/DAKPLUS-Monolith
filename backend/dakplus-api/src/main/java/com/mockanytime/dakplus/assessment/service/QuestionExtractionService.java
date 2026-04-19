@@ -472,6 +472,7 @@ public class QuestionExtractionService {
         
         // Use a lightweight model for enrichment to save 70B tokens
         String enrichmentModel = "llama-3.1-8b-instant";
+        String currentModel = null; // Fallback tracker
 
         while (attempt < maxRetries) {
             try {

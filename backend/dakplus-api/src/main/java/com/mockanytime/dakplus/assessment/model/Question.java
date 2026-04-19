@@ -1,3 +1,5 @@
+package com.mockanytime.dakplus.assessment.model;
+
 import org.springframework.data.annotation.Transient;
 import java.util.List;
 import java.util.UUID;
