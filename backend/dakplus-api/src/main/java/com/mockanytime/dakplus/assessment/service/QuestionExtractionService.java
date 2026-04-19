@@ -222,7 +222,7 @@ public class QuestionExtractionService {
                 break; // Success!
             } catch (Exception e) {
                 String errorMsg = e.getMessage() != null ? e.getMessage() : "Unknown Error";
-                System.err.println("Groq call attempt " + attempt + " failed: " + errorMsg);
+                System.err.println("AI call attempt " + attempt + " failed: " + errorMsg);
 
                 if (attempt >= maxRetries) {
                     System.err.println("Max retries exceeded for chunk. Skipping.");
