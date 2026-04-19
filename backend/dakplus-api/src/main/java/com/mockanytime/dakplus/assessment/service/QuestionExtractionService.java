@@ -86,8 +86,8 @@ public class QuestionExtractionService {
     public List<Question> extractQuestions(String text, String topicId, String subtopicId) {
         if (text == null || text.isBlank()) return List.of();
         
-        // GIANT BATCHING: Now using Gemini Flash as primary to avoid splitting errors
-        int maxChunkSize = 15000;
+        // GIANT BATCHING: High context for Gemini 1.5 Flash (12k is safe for complex layouts)
+        int maxChunkSize = 12000;
         List<Question> allQuestions = new java.util.ArrayList<>();
         
         System.out.println("Beginning smart-chunked extraction for text of length: " + text.length());
@@ -166,6 +166,7 @@ public class QuestionExtractionService {
                 4. Extract EVERY SINGLE question in the text. Do not summarize or skip.
                 5. Extract EXACTLY as written.
                 6. Output ONLY JSON. No surrounding text.
+                7. "textHi", "optionsHi", "explanation", "explanationHi" should be empty strings for now.
                 
                 FORMAT:
                 {

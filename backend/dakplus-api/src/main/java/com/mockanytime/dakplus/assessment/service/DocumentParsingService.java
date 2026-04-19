@@ -83,30 +83,36 @@ public class DocumentParsingService {
             String mainText = extractor.getText();
             StringBuilder fullText = new StringBuilder(mainText != null ? mainText : "");
 
-            // FALLBACK: If standard extractor missed text or just to be thorough with Tables
-            // manually iterate through all elements.
-            if (fullText.length() < 15000) {
-                System.out.println("Word Extraction: Supplementing text with Table/Paragraph scanning...");
-                
-                // 1. Get all paragraphs
+            // SUPPLEMENTAL SCAN: Specifically look for Tables/Images that standard extractor might miss.
+            // We search for unique elements to avoid doubling "mainText".
+            if (fullText.length() < 500) { // If truly empty, do a full manual scan
+                System.out.println("Word Extraction: Standard extractor returned very little text. Full manual scan...");
                 for (org.apache.poi.xwpf.usermodel.XWPFParagraph p : doc.getParagraphs()) {
                     String pText = p.getText();
                     if (pText != null && !pText.isBlank()) {
                         fullText.append(pText).append("\n");
                     }
                 }
-                
-                // 2. Get all tables (Critical for Bordered MCQs)
-                for (org.apache.poi.xwpf.usermodel.XWPFTable table : doc.getTables()) {
-                    for (org.apache.poi.xwpf.usermodel.XWPFTableRow row : table.getRows()) {
-                        for (org.apache.poi.xwpf.usermodel.XWPFTableCell cell : row.getTableCells()) {
-                            String cellText = cell.getText();
-                            if (cellText != null && !cellText.isBlank()) {
-                                fullText.append(cellText).append(" ");
-                            }
+            }
+            
+            // 2. Always check tables but only append if text isn't already there
+            for (org.apache.poi.xwpf.usermodel.XWPFTable table : doc.getTables()) {
+                StringBuilder tableText = new StringBuilder();
+                for (org.apache.poi.xwpf.usermodel.XWPFTableRow row : table.getRows()) {
+                    for (org.apache.poi.xwpf.usermodel.XWPFTableCell cell : row.getTableCells()) {
+                        String cellText = cell.getText();
+                        if (cellText != null && !cellText.isBlank()) {
+                            tableText.append(cellText).append(" ");
                         }
-                        fullText.append("\n");
                     }
+                    tableText.append("\n");
+                }
+                
+                // Only append table text if it's not already wellrepresented in "mainText"
+                String tStr = tableText.toString();
+                if (tStr.length() > 10 && !mainText.contains(tStr.substring(0, Math.min(20, tStr.length())))) {
+                    System.out.println("Word Extraction: Supplementing missing table content...");
+                    fullText.append("\n[Table Content]:\n").append(tStr);
                 }
             }
 
