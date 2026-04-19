@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Users, BookOpen, TrendingUp, Search, Filter, RefreshCw, AlertTriangle, CheckCircle2, Clock, MessageSquare, ChevronRight } from 'lucide-react';
+import { Users, BookOpen, TrendingUp, Search, Filter, RefreshCw, AlertTriangle, CheckCircle2, Clock, MessageSquare, ChevronRight, X } from 'lucide-react';
 import api from '../services/api';
 
 export default function AdminReportsPage() {
