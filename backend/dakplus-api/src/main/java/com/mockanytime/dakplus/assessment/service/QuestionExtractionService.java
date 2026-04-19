@@ -161,9 +161,10 @@ public class QuestionExtractionService {
                 RULES:
                 1. JSON ONLY.
                 2. "correctAnswer" must match one of the "options" exactly.
-                3. Preserve all text in brackets at the end of questions (e.g., "(PA/SA Exam - 2020 UP - 2022 MH)"). This is critical exam metadata.
-                4. Clean OCR noise but don't lose the metadata mentioned above.
-                5. "textHis", "optionsHi", "explanation", "explanationHi" should be empty strings for now.
+                3. PRESERVE METADATA: You must keep any text in brackets at the end of questions (e.g., "(PA/SA Exam - 2020 UP)"). This is CRITICAL exam metadata. DO NOT MOVE IT TO OPTIONS.
+                4. Extract EXACTLY as written.
+                5. Output ONLY JSON. No surrounding text.
+                6. "textHis", "optionsHi", "explanation", "explanationHi" should be empty strings for now.
                 
                 FORMAT:
                 {
@@ -441,9 +442,9 @@ public class QuestionExtractionService {
             Correct Answer: {answer}
             
             TASK:
-            1. Provide "textHi" - High quality Hindi translation of the question. PRESERVE the metadata in brackets at the end.
+            1. Provide "textHi" - High quality Hindi translation. CRITICAL: Preserve any bracketed metadata (like "(Exam Info)") at the end of "textHi". DO NOT TRIM.
             2. Provide "optionsHi" - High quality Hindi translation of all 4 options.
-            3. Provide "explanation" - Concise English explanation of WHY the answer is correct.
+            3. Provide "explanation" - Concise English explanation.
             4. Provide "explanationHi" - Hindi translation of the explanation.
             
             RULES:

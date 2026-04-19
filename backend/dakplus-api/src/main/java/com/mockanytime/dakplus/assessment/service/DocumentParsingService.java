@@ -3,6 +3,7 @@ package com.mockanytime.dakplus.assessment.service;
 import org.apache.pdfbox.Loader;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.text.PDFTextStripper;
+import org.apache.poi.hwpf.extractor.WordExtractor;
 import org.apache.poi.xwpf.extractor.XWPFWordExtractor;
 import org.apache.poi.xwpf.usermodel.XWPFDocument;
 import org.springframework.stereotype.Service;
@@ -39,8 +40,10 @@ public class DocumentParsingService {
 
         if (lowerName.endsWith(".pdf") || contentType.contains("pdf")) {
             result = extractFromPdf(file);
-        } else if (lowerName.endsWith(".docx") || contentType.contains("word") || contentType.contains("officedocument")) {
+        } else if (lowerName.endsWith(".docx") || contentType.contains("officedocument.wordprocessingml")) {
             result = extractFromWord(file);
+        } else if (lowerName.endsWith(".doc") || contentType.contains("msword")) {
+            result = extractFromOldWord(file);
         } else if (lowerName.endsWith(".txt") || contentType.contains("text/plain")) {
             result = new String(file.getBytes());
         } else if (isImageFile(filename) || contentType.contains("image/")) {
@@ -80,27 +83,30 @@ public class DocumentParsingService {
             StringBuilder fullText = new StringBuilder(extractor.getText());
 
             // Extract images and perform OCR
-            for (org.apache.poi.xwpf.usermodel.XWPFPictureData picture : doc.getAllPictures()) {
-                try {
-                    String ocrResult = performOcr(picture.getData());
-                    if (ocrResult != null && !ocrResult.isBlank()) {
-                        System.out.println("OCR Success: Extracted " + ocrResult.length() + " chars from image.");
-                        fullText.append("\n[Image Text Content]:\n").append(ocrResult).append("\n");
+            try {
+                for (org.apache.poi.xwpf.usermodel.XWPFPictureData picture : doc.getAllPictures()) {
+                    try {
+                        String ocrResult = performOcr(picture.getData());
+                        if (ocrResult != null && !ocrResult.isBlank()) {
+                            System.out.println("OCR Success: Extracted " + ocrResult.length() + " chars from image.");
+                            fullText.append("\n[Image Text Content]:\n").append(ocrResult).append("\n");
+                        }
+                    } catch (Exception e) {
+                        System.err.println("Non-critical: OCR failed for an image chunk. " + e.getMessage());
                     }
-                } catch (Exception e) {
-                    // Log error but don't break the whole extraction
-                    System.err.println("Non-critical: OCR failed for an image chunk. Skipping this image. Error: "
-                            + e.getMessage());
-                } catch (NoClassDefFoundError | UnsatisfiedLinkError e) {
-                    // Special handling for missing system dependencies (common in Railway/Docker)
-                    System.err.println("CRITICAL: Tesseract native library or class not found.");
-                    System.err.println("Error details: " + e.toString());
-                    System.err.println("java.library.path: " + System.getProperty("java.library.path"));
-                    break; // stop trying OCR for this doc if library is missing
                 }
+            } catch (Exception e) {
+                System.err.println("Warning: Could not extract pictures from DOCX: " + e.getMessage());
             }
 
             return fullText.toString();
+        }
+    }
+
+    private String extractFromOldWord(MultipartFile file) throws IOException {
+        try (InputStream inputStream = file.getInputStream();
+                WordExtractor extractor = new WordExtractor(inputStream)) {
+            return extractor.getText();
         }
     }
 

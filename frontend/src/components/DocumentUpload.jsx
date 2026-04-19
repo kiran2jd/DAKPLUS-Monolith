@@ -99,7 +99,7 @@ export default function DocumentUpload({ onQuestionsExtracted, topicId, subtopic
                     <input
                         type="file"
                         onChange={handleFileChange}
-                        accept=".pdf,.docx"
+                        accept=".pdf,.docx,.doc"
                         className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
                     />
                     <div className={`p-4 border border-gray-200 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-800 flex items-center justify-between group-hover:border-indigo-300 transition ${file ? 'border-indigo-500' : ''}`}>

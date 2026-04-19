@@ -30,13 +30,14 @@ public class RegexExtractionService {
         String cleanText = preprocessText(text);
 
         // Step 2: Split text into question blocks
-        // Pattern: Newline followed by number, then dot/bracket/space
-        // Using lookahead to identify starts of questions
-        String[] blocks = cleanText.split("(?m)^\\s*\\d+[\\.\\)]\\s+");
+        // Pattern: Number followed by dot/bracket/space
+        // We look for numbers preceded by a newline or significant whitespace
+        String splitRegex = "(?m)(?:^|\\n|\\s{2,})\\d+[\\.\\)]\\s+";
+        String[] blocks = cleanText.split(splitRegex);
         
         // Find the index of original question numbers to match the blocks
         List<String> questionHeaders = new ArrayList<>();
-        Matcher headerMatcher = Pattern.compile("(?m)^\\s*\\d+[\\.\\)]\\s+").matcher(cleanText);
+        Matcher headerMatcher = Pattern.compile(splitRegex).matcher(cleanText);
         while (headerMatcher.find()) {
             questionHeaders.add(headerMatcher.group().trim());
         }
