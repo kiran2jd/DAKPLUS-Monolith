@@ -33,7 +33,7 @@ spring:
       chat:
         options:
           model: llama-3.3-70b-versatile
-          max-tokens: 2048 # Increased limit for the beefier model
+          max-tokens: 4096
     gemini:
       base-url: ${GEMINI_BASE_URL:https://generativelanguage.googleapis.com/v1beta}
       api-key: ${GEMINI_API_KEY:}

@@ -207,11 +207,11 @@ public class QuestionExtractionService {
                 OpenAiChatOptions.Builder optionsBuilder = OpenAiChatOptions.builder()
                         .withMaxTokens(3000); // Larger output for larger chunks
                 
-                // FORCE GEMINI AS PRIMARY FOR HIGH RELIABILITY & SCALE
-                ChatClient activeClient = (geminiChatClient != null) ? geminiChatClient : chatClient;
+                // FORCE GROQ 70B AS PRIMARY FOR 100% RELIABILITY
+                ChatClient activeClient = (chatClient != null) ? chatClient : geminiChatClient;
                 
-                if (activeClient == geminiChatClient) {
-                    System.out.println("Using GOOGLE GEMINI FLASH (Primary) for extraction.");
+                if (activeClient == chatClient) {
+                    System.out.println("Using GROQ LLAMA 70B (Primary) for extraction.");
                 } else {
                     if (currentModel != null && !currentModel.equals("gemini-fallback")) {
                         optionsBuilder.withModel(currentModel);
@@ -230,7 +230,7 @@ public class QuestionExtractionService {
                     return List.of();
                 }
 
-                String fallbackModel = "llama-3.1-8b-instant";
+                String fallbackModel = "llama-3.3-70b-versatile";
                 long waitTime = 5000; 
                 
                 if (errorMsg.contains("rate_limit_exceeded") || errorMsg.contains("429")) {
