@@ -17,14 +17,17 @@ public class QuestionReport {
     private String questionId;
     private String userId;
     private String userName;
+    private String questionName;
+    private String questionText;
     private String reason; // e.g., WRONG_OPTIONS, SPELLING_ERROR, INCORRECT_TRANSLATION, OTHER
     private String comment;
     private String status = "PENDING"; // PENDING, RESOLVED, IGNORED
     private Date createdAt = new Date();
 
-    public QuestionReport(String testId, String questionId, String userId, String userName, String reason, String comment) {
+    public QuestionReport(String testId, String questionId, String questionText, String userId, String userName, String reason, String comment) {
         this.testId = testId;
         this.questionId = questionId;
+        this.questionText = questionText;
         this.userId = userId;
         this.userName = userName;
         this.reason = reason;

@@ -15,8 +15,9 @@ export default function ReportModal({ isOpen, onClose, questionId, testId, quest
             await reportService.submitReport({
                 questionId,
                 testId,
-                issueType,
-                description
+                questionText,
+                reason: issueType,
+                comment: description
             });
             setSuccess(true);
             setTimeout(() => {

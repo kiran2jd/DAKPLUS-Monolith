@@ -7,6 +7,7 @@ export default function AdminReportsPage() {
     const [reports, setReports] = useState([]);
     const [loading, setLoading] = useState(true);
     const [activeTab, setActiveTab] = useState('performance'); // 'performance' or 'issues'
+    const [selectedReport, setSelectedReport] = useState(null);
     const [filters, setFilters] = useState({
         circle: '',
         division: '',
@@ -208,6 +209,66 @@ export default function AdminReportsPage() {
 
     const renderIssuesTab = () => (
         <div className="space-y-6">
+            {/* Modal for viewing question details */}
+            {selectedReport && (
+                <div className="fixed inset-0 z-[60] flex items-center justify-center p-4">
+                    <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setSelectedReport(null)} />
+                    <div className="relative bg-white dark:bg-gray-800 w-full max-w-2xl rounded-3xl shadow-2xl overflow-hidden border border-gray-100 dark:border-gray-700 animate-in fade-in zoom-in duration-300">
+                        <div className="bg-gradient-to-r from-red-600 to-red-700 p-6 flex justify-between items-center text-white">
+                            <h3 className="font-black uppercase tracking-widest text-sm flex items-center gap-2">
+                                <AlertTriangle className="h-5 w-5" />
+                                Report Details
+                            </h3>
+                            <button onClick={() => setSelectedReport(null)}><X size={24} /></button>
+                        </div>
+                        <div className="p-8 space-y-6 max-h-[70vh] overflow-y-auto">
+                            <div className="p-4 bg-gray-50 dark:bg-gray-900/50 rounded-2xl border border-gray-100 dark:border-gray-700">
+                                <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2">Question Content</p>
+                                <p className="text-gray-900 dark:text-gray-200 font-serif leading-relaxed italic">
+                                    "{selectedReport.questionText || 'No text captured for this report.'}"
+                                </p>
+                            </div>
+
+                            <div className="grid grid-cols-2 gap-4">
+                                <div className="p-4 bg-amber-50 dark:bg-amber-900/20 rounded-2xl border border-amber-100 dark:border-amber-900/30">
+                                    <p className="text-[10px] font-black text-amber-600 dark:text-amber-500 uppercase tracking-widest mb-1">Issue Reported</p>
+                                    <p className="text-amber-900 dark:text-amber-300 font-bold">{selectedReport.reason?.replace(/_/g, ' ') || 'Other'}</p>
+                                </div>
+                                <div className="p-4 bg-indigo-50 dark:bg-indigo-900/20 rounded-2xl border border-indigo-100 dark:border-indigo-900/30">
+                                    <p className="text-[10px] font-black text-indigo-600 dark:text-indigo-500 uppercase tracking-widest mb-1">Status</p>
+                                    <p className="text-indigo-900 dark:text-indigo-300 font-bold">{selectedReport.status}</p>
+                                </div>
+                            </div>
+
+                            <div>
+                                <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2">Student's Comment</p>
+                                <div className="p-4 bg-gray-50 dark:bg-gray-900 border border-gray-100 dark:border-gray-700 rounded-2xl">
+                                    <p className="text-gray-700 dark:text-gray-300">
+                                        {selectedReport.comment || 'No specific description provided by student.'}
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                        <div className="p-6 bg-gray-50 dark:bg-gray-800/80 border-t border-gray-100 dark:border-gray-700 flex justify-end gap-3">
+                            <button 
+                                onClick={() => setSelectedReport(null)}
+                                className="px-6 py-3 bg-white dark:bg-gray-700 text-gray-600 dark:text-gray-300 border border-gray-200 dark:border-gray-600 rounded-xl font-bold hover:bg-gray-50 transition"
+                            >
+                                Close
+                            </button>
+                            <button
+                                onClick={() => {
+                                    // Implementation of Quick Edit link
+                                    window.open(`/dashboard/edit-test/${selectedReport.testId}`, '_blank');
+                                }}
+                                className="px-6 py-3 bg-red-600 text-white rounded-xl font-bold hover:bg-red-700 transition shadow-lg shadow-red-600/20"
+                            >
+                                Fix in Test Editor
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
             <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden transition-colors">
                 <div className="px-6 py-4 border-b border-gray-100 dark:border-gray-700 bg-gray-50/50 dark:bg-gray-800/50 flex justify-between items-center">
                     <h3 className="font-bold text-gray-900 dark:text-white flex items-center gap-2">
@@ -259,8 +320,11 @@ export default function AdminReportsPage() {
                                     </div>
                                     
                                     <div className="flex flex-row md:flex-col gap-2 shrink-0 self-center md:self-start">
-                                        <button className="px-4 py-2 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg text-sm font-bold text-indigo-600 hover:bg-indigo-50 dark:hover:bg-indigo-900/30 transition flex items-center gap-2">
-                                            View Question <ChevronRight className="h-4 w-4" />
+                                        <button 
+                                            onClick={() => setSelectedReport(report)}
+                                            className="px-4 py-2 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg text-sm font-bold text-indigo-600 hover:bg-indigo-50 dark:hover:bg-indigo-900/30 transition flex items-center gap-2"
+                                        >
+                                            View Details <ChevronRight className="h-4 w-4" />
                                         </button>
                                     </div>
                                 </div>
