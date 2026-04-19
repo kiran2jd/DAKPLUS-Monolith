@@ -7,7 +7,6 @@ export default function DocumentUpload({ onQuestionsExtracted, topicId, subtopic
     const [uploading, setUploading] = useState(false);
     const [error, setError] = useState('');
     const [success, setSuccess] = useState(false);
-    const [extractionMode, setExtractionMode] = useState('bulk'); // 'regular' or 'bulk'
     const [duplicateCount, setDuplicateCount] = useState(0);
     const [extractedQuestions, setExtractedQuestions] = useState([]);
 
@@ -31,14 +30,11 @@ export default function DocumentUpload({ onQuestionsExtracted, topicId, subtopic
         setUploading(true);
         setError('');
         try {
-            let questions;
-            if (extractionMode === 'bulk') {
-                questions = await testService.extractQuestionsByScript(file, topicId, subtopicId);
-                if (questions.length === 0) {
-                    throw new Error("Bulk script could not find any questions in this format. Try 'Regular' mode.");
-                }
-            } else {
-                questions = await testService.extractQuestions(file, topicId, subtopicId);
+            // Use advanced AI extraction for all documents for maximum yield and quality
+            const questions = await testService.extractQuestions(file, topicId, subtopicId);
+            
+            if (!questions || questions.length === 0) {
+                throw new Error("No questions could be extracted. Please ensure the document contains clear MCQ text.");
             }
             
             const dups = questions.filter(q => q.isDuplicate).length;
@@ -72,28 +68,10 @@ export default function DocumentUpload({ onQuestionsExtracted, topicId, subtopic
                 )}
             </div>
 
-            <div className="flex bg-white dark:bg-gray-800 p-1 rounded-lg mb-4 border border-indigo-100 dark:border-indigo-900 shadow-sm">
-                <button
-                    onClick={() => setExtractionMode('bulk')}
-                    className={`flex-1 py-1.5 text-xs font-bold rounded-md transition ${extractionMode === 'bulk' ? 'bg-indigo-600 text-white shadow-md' : 'text-gray-500 hover:bg-gray-50 dark:hover:bg-gray-700'}`}
-                >
-                    Bulk (Fast Script)
-                </button>
-                <button
-                    onClick={() => setExtractionMode('regular')}
-                    className={`flex-1 py-1.5 text-xs font-bold rounded-md transition ${extractionMode === 'regular' ? 'bg-indigo-600 text-white shadow-md' : 'text-gray-500 hover:bg-gray-50 dark:hover:bg-gray-700'}`}
-                >
-                    Regular (AI)
-                </button>
-            </div>
-
-            <div className="space-y-4">
-                <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 leading-relaxed">
-                    {extractionMode === 'bulk' 
-                        ? "FAST & FREE: Uses high-speed scripts to extract structured MCQs (1. A, B, C, D). Perfect for clean documents."
-                        : "ADVANCED AI: Uses deep analysis to extract complex layouts. Slower and uses AI tokens."
-                    }
-                </p>
+            <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 leading-relaxed mb-4">
+                Our advanced AI will scan your document to extract questions, options, and metadata.
+                Supports PDF and Word files.
+            </p>
 
                 <div className="relative group">
                     <input

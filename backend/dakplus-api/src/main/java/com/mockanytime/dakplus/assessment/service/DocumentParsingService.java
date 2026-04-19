@@ -83,12 +83,30 @@ public class DocumentParsingService {
             String mainText = extractor.getText();
             StringBuilder fullText = new StringBuilder(mainText != null ? mainText : "");
 
-            // FALLBACK: If standard extractor missed text (common in complex tables/layouts), 
-            // manually iterate through paragraphs.
-            if (fullText.length() < 100) {
-                System.out.println("Word Extraction: Standard extractor returned very little text. Trying paragraph fallback...");
+            // FALLBACK: If standard extractor missed text or just to be thorough with Tables
+            // manually iterate through all elements.
+            if (fullText.length() < 15000) {
+                System.out.println("Word Extraction: Supplementing text with Table/Paragraph scanning...");
+                
+                // 1. Get all paragraphs
                 for (org.apache.poi.xwpf.usermodel.XWPFParagraph p : doc.getParagraphs()) {
-                    fullText.append(p.getText()).append("\n");
+                    String pText = p.getText();
+                    if (pText != null && !pText.isBlank()) {
+                        fullText.append(pText).append("\n");
+                    }
+                }
+                
+                // 2. Get all tables (Critical for Bordered MCQs)
+                for (org.apache.poi.xwpf.usermodel.XWPFTable table : doc.getTables()) {
+                    for (org.apache.poi.xwpf.usermodel.XWPFTableRow row : table.getRows()) {
+                        for (org.apache.poi.xwpf.usermodel.XWPFTableCell cell : row.getTableCells()) {
+                            String cellText = cell.getText();
+                            if (cellText != null && !cellText.isBlank()) {
+                                fullText.append(cellText).append(" ");
+                            }
+                        }
+                        fullText.append("\n");
+                    }
                 }
             }
 

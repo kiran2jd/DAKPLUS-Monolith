@@ -86,8 +86,8 @@ public class QuestionExtractionService {
     public List<Question> extractQuestions(String text, String topicId, String subtopicId) {
         if (text == null || text.isBlank()) return List.of();
         
-        // Smart Batching: 1800 chars to fit within narrow 6000 TPM limits
-        int maxChunkSize = 1800;
+        // GIANT BATCHING: Now using Gemini Flash as primary to avoid splitting errors
+        int maxChunkSize = 15000;
         List<Question> allQuestions = new java.util.ArrayList<>();
         
         System.out.println("Beginning smart-chunked extraction for text of length: " + text.length());
@@ -130,12 +130,12 @@ public class QuestionExtractionService {
      * Finds a natural breaking point (newline or start of a question) before the hard max limit
      */
     private int findSmartSplitPoint(String text, int start, int end) {
-        // Look back up to 500 characters for a natural break
-        int lookback = Math.min(500, end - start);
+        // Look back up to 2000 characters for a natural break safely
+        int lookback = Math.min(2000, end - start);
         String window = text.substring(end - lookback, end);
         
-        // Priority 1: Question start pattern (newline + number + dot)
-        java.util.regex.Matcher questionMatcher = java.util.regex.Pattern.compile("\n\\d+\\.").matcher(window);
+        // Priority 1: Question start pattern (newline + number + dot/paren/space)
+        java.util.regex.Matcher questionMatcher = java.util.regex.Pattern.compile("\n\\s*\\d+[\\.\\)]\\s+").matcher(window);
         int lastQuestionStart = -1;
         while (questionMatcher.find()) {
             lastQuestionStart = questionMatcher.start();
@@ -161,10 +161,11 @@ public class QuestionExtractionService {
                 RULES:
                 1. JSON ONLY.
                 2. "correctAnswer" must match one of the "options" exactly.
-                3. PRESERVE METADATA: You must keep any text in brackets at the end of questions (e.g., "(PA/SA Exam - 2020 UP)"). This is CRITICAL exam metadata. DO NOT MOVE IT TO OPTIONS.
-                4. Extract EXACTLY as written.
-                5. Output ONLY JSON. No surrounding text.
-                6. "textHis", "optionsHi", "explanation", "explanationHi" should be empty strings for now.
+                3. MANDATORY METADATA PRESERVATION: You MUST keep any text in brackets at the end of questions (e.g., "(PA/SA Exam - 2020 UP)"). 
+                   STRICT RULE: DO NOT move this text into the options. It MUST remain in "text".
+                4. Extract EVERY SINGLE question in the text. Do not summarize or skip.
+                5. Extract EXACTLY as written.
+                6. Output ONLY JSON. No surrounding text.
                 
                 FORMAT:
                 {
@@ -191,30 +192,29 @@ public class QuestionExtractionService {
 
         Prompt prompt = new Prompt(promptString.replace("{text}", text));
         long startTime = System.currentTimeMillis();
-        System.out.println("Sending extraction prompt to Groq...");
+        System.out.println("Sending extraction prompt to AI Engine...");
         
         String response = null;
         int maxRetries = 3;
         int attempt = 0;
-        String fallbackModel = "llama-3.1-8b-instant";
-        String currentModel = null; // Will use default from config unless switched
+        String currentModel = null; 
 
         while (attempt < maxRetries) {
             try {
                 attempt++;
                 
                 OpenAiChatOptions.Builder optionsBuilder = OpenAiChatOptions.builder()
-                        .withMaxTokens(1500);
+                        .withMaxTokens(3000); // Larger output for larger chunks
                 
-                if (currentModel != null && !currentModel.equals("gemini-fallback")) {
-                    optionsBuilder.withModel(currentModel);
-                    System.out.println("Using model override for attempt " + attempt + ": " + currentModel);
-                }
-
-                ChatClient activeClient = (currentModel != null && currentModel.equals("gemini-fallback")) ? geminiChatClient : chatClient;
+                // FORCE GEMINI AS PRIMARY FOR HIGH RELIABILITY & SCALE
+                ChatClient activeClient = (geminiChatClient != null) ? geminiChatClient : chatClient;
                 
-                if (activeClient == null) {
-                    activeClient = chatClient; // Guard against missing gemini config
+                if (activeClient == geminiChatClient) {
+                    System.out.println("Using GOOGLE GEMINI FLASH (Primary) for extraction.");
+                } else {
+                    if (currentModel != null && !currentModel.equals("gemini-fallback")) {
+                        optionsBuilder.withModel(currentModel);
+                    }
                 }
 
                 response = activeClient.call(new Prompt(prompt.getContents(), optionsBuilder.build()))
@@ -229,31 +229,24 @@ public class QuestionExtractionService {
                     return List.of();
                 }
 
-                long waitTime = 3000; // Default lower wait if we are switching models
+                String fallbackModel = "llama-3.1-8b-instant";
+                long waitTime = 5000; 
+                
                 if (errorMsg.contains("rate_limit_exceeded") || errorMsg.contains("429")) {
-                    // Logic to switch models
-                    if (currentModel == null || !currentModel.equals(fallbackModel)) {
-                        System.out.println("Rate limit hit! Switching to fallback model: " + fallbackModel);
+                    System.out.println("AI Rate limit hit! Switch to fallback if available...");
+                    if (currentModel == null) {
                         currentModel = fallbackModel;
-                        waitTime = 2000; // 8B model usually has higher limits, short wait is fine
-                    } else if (geminiChatClient != null && !currentModel.equals("gemini-fallback")) {
-                        System.out.println("Persistent rate limits on Groq. Switching to GOOGLE GEMINI fallback...");
-                        currentModel = "gemini-fallback"; // Marker to use geminiChatClient
-                        waitTime = 1000;
+                    }
+                    
+                    // Parse suggested wait time if available
+                    java.util.regex.Matcher m = java.util.regex.Pattern.compile("again in ([\\d\\.]+)s").matcher(errorMsg);
+                    if (m.find()) {
+                        waitTime = (long) (Double.parseDouble(m.group(1)) * 1000) + 2000;
                     } else {
-                        // Already using fallback but still hit limit, parse wait time
-                        java.util.regex.Matcher m = java.util.regex.Pattern.compile("again in ([\\d\\.]+)s").matcher(errorMsg);
-                        if (m.find()) {
-                            waitTime = (long) (Double.parseDouble(m.group(1)) * 1000) + 2000;
-                        } else if (errorMsg.contains("TPD")) {
-                            waitTime = 30000; // TPD on 8B is high, but if hit, wait longer
-                        } else {
-                            waitTime = 20000;
-                        }
-                        System.out.println("Rate limit detected on fallback. Backing off for " + waitTime + "ms...");
+                        waitTime = 10000; // Standard backoff
                     }
                 } else {
-                    System.out.println("Wait 5s before retrying transient error...");
+                    System.out.println("Transient error. Wait 5s...");
                     waitTime = 5000;
                 }
 
