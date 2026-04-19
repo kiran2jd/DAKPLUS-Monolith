@@ -86,8 +86,8 @@ public class QuestionExtractionService {
     public List<Question> extractQuestions(String text, String topicId, String subtopicId) {
         if (text == null || text.isBlank()) return List.of();
         
-        // GIANT BATCHING: High context for Gemini 1.5 Flash (12k is safe for complex layouts)
-        int maxChunkSize = 12000;
+        // GIANT BATCHING: Increase to 30k to process entire 25-question sets in ONE call
+        int maxChunkSize = 30000;
         List<Question> allQuestions = new java.util.ArrayList<>();
         
         System.out.println("Beginning smart-chunked extraction for text of length: " + text.length());
@@ -205,7 +205,7 @@ public class QuestionExtractionService {
                 attempt++;
                 
                 OpenAiChatOptions.Builder optionsBuilder = OpenAiChatOptions.builder()
-                        .withMaxTokens(3000); // Larger output for larger chunks
+                        .withMaxTokens(8000); // 100% coverage for 25-30 questions
                 
                 // FORCE GROQ 70B AS PRIMARY FOR 100% RELIABILITY
                 ChatClient activeClient = (chatClient != null) ? chatClient : geminiChatClient;
@@ -417,8 +417,8 @@ public class QuestionExtractionService {
                 testRepository.save(test);
             });
             
-            // Wait 12-15 seconds between questions to stay far below TPD/TPM limits
-            try { Thread.sleep(12000); } catch (InterruptedException ignored) {}
+            // Wait 5 seconds between questions to finish the bulk upload faster
+            try { Thread.sleep(5000); } catch (InterruptedException ignored) {}
         }
         
         System.out.println("Background enrichment complete for test: " + testId);
