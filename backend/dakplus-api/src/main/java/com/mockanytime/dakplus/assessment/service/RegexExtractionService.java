@@ -18,6 +18,12 @@ public class RegexExtractionService {
     public List<Question> parseQuestions(String text, String topicId, String subtopicId) {
         if (text == null || text.isBlank()) return new ArrayList<>();
 
+        System.out.println("Regex Engine: Received text of length: " + text.length());
+        if (text.length() > 0) {
+            String sample = text.substring(0, Math.min(200, text.length())).replaceAll("\n", " ");
+            System.out.println("Regex Engine: Text Sample (first 200 chars): " + sample);
+        }
+
         List<Question> questions = new ArrayList<>();
         
         // Step 1: Pre-process text to remove common OCR noise and headers
@@ -106,19 +112,25 @@ public class RegexExtractionService {
             options.add(optContent);
         }
 
-        // --- NEW: Metadata Pull-back Logic ---
-        // If the last option contains exam metadata in brackets at the end, move it to the question text
+        // --- IMPROVED: Metadata Pull-back Logic ---
+        // If the last option contains exam metadata in brackets or common exam keywords at the end, move it to the question text
         if (!options.isEmpty()) {
             String lastOption = options.get(options.size() - 1);
-            // Look for bracketed text at the very end of the last option
-            Pattern metadataPattern = Pattern.compile("\\s*(\\([^\\)]+\\))\\s*$");
+            
+            // Pattern 1: Bracketed text at the end: "(...)"
+            // Pattern 2: Common exam identifiers at the end: "Exam - 2020", "PA/SA 2022", etc.
+            Pattern metadataPattern = Pattern.compile("\\s*(\\([^\\)]+\\)|(Exam|Year|GDS|MTS|PA/SA|PASA|PMMG|Postman)(\\s*[-–]?\\s*\\d{4})?[^.]*)$", Pattern.CASE_INSENSITIVE);
             Matcher metaMatcher = metadataPattern.matcher(lastOption);
+            
             if (metaMatcher.find()) {
                 String metadata = metaMatcher.group(1);
-                // Remove from option
-                options.set(options.size() - 1, lastOption.substring(0, metaMatcher.start()).trim());
-                // Append to question
-                questionText = questionText + " " + metadata;
+                // Safety check: don't pull back if the "metadata" is very short (could be just a word)
+                // or if it looks like actual option content (lots of lowercase/common words)
+                if (metadata.length() > 5) {
+                    options.set(options.size() - 1, lastOption.substring(0, metaMatcher.start()).trim());
+                    questionText = questionText + " " + metadata;
+                    System.out.println("Regex Engine: Pulled back metadata: " + metadata);
+                }
             }
         }
         // -------------------------------------
