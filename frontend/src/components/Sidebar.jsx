@@ -1,5 +1,5 @@
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { LayoutDashboard, PlusCircle, FileText, User, LogOut, X } from 'lucide-react';
+import { LayoutDashboard, PlusCircle, FileText, User, LogOut, X, TrendingUp } from 'lucide-react';
 import { authService } from '../services/auth';
 import logo from '../assets/logo.png';
 
