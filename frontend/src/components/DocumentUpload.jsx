@@ -124,6 +124,22 @@ export default function DocumentUpload({ onQuestionsExtracted, topicId, subtopic
                     </div>
                 )}
 
+                <button
+                    onClick={handleUpload}
+                    disabled={!file || uploading}
+                    className="w-full py-3 bg-indigo-600 text-white rounded-lg font-bold flex items-center justify-center space-x-2 hover:bg-indigo-700 disabled:bg-gray-400 transition shadow-lg shadow-indigo-500/20"
+                >
+                    {uploading ? (
+                        <>
+                            <Loader2 className="animate-spin" size={18} />
+                            <span>Processing Document...</span>
+                        </>
+                    ) : (
+                        <>
+                            <Upload size={18} />
+                            <span>Extract Questions</span>
+                        </>
+                    )}
                 </button>
 
                 {duplicateCount > 0 && (
