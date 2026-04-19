@@ -158,7 +158,6 @@ export default function DocumentUpload({ onQuestionsExtracted, topicId, subtopic
                         </p>
                     </div>
                 )}
-            </div>
 
             <div className="mt-4 pt-4 border-t border-indigo-100 dark:border-indigo-800/50">
                 <p className="text-[10px] text-gray-400 uppercase font-bold tracking-wider">Sample Format:</p>
