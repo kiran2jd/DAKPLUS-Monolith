@@ -30,9 +30,9 @@ public class RegexExtractionService {
         String cleanText = preprocessText(text);
 
         // Step 2: Split text into question blocks
-        // Pattern: Number followed by dot/bracket/space
-        // We look for numbers preceded by a newline or significant whitespace
-        String splitRegex = "(?m)(?:^|\\n|\\s{2,})\\d+[\\.\\)]\\s+";
+        // Pattern: Look for any sequence like "Digit. " or "Digit) " or "Digit- " even if not at line start
+        // Using a more aggressive non-anchor pattern for Word documents
+        String splitRegex = "(?i)\\s*\\d+[:\\.\\)\\-]{1,2}\\s+";
         String[] blocks = cleanText.split(splitRegex);
         
         // Find the index of original question numbers to match the blocks
@@ -72,9 +72,8 @@ public class RegexExtractionService {
     }
 
     private Question parseSingleBlock(String block) {
-        // Find options: (A), (B), (C), (D) or A., B., C., D. or a., b., c., d.
-        // We look for 4 options to be sure
-        Pattern optionPattern = Pattern.compile("(?i)[\\(\\[]?(A|B|C|D|1|2|3|4)[\\.\\)\\-\\]]\\s*");
+        // Find options: Support labels like (A), A., A), A:, A- or simply "A "
+        Pattern optionPattern = Pattern.compile("(?i)[\\(\\[]?(A|B|C|D)[\\.\\)\\:\\-\\]\\s]\\s*");
         Matcher matcher = optionPattern.matcher(block);
         
         List<Integer> optionPositions = new ArrayList<>();
@@ -113,28 +112,28 @@ public class RegexExtractionService {
             options.add(optContent);
         }
 
-        // --- IMPROVED: Metadata Pull-back Logic ---
-        // If the last option contains exam metadata in brackets or common exam keywords at the end, move it to the question text
+        // --- NEW: EMERGENCY AGGRESSIVE PULL-BACK ---
+        // Word docs often merge the end of the question (metadata or ?) into the last option
         if (!options.isEmpty()) {
             String lastOption = options.get(options.size() - 1);
             
-            // Pattern 1: Bracketed text at the end: "(...)"
-            // Pattern 2: Common exam identifiers at the end: "Exam - 2020", "PA/SA 2022", etc.
-            Pattern metadataPattern = Pattern.compile("\\s*(\\([^\\)]+\\)|(Exam|Year|GDS|MTS|PA/SA|PASA|PMMG|Postman)(\\s*[-–]?\\s*\\d{4})?[^.]*)$", Pattern.CASE_INSENSITIVE);
+            // Look for any of these at the end of the last option:
+            // 1. Question mark followed by ANYTHING: "? (Exam info)"
+            // 2. Bracketed text at the end: "(...)"
+            // 3. Exam acronyms: "GDS/MTS/PA/SA"
+            Pattern metadataPattern = Pattern.compile("([\\?\\!\\:]\\s*.*$|\\s*\\([^\\)]+\\)\\s*$|\\s*(Exam|Year|GDS|MTS|PA/SA|PASA|PMMG|Postman|Dept)[^\\w]*\\d{4}[^.]*$)", Pattern.CASE_INSENSITIVE);
             Matcher metaMatcher = metadataPattern.matcher(lastOption);
             
             if (metaMatcher.find()) {
                 String metadata = metaMatcher.group(1);
-                // Safety check: don't pull back if the "metadata" is very short (could be just a word)
-                // or if it looks like actual option content (lots of lowercase/common words)
-                if (metadata.length() > 5) {
-                    options.set(options.size() - 1, lastOption.substring(0, metaMatcher.start()).trim());
-                    questionText = questionText + " " + metadata;
-                    System.out.println("Regex Engine: Pulled back metadata: " + metadata);
-                }
+                // Cut it from the option
+                options.set(options.size() - 1, lastOption.substring(0, metaMatcher.start()).trim());
+                // Append it to the question
+                questionText = questionText + " " + metadata;
+                System.out.println("Regex Engine: Emergency Pull-back success: " + metadata);
             }
         }
-        // -------------------------------------
+        // -------------------------------------------
 
         // Handle cases where we found more than 4 things that look like options
         // Usually we only want the first 4 for DAKPlus

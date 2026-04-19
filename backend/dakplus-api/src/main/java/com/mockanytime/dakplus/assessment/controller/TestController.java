@@ -121,7 +121,12 @@ public class TestController {
         List<Question> questions = regexExtractionService.parseQuestions(text, topicId, subtopicId);
         
         if (questions.isEmpty()) {
-            return ResponseEntity.ok(List.of());
+            System.out.println("Bulk Script failed to find questions. Falling back to AI extraction...");
+            questions = questionExtractionService.extractQuestions(text, topicId, subtopicId);
+        }
+        
+        if (questions.isEmpty()) {
+            return ResponseEntity.ok(List.of()); // Truly no questions found
         }
         
         // Check for duplicates if topicId is available

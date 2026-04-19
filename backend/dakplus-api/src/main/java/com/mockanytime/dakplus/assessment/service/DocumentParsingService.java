@@ -80,7 +80,17 @@ public class DocumentParsingService {
                 XWPFDocument doc = new XWPFDocument(inputStream);
                 XWPFWordExtractor extractor = new XWPFWordExtractor(doc)) {
 
-            StringBuilder fullText = new StringBuilder(extractor.getText());
+            String mainText = extractor.getText();
+            StringBuilder fullText = new StringBuilder(mainText != null ? mainText : "");
+
+            // FALLBACK: If standard extractor missed text (common in complex tables/layouts), 
+            // manually iterate through paragraphs.
+            if (fullText.length() < 100) {
+                System.out.println("Word Extraction: Standard extractor returned very little text. Trying paragraph fallback...");
+                for (org.apache.poi.xwpf.usermodel.XWPFParagraph p : doc.getParagraphs()) {
+                    fullText.append(p.getText()).append("\n");
+                }
+            }
 
             // Extract images and perform OCR
             try {
