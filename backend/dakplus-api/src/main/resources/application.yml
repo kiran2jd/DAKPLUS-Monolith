@@ -35,12 +35,12 @@ spring:
           model: llama-3.3-70b-versatile
           max-tokens: 2048 # Increased limit for the beefier model
     gemini:
-      base-url: ${GEMINI_BASE_URL:https://generativelanguage.googleapis.com/v1beta/openai/}
+      base-url: ${GEMINI_BASE_URL:https://generativelanguage.googleapis.com/v1beta/openai}
       api-key: ${GEMINI_API_KEY:}
       chat:
         options:
-          model: gemini-1.5-flash
-          max-tokens: 4096
+          model: models/gemini-2.0-flash
+          max-tokens: 8192
   servlet:
     multipart:
       max-file-size: 100MB
