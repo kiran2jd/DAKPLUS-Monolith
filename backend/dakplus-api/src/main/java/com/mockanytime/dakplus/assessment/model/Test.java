@@ -38,6 +38,7 @@ public class Test {
     private String topicId;
     private String subtopicId;
     private java.util.List<String> courseIds; // ["MTS", "PMMG", "PASA"]
+    private boolean aiEnriched = false;
 
     public Test() {
     }
@@ -204,6 +205,14 @@ public class Test {
 
     public void incrementAttempts() {
         this.totalAttempts++;
+    }
+
+    public boolean isAiEnriched() {
+        return aiEnriched;
+    }
+
+    public void setAiEnriched(boolean aiEnriched) {
+        this.aiEnriched = aiEnriched;
     }
 
     public boolean isScheduledNow() {

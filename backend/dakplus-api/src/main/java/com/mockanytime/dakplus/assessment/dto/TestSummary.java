@@ -17,4 +17,5 @@ public interface TestSummary {
     String getSubtopicId();
     boolean isPremium();
     boolean isPublished();
+    boolean isAiEnriched();
 }

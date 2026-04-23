@@ -139,7 +139,7 @@ export default function TeacherDashboard() {
                                     </Link>
                                     
                                     {/* Show Retry Enrichment if questions exist but likely missing translations */}
-                                    {test.questions?.length > 0 && (!test.questions[0].textHi) && (
+                                    {!test.aiEnriched && !test.isAiEnriched && (
                                         <button
                                             onClick={async () => {
                                                 try {

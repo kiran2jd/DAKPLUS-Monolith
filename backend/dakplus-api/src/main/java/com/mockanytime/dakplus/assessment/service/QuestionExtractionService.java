@@ -577,6 +577,12 @@ public class QuestionExtractionService {
             }
         }
         
+        // Mark test as fully enriched at the end
+        testRepository.findById(testId).ifPresent(test -> {
+            test.setAiEnriched(true);
+            testRepository.save(test);
+        });
+        
         System.out.println("Batch background enrichment complete for test: " + testId);
     }
 
