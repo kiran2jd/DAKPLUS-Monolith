@@ -574,6 +574,7 @@ public class QuestionExtractionService {
                         }
                     }
                 }
+                test.updateCounts();
                 testRepository.save(test);
             });
             
@@ -585,6 +586,7 @@ public class QuestionExtractionService {
         // Mark test as fully enriched at the end
         testRepository.findById(testId).ifPresent(test -> {
             test.setAiEnriched(true);
+            test.updateCounts();
             testRepository.save(test);
         });
         

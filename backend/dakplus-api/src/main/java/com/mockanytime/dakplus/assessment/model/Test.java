@@ -39,6 +39,8 @@ public class Test {
     private String subtopicId;
     private java.util.List<String> courseIds; // ["MTS", "PMMG", "PASA"]
     private boolean aiEnriched = false;
+    private int questionCount = 0;
+    private int enrichedCount = 0;
 
     public Test() {
     }
@@ -208,12 +210,24 @@ public class Test {
     }
 
     public int getQuestionCount() {
-        return questions != null ? questions.size() : 0;
+        return questionCount;
+    }
+
+    public void setQuestionCount(int questionCount) {
+        this.questionCount = questionCount;
     }
 
     public int getEnrichedCount() {
-        if (questions == null) return 0;
-        return (int) questions.stream()
+        return enrichedCount;
+    }
+
+    public void setEnrichedCount(int enrichedCount) {
+        this.enrichedCount = enrichedCount;
+    }
+
+    public void updateCounts() {
+        this.questionCount = questions != null ? questions.size() : 0;
+        this.enrichedCount = questions == null ? 0 : (int) questions.stream()
             .filter(q -> q.getTextHi() != null && !q.getTextHi().isBlank())
             .count();
     }

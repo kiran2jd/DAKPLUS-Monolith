@@ -18,8 +18,6 @@ public interface TestSummary {
     boolean isPremium();
     boolean isPublished();
     boolean isAiEnriched();
-    
-    // New fields for progress tracking
-    default int getQuestionCount() { return 0; }
-    default int getEnrichedCount() { return 0; }
+    int getQuestionCount();
+    int getEnrichedCount();
 }

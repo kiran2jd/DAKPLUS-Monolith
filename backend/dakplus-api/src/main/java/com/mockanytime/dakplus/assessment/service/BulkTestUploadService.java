@@ -84,6 +84,7 @@ public class BulkTestUploadService {
                 test.setCreatedBy(userId);
                 test.setQuestions(questions);
                 test.setDurationMinutes(questions.size());
+                test.updateCounts();
                 
                 Test savedTest = testService.createTest(test);
                 System.out.println("Created test: " + savedTest.getTitle() + " (" + questions.size() + " Qs)");
