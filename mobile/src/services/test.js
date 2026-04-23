@@ -82,5 +82,31 @@ export const testService = {
             timeout: 120000 // Match backend AI timeout (2 minutes)
         });
         return response.data;
+    },
+
+    bulkUpload: async (files, topicId, subtopicId, courseIds) => {
+        const formData = new FormData();
+        
+        files.forEach((file, index) => {
+            formData.append('files', {
+                uri: Platform.OS === 'android' ? file.uri : file.uri.replace('file://', ''),
+                name: file.name || `document_${index}.pdf`,
+                type: file.mimeType || file.type || 'application/pdf'
+            });
+        });
+
+        if (topicId) formData.append('topicId', topicId);
+        if (subtopicId) formData.append('subtopicId', subtopicId);
+        if (courseIds && courseIds.length > 0) {
+            courseIds.forEach(id => formData.append('courseIds', id));
+        }
+
+        const response = await api.post('tests/bulk-upload', formData, {
+            headers: {
+                Accept: 'application/json'
+            },
+            timeout: 300000 // 5 minutes for bulk upload
+        });
+        return response.data;
     }
 };

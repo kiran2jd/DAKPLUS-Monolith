@@ -19,6 +19,7 @@ import PaymentScreen from '../screens/PaymentScreen';
 import ManageTestsScreen from '../screens/ManageTestsScreen';
 import TopicManagementScreen from '../screens/TopicManagementScreen';
 import MyPurchasesScreen from '../screens/MyPurchasesScreen';
+import BulkUploadScreen from '../screens/BulkUploadScreen';
 import SideMenu from '../components/SideMenu';
 import HelpScreen from '../screens/HelpScreen';
 import NotificationsScreen from '../screens/NotificationsScreen';
@@ -168,6 +169,7 @@ export default function AppNavigator() {
                 <Stack.Screen name="Payment" component={PaymentScreen} />
                 <Stack.Screen name="ManageTests" component={ManageTestsScreen} />
                 <Stack.Screen name="TopicManagement" component={TopicManagementScreen} />
+                <Stack.Screen name="BulkUpload" component={BulkUploadScreen} />
                 <Stack.Screen name="CreateTest" component={CreateTestScreen} />
                 <Stack.Screen name="EditTest" component={EditTestScreen} />
                 <Stack.Screen name="Notifications" component={NotificationsScreen} />

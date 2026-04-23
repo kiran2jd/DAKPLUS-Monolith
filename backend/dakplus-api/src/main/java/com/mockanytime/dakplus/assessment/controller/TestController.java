@@ -23,6 +23,7 @@ public class TestController {
     private final DocumentParsingService documentParsingService;
     private final QuestionExtractionService questionExtractionService;
     private final com.mockanytime.dakplus.assessment.service.RegexExtractionService regexExtractionService;
+    private final com.mockanytime.dakplus.assessment.service.BulkTestUploadService bulkTestUploadService;
 
     @PostMapping("/")
     public ResponseEntity<Test> createTest(@RequestBody Test test,
@@ -158,5 +159,26 @@ public class TestController {
         }
         
         return ResponseEntity.ok(questions);
+    }
+
+    @PostMapping("/bulk-upload")
+    public ResponseEntity<?> bulkUpload(
+            @RequestParam("files") MultipartFile[] files,
+            @RequestParam(value = "topicId", required = false) String topicId,
+            @RequestParam(value = "subtopicId", required = false) String subtopicId,
+            @RequestParam(value = "courseIds", required = false) List<String> courseIds,
+            @RequestHeader(value = "X-User-Id", required = false) String userId) {
+        
+        if (files == null || files.length == 0) {
+            return ResponseEntity.badRequest().body("No files provided.");
+        }
+        
+        // Start processing in background
+        bulkTestUploadService.processBulkUpload(files, topicId, subtopicId, courseIds, userId);
+        
+        return ResponseEntity.ok(java.util.Map.of(
+            "message", "Bulk upload started for " + files.length + " files. Tests will appear in the dashboard as they are processed.",
+            "fileCount", files.length
+        ));
     }
 }

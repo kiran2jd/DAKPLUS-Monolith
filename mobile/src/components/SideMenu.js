@@ -62,7 +62,8 @@ const SideMenu = (props) => {
         { label: 'Performance', icon: 'analytics-outline', route: 'Performance' },
         ...(isStaff ? [
             { label: 'Manage Tests', icon: 'layers-outline', route: 'ManageTests' },
-            { label: 'Topic Matrix', icon: 'apps-outline', route: 'TopicManagement' }
+            { label: 'Topic Matrix', icon: 'apps-outline', route: 'TopicManagement' },
+            { label: 'Bulk Upload', icon: 'cloud-upload-outline', route: 'BulkUpload' }
         ] : []),
         { label: 'My Purchases', icon: 'card-outline', route: 'MyPurchases' },
         { label: 'Support Center', icon: 'help-circle-outline', route: 'Help' },

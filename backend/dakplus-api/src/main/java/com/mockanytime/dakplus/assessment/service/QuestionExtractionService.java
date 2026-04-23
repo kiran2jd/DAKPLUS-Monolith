@@ -32,11 +32,75 @@ public class QuestionExtractionService {
     @org.springframework.beans.factory.annotation.Autowired
     private com.mockanytime.dakplus.assessment.repository.TestRepository testRepository;
 
+    @org.springframework.beans.factory.annotation.Autowired
+    private TopicService topicService;
+
     @Value("${spring.ai.openai.api-key:}")
     private String apiKey;
 
     @Value("${spring.ai.openai.base-url:}")
     private String baseUrl;
+
+    public com.mockanytime.dakplus.assessment.dto.TestMetadataDTO detectTestMetadata(String text) {
+        if (text == null || text.isBlank()) return new com.mockanytime.dakplus.assessment.dto.TestMetadataDTO();
+
+        List<com.mockanytime.dakplus.assessment.model.Topic> topics = topicService.getAllTopics();
+        StringBuilder topicContext = new StringBuilder();
+        for (com.mockanytime.dakplus.assessment.model.Topic t : topics) {
+            topicContext.append("- ID: ").append(t.getId()).append(", Name: ").append(t.getName()).append("\n");
+            List<com.mockanytime.dakplus.assessment.model.Subtopic> subtopics = topicService.getSubtopicsByTopic(t.getId());
+            for (com.mockanytime.dakplus.assessment.model.Subtopic s : subtopics) {
+                topicContext.append("  * Sub-ID: ").append(s.getId()).append(", Sub-Name: ").append(s.getName()).append("\n");
+            }
+        }
+
+        String detectionPrompt = """
+                You are an expert in Indian Postal Exams (MTS, GDS, Postman, PA/SA).
+                Analyze the following text from an exam paper and identify:
+                1. The most relevant TOPIC and SUBTOPIC from the provided list.
+                2. Which courses this content belongs to (MTS, PMMG, PASA).
+                
+                EXISTING TOPICS & SUBTOPICS:
+                {topicContext}
+                
+                RULES:
+                - JSON ONLY.
+                - If no match is found, leave the field empty.
+                - "courseIds" must be a subset of ["MTS", "PMMG", "PASA"].
+                
+                FORMAT:
+                {
+                  "topicId": "...",
+                  "subtopicId": "...",
+                  "courseIds": ["...", "..."],
+                  "confidenceScore": "high/medium/low"
+                }
+                
+                TEXT TO ANALYZE (First 5000 chars):
+                {text}
+                """;
+
+        String sampleText = text.substring(0, Math.min(text.length(), 5000));
+        String finalPrompt = detectionPrompt
+                .replace("{topicContext}", topicContext.toString())
+                .replace("{text}", sampleText);
+
+        try {
+            OpenAiChatOptions options = OpenAiChatOptions.builder()
+                    .withModel("llama-3.1-8b-instant")
+                    .withMaxTokens(500)
+                    .build();
+
+            String response = chatClient.call(new org.springframework.ai.chat.prompt.Prompt(finalPrompt, options))
+                    .getResult().getOutput().getContent();
+
+            String cleanJson = sanitizeAndParseJson(response, false);
+            return mapper.readValue(cleanJson, com.mockanytime.dakplus.assessment.dto.TestMetadataDTO.class);
+        } catch (Exception e) {
+            System.err.println("Metadata detection failed: " + e.getMessage());
+            return new com.mockanytime.dakplus.assessment.dto.TestMetadataDTO();
+        }
+    }
 
     @PostConstruct
     public void init() {
@@ -164,7 +228,10 @@ public class QuestionExtractionService {
                 3. MANDATORY METADATA PRESERVATION: You MUST keep any text in brackets at the end of questions (e.g., "(PA/SA Exam - 2020 UP)"). 
                    STRICT RULE: DO NOT move this text into the options. It MUST remain in "text".
                 4. Extract EVERY SINGLE question in the text. Do not summarize or skip.
-                5. Extract EXACTLY as written.
+                5. STRICT OPTION CLEANLINESS: Options must contain ONLY the choice content. 
+                   - DO NOT include the next question in an option.
+                   - DO NOT include question numbers (1., 2., etc.) inside the options.
+                   - If an option seems to contain another question, STOP and separate them.
                 6. Output ONLY JSON. No surrounding text.
                 7. "textHi", "optionsHi", "explanation", "explanationHi" should be empty strings for now.
                 
@@ -367,6 +434,18 @@ public class QuestionExtractionService {
         String correctAnswer = q.getCorrectAnswer().trim();
         List<String> options = q.getOptions();
 
+        // 0. STRICT CLEANLINESS CHECK: Prevent "Question Bleeding"
+        for (String opt : options) {
+            if (opt == null) return false;
+            String trimmedOpt = opt.trim();
+            // If option contains a question number pattern (e.g., "2. " or "Q3)") 
+            // and it's not at the very start of a short string, it's likely a leaked question.
+            if (trimmedOpt.matches(".*\\n\\s*\\d+[\\.\\)]\\s+.*") || trimmedOpt.length() > 500) {
+                System.err.println("Validation Failed: Option looks like it contains another question or is too long: " + trimmedOpt);
+                return false;
+            }
+        }
+
         // 1. Try Exact Match (Ignored Case & Trimmed)
         for (String opt : options) {
             if (opt.trim().equalsIgnoreCase(correctAnswer)) {
@@ -448,6 +527,168 @@ public class QuestionExtractionService {
         
         System.out.println("Background enrichment complete for test: " + testId);
     }
+
+    /**
+     * BATCH BACKGROUND STAGE: Enriches lightweight questions in groups of 5.
+     * Optimized for high-volume ingestion (100+ sets).
+     */
+    @org.springframework.scheduling.annotation.Async
+    public void enrichQuestionsInBatchesAsync(String testId, List<Question> questions) {
+        if (questions == null || questions.isEmpty()) return;
+        
+        System.out.println("Starting batch background enrichment for " + questions.size() + " questions in test: " + testId);
+        
+        // Filter out already enriched questions
+        List<Question> toEnrich = questions.stream()
+            .filter(q -> q.getTextHi() == null || q.getTextHi().isBlank())
+            .toList();
+            
+        if (toEnrich.isEmpty()) {
+            System.out.println("All questions already enriched for test: " + testId);
+            return;
+        }
+
+        int batchSize = 5;
+        for (int i = 0; i < toEnrich.size(); i += batchSize) {
+            int end = Math.min(i + batchSize, toEnrich.size());
+            List<Question> batch = toEnrich.subList(i, end);
+            
+            System.out.println("Enriching batch " + (i/batchSize + 1) + " (" + batch.size() + " questions) for test: " + testId + "...");
+            
+            enrichQuestionBatch(batch);
+            
+            // Save progress after each batch
+            testRepository.findById(testId).ifPresent(test -> {
+                for (Question batchQ : batch) {
+                    for (int j = 0; j < test.getQuestions().size(); j++) {
+                        if (test.getQuestions().get(j).getId().equals(batchQ.getId())) {
+                            test.getQuestions().set(j, batchQ);
+                            break;
+                        }
+                    }
+                }
+                testRepository.save(test);
+            });
+            
+            // Wait 10 seconds between batches to stay within rate limits (adjusted for batch size)
+            if (end < toEnrich.size()) {
+                try { Thread.sleep(10000); } catch (InterruptedException ignored) {}
+            }
+        }
+        
+        System.out.println("Batch background enrichment complete for test: " + testId);
+    }
+
+    private void enrichQuestionBatch(List<Question> batch) {
+        StringBuilder batchContent = new StringBuilder();
+        for (int i = 0; i < batch.size(); i++) {
+            Question q = batch.get(i);
+            batchContent.append("QUESTION ").append(i + 1).append(":\n")
+                .append("Text: ").append(q.getText()).append("\n")
+                .append("Options: ").append(String.join(", ", q.getOptions())).append("\n")
+                .append("Answer: ").append(q.getCorrectAnswer()).append("\n\n");
+        }
+
+        String batchPrompt = """
+            Complete these {count} questions by adding Hindi translation and detailed explanations.
+            
+            CONTEXT: Indian Postal Exams (MTS, GDS, Postman, PA/SA).
+            
+            INPUT QUESTIONS:
+            {batchContent}
+            
+            TASK:
+            For EACH question, provide:
+            1. "textHi" - High quality Hindi translation. CRITICAL: Preserve any bracketed metadata (like "(Exam Info)") at the end.
+            2. "optionsHi" - Hindi translation of all 4 options.
+            3. "explanation" - Concise English explanation.
+            4. "explanationHi" - Hindi translation of the explanation.
+            
+            RULES:
+            - JSON ONLY.
+            - Format must be an object with a "results" array.
+            - Ensure the order matches the input exactly.
+            - DO NOT mix content between questions.
+            - DO NOT include question numbers in the "textHi" or "optionsHi".
+            
+            FORMAT:
+            {
+              "results": [
+                {
+                  "textHi": "...",
+                  "optionsHi": ["...", "...", "...", "..."],
+                  "explanation": "...",
+                  "explanationHi": "..."
+                },
+                ...
+              ]
+            }
+            """;
+        
+        String finalPrompt = batchPrompt
+                .replace("{count}", String.valueOf(batch.size()))
+                .replace("{batchContent}", batchContent.toString());
+
+        int maxRetries = 2;
+        int attempt = 0;
+        String response = null;
+        String currentModel = "llama-3.1-8b-instant"; // Using 8B for efficiency
+
+        while (attempt < maxRetries) {
+            try {
+                attempt++;
+                OpenAiChatOptions.Builder optionsBuilder = OpenAiChatOptions.builder()
+                        .withMaxTokens(batch.size() * 1000); // Scale tokens with batch size
+                
+                ChatClient activeClient = chatClient;
+                if (currentModel.equals("gemini-fallback") && geminiChatClient != null) {
+                    activeClient = geminiChatClient;
+                } else if (currentModel != null) {
+                    optionsBuilder.withModel(currentModel);
+                }
+
+                response = activeClient.call(new org.springframework.ai.chat.prompt.Prompt(finalPrompt, optionsBuilder.build()))
+                        .getResult().getOutput().getContent();
+                break;
+            } catch (Exception e) {
+                String errorMsg = e.getMessage() != null ? e.getMessage() : "Unknown Error";
+                System.err.println("Batch enrichment attempt " + attempt + " failed: " + errorMsg);
+                
+                if (attempt >= maxRetries) return;
+
+                if (errorMsg.contains("rate_limit_exceeded") || errorMsg.contains("429")) {
+                    if (geminiChatClient != null && !currentModel.equals("gemini-fallback")) {
+                        currentModel = "gemini-fallback";
+                        continue;
+                    }
+                }
+                try { Thread.sleep(5000); } catch (InterruptedException ignored) {}
+            }
+        }
+
+        if (response == null) return;
+
+        try {
+            String cleanJson = sanitizeAndParseJson(response, true);
+            Map<String, Object> root = mapper.readValue(cleanJson, Map.class);
+            List<Map<String, Object>> results = (List<Map<String, Object>>) root.get("results");
+            
+            if (results != null) {
+                for (int i = 0; i < Math.min(batch.size(), results.size()); i++) {
+                    Question q = batch.get(i);
+                    Map<String, Object> res = results.get(i);
+                    
+                    if (res.containsKey("textHi")) q.setTextHi((String) res.get("textHi"));
+                    if (res.containsKey("optionsHi")) q.setOptionsHi((List<String>) res.get("optionsHi"));
+                    if (res.containsKey("explanation")) q.setExplanation((String) res.get("explanation"));
+                    if (res.containsKey("explanationHi")) q.setExplanationHi((String) res.get("explanationHi"));
+                }
+            }
+        } catch (Exception e) {
+            System.err.println("Batch enrichment parsing failed: " + e.getMessage());
+        }
+    }
+
 
     private void enrichSingleQuestion(Question q) {
         String enrichPrompt = """
