@@ -228,13 +228,14 @@ public class QuestionExtractionService {
                 2. "correctAnswer" must match one of the "options" exactly.
                 3. MANDATORY METADATA PRESERVATION: You MUST keep any text in brackets at the end of questions (e.g., "(PA/SA Exam - 2020 UP)"). 
                    STRICT RULE: DO NOT move this text into the options. It MUST remain in "text".
-                4. Extract EVERY SINGLE question in the text. Do not summarize or skip.
-                5. STRICT OPTION CLEANLINESS: Options must contain ONLY the choice content. 
+                4. Extract EVERY SINGLE question in the text. Do not summarize or skip. Even if the text is messy, try to recover the questions.
+                5. STRICT 4-OPTION RULE: Almost all Indian Postal exams have EXACTLY 4 options. Ensure you find and extract all 4 options for every question.
+                6. STRICT OPTION CLEANLINESS: Options must contain ONLY the choice content. 
                    - DO NOT include the next question in an option.
                    - DO NOT include question numbers (1., 2., etc.) inside the options.
                    - If an option seems to contain another question, STOP and separate them.
-                6. Output ONLY JSON. No surrounding text.
-                7. "textHi", "optionsHi", "explanation", "explanationHi" should be empty strings for now.
+                7. Output ONLY JSON. No surrounding text.
+                8. "textHi", "optionsHi", "explanation", "explanationHi" should be empty strings for now.
                 
                 FORMAT:
                 {
@@ -242,9 +243,9 @@ public class QuestionExtractionService {
                     {
                       "text": "English question text here... (Metadata in brackets here)",
                       "textHi": "",
-                      "options": ["A", "B", "C", "D"],
+                      "options": ["Option 1", "Option 2", "Option 3", "Option 4"],
                       "optionsHi": ["", "", "", ""],
-                      "correctAnswer": "A",
+                      "correctAnswer": "Option 1",
                       "explanation": "",
                       "explanationHi": "",
                       "type": "mcq",

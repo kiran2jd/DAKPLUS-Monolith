@@ -147,7 +147,7 @@ export default function TeacherDashboard() {
                                     </Link>
                                     
                                     {/* Show Retry Enrichment if questions exist but not all are enriched */}
-                                    {test.questionCount > 0 && test.enrichedCount < test.questionCount && (
+                                    {(!test.isAiEnriched || (test.questionCount > 0 && test.enrichedCount < test.questionCount)) && (
                                         <button
                                             onClick={async () => {
                                                 try {
