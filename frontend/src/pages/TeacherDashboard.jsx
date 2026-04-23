@@ -137,6 +137,24 @@ export default function TeacherDashboard() {
                                     <Link to={`/dashboard/edit-test/${test.id}`} className="px-3 py-1.5 border border-gray-300 dark:border-gray-600 rounded-md text-sm font-medium hover:bg-white dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 flex items-center transition-colors">
                                         <Edit className="h-3.5 w-3.5 mr-1" /> Edit
                                     </Link>
+                                    
+                                    {/* Show Retry Enrichment if questions exist but likely missing translations */}
+                                    {test.questions?.length > 0 && (!test.questions[0].textHi) && (
+                                        <button
+                                            onClick={async () => {
+                                                try {
+                                                    await testService.retryEnrichment(test.id);
+                                                    alert("AI Enrichment started in background. Refresh in a few minutes.");
+                                                } catch (e) {
+                                                    alert("Failed to start enrichment: " + e.message);
+                                                }
+                                            }}
+                                            className="px-3 py-1.5 bg-amber-50 dark:bg-amber-900/20 text-amber-700 dark:text-amber-400 border border-amber-200 dark:border-amber-800 rounded-md text-sm font-bold flex items-center transition-colors hover:bg-amber-100"
+                                        >
+                                            <TrendingUp className="h-3.5 w-3.5 mr-1" /> Complete AI
+                                        </button>
+                                    )}
+
                                     <button
                                         onClick={() => handleDelete(test.id)}
                                         className="px-3 py-1.5 border border-red-200 dark:border-red-900/50 rounded-md text-sm font-medium hover:bg-red-50 dark:hover:bg-red-900/30 text-red-600 dark:text-red-400 flex items-center transition-colors"

@@ -181,4 +181,17 @@ public class TestController {
             "fileCount", files.length
         ));
     }
+
+    @PostMapping("/{testId}/retry-enrichment")
+    public ResponseEntity<?> retryEnrichment(@PathVariable String testId) {
+        Optional<Test> testOpt = testService.getTestById(testId);
+        if (testOpt.isEmpty()) {
+            return ResponseEntity.notFound().build();
+        }
+        
+        Test test = testOpt.get();
+        questionExtractionService.enrichQuestionsInBatchesAsync(test.getId(), test.getQuestions());
+        
+        return ResponseEntity.ok().body(java.util.Map.of("message", "Enrichment process re-triggered in the background."));
+    }
 }

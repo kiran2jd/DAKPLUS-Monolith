@@ -88,5 +88,10 @@ export const testService = {
             headers: { 'Content-Type': undefined }
         });
         return response.data;
+    },
+
+    retryEnrichment: async (testId) => {
+        const response = await api.post(`/tests/${testId}/retry-enrichment`);
+        return response.data;
     }
 };

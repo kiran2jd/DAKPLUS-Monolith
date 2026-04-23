@@ -548,7 +548,8 @@ public class QuestionExtractionService {
             return;
         }
 
-        int batchSize = 5;
+        // Reduced to 3 to prevent response size timeouts and provider-level cuts (429/503)
+        int batchSize = 3;
         for (int i = 0; i < toEnrich.size(); i += batchSize) {
             int end = Math.min(i + batchSize, toEnrich.size());
             List<Question> batch = toEnrich.subList(i, end);
@@ -629,16 +630,16 @@ public class QuestionExtractionService {
                 .replace("{count}", String.valueOf(batch.size()))
                 .replace("{batchContent}", batchContent.toString());
 
-        int maxRetries = 2;
+        int maxRetries = 3;
         int attempt = 0;
         String response = null;
-        String currentModel = "llama-3.1-8b-instant"; // Using 8B for efficiency
+        String currentModel = "llama-3.1-8b-instant"; 
 
         while (attempt < maxRetries) {
             try {
                 attempt++;
                 OpenAiChatOptions.Builder optionsBuilder = OpenAiChatOptions.builder()
-                        .withMaxTokens(batch.size() * 1000); // Scale tokens with batch size
+                        .withMaxTokens(batch.size() * 1200); // Increased per-question token allowance
                 
                 ChatClient activeClient = chatClient;
                 if (currentModel.equals("gemini-fallback") && geminiChatClient != null) {
@@ -654,15 +655,21 @@ public class QuestionExtractionService {
                 String errorMsg = e.getMessage() != null ? e.getMessage() : "Unknown Error";
                 System.err.println("Batch enrichment attempt " + attempt + " failed: " + errorMsg);
                 
-                if (attempt >= maxRetries) return;
-
-                if (errorMsg.contains("rate_limit_exceeded") || errorMsg.contains("429")) {
-                    if (geminiChatClient != null && !currentModel.equals("gemini-fallback")) {
-                        currentModel = "gemini-fallback";
-                        continue;
-                    }
+                // If we get an HTML response (gateway error/429/503), or explicit 429, fallback to Gemini immediately
+                boolean isGatewayError = errorMsg.contains("text/html") || errorMsg.contains("content type [text/html]");
+                boolean isRateLimit = errorMsg.contains("rate_limit_exceeded") || errorMsg.contains("429");
+                
+                if ((isGatewayError || isRateLimit) && geminiChatClient != null && !currentModel.equals("gemini-fallback")) {
+                    System.out.println("Switching to Gemini for batch enrichment due to provider error...");
+                    currentModel = "gemini-fallback";
+                    attempt--; // Don't count the model switch as an attempt failure
+                    continue;
                 }
-                try { Thread.sleep(5000); } catch (InterruptedException ignored) {}
+
+                if (attempt >= maxRetries) return;
+                
+                // Exponential backoff
+                try { Thread.sleep(5000 * attempt); } catch (InterruptedException ignored) {}
             }
         }
 
