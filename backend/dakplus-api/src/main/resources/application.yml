@@ -32,10 +32,10 @@ spring:
       api-key: ${GROQ_API_KEY:${SPRING_AI_OPENAI_API_KEY:${OPENAI_API_KEY:}}}
       chat:
         options:
-          model: llama-3.3-70b-versatile
+          model: llama-3.1-8b-instant
           max-tokens: 8192
       enrichment:
-        model: llama-3.3-70b-versatile
+        model: llama-3.1-8b-instant
         max-tokens: 2000
     gemini:
       base-url: ${GEMINI_BASE_URL:https://generativelanguage.googleapis.com/v1beta}

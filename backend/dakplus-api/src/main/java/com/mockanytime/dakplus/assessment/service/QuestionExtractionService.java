@@ -205,17 +205,25 @@ public class QuestionExtractionService {
                 attempt++;
                 
                 OpenAiChatOptions.Builder optionsBuilder = OpenAiChatOptions.builder()
-                        .withMaxTokens(8000); // 100% coverage for 25-30 questions
+                        .withMaxTokens(8192); // Max coverage
                 
-                // FORCE GROQ 70B AS PRIMARY FOR 100% RELIABILITY
-                ChatClient activeClient = (chatClient != null) ? chatClient : geminiChatClient;
+                ChatClient activeClient = chatClient;
                 
-                if (activeClient == chatClient) {
-                    System.out.println("Using GROQ LLAMA 70B (Primary) for extraction.");
-                } else {
-                    if (currentModel != null && !currentModel.equals("gemini-fallback")) {
+                if (currentModel != null) {
+                    if (currentModel.equals("gemini-fallback")) {
+                        activeClient = geminiChatClient;
+                        System.out.println("Using Gemini (Tertiary Fallback) for extraction.");
+                    } else {
                         optionsBuilder.withModel(currentModel);
+                        System.out.println("Using model: " + currentModel + " for extraction attempt " + attempt);
                     }
+                } else {
+                    System.out.println("Using Groq 8B (Primary) for extraction.");
+                }
+
+                if (activeClient == null) {
+                    activeClient = geminiChatClient;
+                    System.out.println("Groq client not available, falling back to Gemini.");
                 }
 
                 response = activeClient.call(new Prompt(prompt.getContents(), optionsBuilder.build()))
@@ -230,13 +238,17 @@ public class QuestionExtractionService {
                     return List.of();
                 }
 
-                String fallbackModel = "llama-3.3-70b-versatile";
-                long waitTime = 5000; 
+                long waitTime = 3000; 
                 
                 if (errorMsg.contains("rate_limit_exceeded") || errorMsg.contains("429")) {
-                    System.out.println("AI Rate limit hit! Switch to fallback if available...");
+                    System.out.println("Rate limit hit! Rotating models...");
+                    
                     if (currentModel == null) {
-                        currentModel = fallbackModel;
+                        // Switch from 8B (Primary) to 70B (Secondary)
+                        currentModel = "llama-3.3-70b-versatile";
+                    } else if (currentModel.equals("llama-3.3-70b-versatile")) {
+                        // Switch from 70B (Secondary) to Gemini (Tertiary)
+                        currentModel = "gemini-fallback";
                     }
                     
                     // Parse suggested wait time if available
@@ -244,11 +256,11 @@ public class QuestionExtractionService {
                     if (m.find()) {
                         waitTime = (long) (Double.parseDouble(m.group(1)) * 1000) + 2000;
                     } else {
-                        waitTime = 10000; // Standard backoff
+                        waitTime = 5000; // Rotating models so short wait is okay
                     }
                 } else {
-                    System.out.println("Transient error. Wait 5s...");
-                    waitTime = 5000;
+                    System.out.println("Transient error. Wait 3s...");
+                    waitTime = 3000;
                 }
 
                 try { Thread.sleep(waitTime); } catch (InterruptedException ignored) {}
