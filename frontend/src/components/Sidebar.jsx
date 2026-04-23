@@ -1,5 +1,5 @@
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { LayoutDashboard, PlusCircle, FileText, User, LogOut, X, TrendingUp } from 'lucide-react';
+import { LayoutDashboard, PlusCircle, FileText, User, LogOut, X, TrendingUp, CloudUpload } from 'lucide-react';
 import { authService } from '../services/auth';
 import logo from '../assets/logo.png';
 
@@ -110,6 +110,15 @@ export default function Sidebar({ isOpen, onClose }) {
                             >
                                 <PlusCircle size={20} />
                                 <span className="font-medium">Manage Topics</span>
+                            </Link>
+
+                            <Link
+                                to="/dashboard/admin/bulk-upload"
+                                onClick={onClose}
+                                className={`flex items-center space-x-3 px-4 py-3 rounded-lg transition ${isActive('/dashboard/admin/bulk-upload') ? 'bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-400' : 'text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700'}`}
+                            >
+                                <CloudUpload size={20} />
+                                <span className="font-medium">Bulk Upload</span>
                             </Link>
 
                             <Link

@@ -25,6 +25,7 @@ import InactivityHandler from './components/InactivityHandler';
 import BooksPage from './pages/BooksPage';
 import SyllabusManagementPage from './pages/SyllabusManagementPage';
 import AdminReportsPage from './pages/AdminReportsPage';
+import BulkUploadPage from './pages/BulkUploadPage';
 import HelpButton from './components/HelpButton';
 import Footer from './components/Footer';
 
@@ -58,6 +59,7 @@ function App() {
           <Route path="manage-topics" element={<TopicManagementPage />} />
           <Route path="admin/syllabus" element={<SyllabusManagementPage />} />
           <Route path="admin/reports" element={<AdminReportsPage />} />
+          <Route path="admin/bulk-upload" element={<BulkUploadPage />} />
           <Route path="create-test" element={<CreateTestPage />} />
           <Route path="my-tests" element={<TeacherDashboard />} />
           <Route path="edit-test/:testId" element={<EditTestPage />} />

@@ -74,4 +74,21 @@ export const testService = {
         });
         return response.data;
     },
+
+    bulkUpload: async (files, topicId, subtopicId, courseIds) => {
+        const formData = new FormData();
+        files.forEach(file => {
+            formData.append('files', file);
+        });
+        if (topicId) formData.append('topicId', topicId);
+        if (subtopicId) formData.append('subtopicId', subtopicId);
+        if (courseIds && courseIds.length > 0) {
+            courseIds.forEach(id => formData.append('courseIds', id));
+        }
+
+        const response = await api.post('/tests/bulk-upload', formData, {
+            headers: { 'Content-Type': 'multipart/form-data' }
+        });
+        return response.data;
+    }
 };
