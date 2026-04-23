@@ -86,8 +86,8 @@ public class QuestionExtractionService {
     public List<Question> extractQuestions(String text, String topicId, String subtopicId) {
         if (text == null || text.isBlank()) return List.of();
         
-        // GIANT BATCHING: Increase to 30k to process entire 25-question sets in ONE call
-        int maxChunkSize = 30000;
+        // Lowered to 12k to process ~10-15 questions at once while staying under Groq's 6,000 TPM limit
+        int maxChunkSize = 12000;
         List<Question> allQuestions = new java.util.ArrayList<>();
         
         System.out.println("Beginning smart-chunked extraction for text of length: " + text.length());
@@ -240,7 +240,7 @@ public class QuestionExtractionService {
 
                 long waitTime = 3000; 
                 
-                if (errorMsg.contains("rate_limit_exceeded") || errorMsg.contains("429")) {
+                if (errorMsg.contains("rate_limit_exceeded") || errorMsg.contains("429") || errorMsg.contains("413")) {
                     System.out.println("Rate limit hit! Rotating models...");
                     
                     long extractedWaitTime = 5; // Default 5s

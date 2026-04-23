@@ -21,13 +21,19 @@ public class Test {
 
     // New fields for production
     private List<String> tags = new ArrayList<>();
+    
     @com.fasterxml.jackson.annotation.JsonProperty("isPremium")
-    private boolean isPremium = false;
+    @org.springframework.data.mongodb.core.mapping.Field("isPremium")
+    private boolean premium = false;
+    
     private double price = 0.0;
     private Date scheduledStartDate;
     private Date scheduledEndDate;
     private int maxAttempts = -1; // -1 means unlimited
-    private boolean isPublished = true;
+    
+    @com.fasterxml.jackson.annotation.JsonProperty("isPublished")
+    @org.springframework.data.mongodb.core.mapping.Field("isPublished")
+    private boolean published = true;
     private int totalAttempts = 0;
     private String topicId;
     private String subtopicId;
@@ -117,11 +123,11 @@ public class Test {
     }
 
     public boolean isPremium() {
-        return isPremium;
+        return premium;
     }
 
     public void setPremium(boolean premium) {
-        isPremium = premium;
+        this.premium = premium;
     }
 
     public double getPrice() {
@@ -157,11 +163,11 @@ public class Test {
     }
 
     public boolean isPublished() {
-        return isPublished;
+        return published;
     }
 
     public void setPublished(boolean published) {
-        isPublished = published;
+        this.published = published;
     }
 
     public int getTotalAttempts() {
