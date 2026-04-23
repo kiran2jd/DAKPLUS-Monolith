@@ -140,8 +140,25 @@ export default function CreateTestScreen({ navigation }) {
                     }
                 } catch (err) {
                     console.error("Extraction Error:", err);
-                    const errorMessage = err.response?.data || err.message || 'AI Extraction failed. Please try a different document.';
-                    Alert.alert('Extraction Failed', errorMessage);
+                    
+                    let errorMessage = 'AI Extraction failed. Please try a different document.';
+                    let errorTitle = 'Extraction Failed';
+                    
+                    if (err.response?.data) {
+                        const data = err.response.data;
+                        if (typeof data === 'object' && data.message) {
+                            errorMessage = data.message;
+                            if (data.error === 'Quota Limit Reached') {
+                                errorTitle = 'Quota Limit Reached';
+                            }
+                        } else if (typeof data === 'string') {
+                            errorMessage = data;
+                        }
+                    } else if (err.message) {
+                        errorMessage = err.message;
+                    }
+                    
+                    Alert.alert(errorTitle, errorMessage);
                 } finally {
                     setExtracting(false);
                 }

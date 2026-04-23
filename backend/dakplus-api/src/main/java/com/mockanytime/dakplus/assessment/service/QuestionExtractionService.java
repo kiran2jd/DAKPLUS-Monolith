@@ -243,6 +243,23 @@ public class QuestionExtractionService {
                 if (errorMsg.contains("rate_limit_exceeded") || errorMsg.contains("429")) {
                     System.out.println("Rate limit hit! Rotating models...");
                     
+                    long extractedWaitTime = 5; // Default 5s
+                    java.util.regex.Matcher m = java.util.regex.Pattern.compile("again in ([\\d\\.]+)s").matcher(errorMsg);
+                    if (m.find()) {
+                        extractedWaitTime = (long) Double.parseDouble(m.group(1)) + 2;
+                        waitTime = (extractedWaitTime * 1000);
+                    } else {
+                        waitTime = 5000; // Rotating models so short wait is okay
+                    }
+
+                    if (attempt >= maxRetries) {
+                        System.err.println("Max retries exceeded for chunk due to rate limit.");
+                        throw new com.mockanytime.dakplus.assessment.exception.AiRateLimitException(
+                            "AI Service Quota Reached: The AI engine is currently busy. Please wait about " + extractedWaitTime + " seconds.",
+                            extractedWaitTime
+                        );
+                    }
+                    
                     if (currentModel == null) {
                         // Switch from 8B (Primary) to 70B (Secondary)
                         currentModel = "llama-3.3-70b-versatile";
@@ -250,15 +267,11 @@ public class QuestionExtractionService {
                         // Switch from 70B (Secondary) to Gemini (Tertiary)
                         currentModel = "gemini-fallback";
                     }
-                    
-                    // Parse suggested wait time if available
-                    java.util.regex.Matcher m = java.util.regex.Pattern.compile("again in ([\\d\\.]+)s").matcher(errorMsg);
-                    if (m.find()) {
-                        waitTime = (long) (Double.parseDouble(m.group(1)) * 1000) + 2000;
-                    } else {
-                        waitTime = 5000; // Rotating models so short wait is okay
-                    }
                 } else {
+                    if (attempt >= maxRetries) {
+                        System.err.println("Max retries exceeded for chunk. Skipping.");
+                        return List.of();
+                    }
                     System.out.println("Transient error. Wait 3s...");
                     waitTime = 3000;
                 }
