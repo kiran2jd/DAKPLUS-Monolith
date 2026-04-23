@@ -20,12 +20,14 @@ import java.io.InputStream;
 public class DocumentParsingService {
 
     public String extractText(MultipartFile file) throws IOException {
-        String filename = file.getOriginalFilename();
-        long size = file.getSize();
+        return extractTextFromBytes(file.getBytes(), file.getOriginalFilename());
+    }
+
+    public String extractTextFromBytes(byte[] bytes, String filename) throws IOException {
+        long size = bytes.length;
         System.out.println("=== Extraction Request ===");
         System.out.println("Filename: " + filename);
         System.out.println("Size: " + size + " bytes");
-        System.out.println("Content Type: " + file.getContentType());
         
         if (filename == null || filename.isBlank()) {
             System.err.println("Error: Filename is null or blank.");
@@ -33,29 +35,25 @@ public class DocumentParsingService {
         }
 
         String result = "";
-        String lowerName = filename != null ? filename.toLowerCase() : "";
-        String contentType = file.getContentType() != null ? file.getContentType().toLowerCase() : "";
+        String lowerName = filename.toLowerCase();
         
-        System.out.println("Processing based on: Filename=" + lowerName + ", ContentType=" + contentType);
-
-        if (lowerName.endsWith(".pdf") || contentType.contains("pdf")) {
-            result = extractFromPdf(file);
-        } else if (lowerName.endsWith(".docx") || contentType.contains("officedocument.wordprocessingml")) {
-            result = extractFromWord(file);
-        } else if (lowerName.endsWith(".doc") || contentType.contains("msword")) {
-            result = extractFromOldWord(file);
-        } else if (lowerName.endsWith(".txt") || contentType.contains("text/plain")) {
-            result = new String(file.getBytes());
-        } else if (isImageFile(filename) || contentType.contains("image/")) {
-            result = performOcr(file.getBytes());
+        if (lowerName.endsWith(".pdf")) {
+            result = extractFromPdf(bytes);
+        } else if (lowerName.endsWith(".docx")) {
+            result = extractFromWord(bytes);
+        } else if (lowerName.endsWith(".doc")) {
+            result = extractFromOldWord(bytes);
+        } else if (lowerName.endsWith(".txt")) {
+            result = new String(bytes);
+        } else if (isImageFile(filename)) {
+            result = performOcr(bytes);
         } else {
-            // Last resort: try PDF parser if no other clues but size looks reasonable
             try {
                 System.out.println("No clear type detected. Trying PDF fallback parser...");
-                result = extractFromPdf(file);
+                result = extractFromPdf(bytes);
             } catch (Exception e) {
                 System.err.println("Error: Unsupported file type and PDF fallback failed: " + filename);
-                throw new IllegalArgumentException("Unsupported file type: " + filename + " (MIME: " + contentType + "). Please ensure your file has a .pdf, .docx, or .txt extension.");
+                throw new IllegalArgumentException("Unsupported file type: " + filename + ". Please ensure your file has a .pdf, .docx, or .txt extension.");
             }
         }
         
@@ -68,15 +66,15 @@ public class DocumentParsingService {
         return lower.endsWith(".png") || lower.endsWith(".jpg") || lower.endsWith(".jpeg") || lower.endsWith(".bmp");
     }
 
-    private String extractFromPdf(MultipartFile file) throws IOException {
-        try (PDDocument document = Loader.loadPDF(file.getBytes())) {
+    private String extractFromPdf(byte[] bytes) throws IOException {
+        try (PDDocument document = Loader.loadPDF(bytes)) {
             PDFTextStripper stripper = new PDFTextStripper();
             return stripper.getText(document);
         }
     }
 
-    private String extractFromWord(MultipartFile file) throws IOException {
-        try (InputStream inputStream = file.getInputStream();
+    private String extractFromWord(byte[] bytes) throws IOException {
+        try (InputStream inputStream = new ByteArrayInputStream(bytes);
                 XWPFDocument doc = new XWPFDocument(inputStream);
                 XWPFWordExtractor extractor = new XWPFWordExtractor(doc)) {
 
@@ -137,8 +135,8 @@ public class DocumentParsingService {
         }
     }
 
-    private String extractFromOldWord(MultipartFile file) throws IOException {
-        try (InputStream inputStream = file.getInputStream();
+    private String extractFromOldWord(byte[] bytes) throws IOException {
+        try (InputStream inputStream = new ByteArrayInputStream(bytes);
                 WordExtractor extractor = new WordExtractor(inputStream)) {
             return extractor.getText();
         }

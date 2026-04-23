@@ -207,6 +207,17 @@ public class Test {
         this.totalAttempts++;
     }
 
+    public int getQuestionCount() {
+        return questions != null ? questions.size() : 0;
+    }
+
+    public int getEnrichedCount() {
+        if (questions == null) return 0;
+        return (int) questions.stream()
+            .filter(q -> q.getTextHi() != null && !q.getTextHi().isBlank())
+            .count();
+    }
+
     public boolean isAiEnriched() {
         return aiEnriched;
     }

@@ -173,12 +173,26 @@ public class TestController {
             return ResponseEntity.badRequest().body("No files provided.");
         }
         
-        // Start processing in background
-        bulkTestUploadService.processBulkUpload(files, topicId, subtopicId, courseIds, userId);
+        // Synchronously read files into memory to avoid Tomcat temp file cleanup in Async
+        List<BulkTestUploadService.RawFileData> rawFiles = new java.util.ArrayList<>();
+        for (MultipartFile file : files) {
+            try {
+                rawFiles.add(new BulkTestUploadService.RawFileData(
+                    file.getOriginalFilename(),
+                    file.getBytes(),
+                    file.getContentType()
+                ));
+            } catch (java.io.IOException e) {
+                System.err.println("Failed to read file: " + file.getOriginalFilename());
+            }
+        }
+        
+        // Pass to async service
+        bulkTestUploadService.processBulkUploadAsync(rawFiles, topicId, subtopicId, courseIds, userId);
         
         return ResponseEntity.ok(java.util.Map.of(
-            "message", "Bulk upload started for " + files.length + " files. Tests will appear in the dashboard as they are processed.",
-            "fileCount", files.length
+            "message", "Bulk upload started for " + rawFiles.size() + " files. Tests will appear in the dashboard as they are processed.",
+            "fileCount", rawFiles.size()
         ));
     }
 

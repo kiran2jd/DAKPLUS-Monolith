@@ -131,6 +131,14 @@ export default function TeacherDashboard() {
                                         <span>{test.durationMinutes || test.duration_minutes} mins</span>
                                         <span>•</span>
                                         <span>{new Date(test.createdAt || Date.now()).toLocaleDateString()}</span>
+                                        {test.questionCount > 0 && (
+                                            <>
+                                                <span>•</span>
+                                                <span className={`font-bold ${test.enrichedCount === test.questionCount ? 'text-green-600' : 'text-amber-600'}`}>
+                                                    {test.enrichedCount}/{test.questionCount} AI
+                                                </span>
+                                            </>
+                                        )}
                                     </div>
                                 </div>
                                 <div className="flex items-center space-x-3 mt-4 sm:mt-0 opacity-0 group-hover:opacity-100 transition-opacity">
@@ -138,8 +146,8 @@ export default function TeacherDashboard() {
                                         <Edit className="h-3.5 w-3.5 mr-1" /> Edit
                                     </Link>
                                     
-                                    {/* Show Retry Enrichment if questions exist but likely missing translations */}
-                                    {!test.aiEnriched && !test.isAiEnriched && (
+                                    {/* Show Retry Enrichment if questions exist but not all are enriched */}
+                                    {test.questionCount > 0 && test.enrichedCount < test.questionCount && (
                                         <button
                                             onClick={async () => {
                                                 try {

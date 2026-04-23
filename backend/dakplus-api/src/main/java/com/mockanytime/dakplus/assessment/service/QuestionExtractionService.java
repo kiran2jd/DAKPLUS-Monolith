@@ -402,23 +402,25 @@ public class QuestionExtractionService {
         if (!response.endsWith("}") && !response.endsWith("]")) {
             System.out.println("Applying truncated JSON recovery logic...");
             int lastClosingBrace = response.lastIndexOf("}");
-            int lastClosingBracket = response.lastIndexOf("]");
-            int lastSeparator = response.lastIndexOf(",");
-            
-            // If it ends mid-object but has a previous closed object
             if (lastClosingBrace != -1) {
                 response = response.substring(0, lastClosingBrace + 1);
-                if (isList && !response.endsWith("]}")) {
-                    if (response.endsWith("]")) response += "}";
-                    else response += "]}";
+                if (isList && !response.endsWith("]}") && !response.endsWith("]")) {
+                    response += "]}";
                 }
-            } else {
-                // Absolute fallback for severely truncated
-                if (isList) response = "{\"questions\":[]}";
-                else response = "{}";
             }
         }
+
+        // 3. Heal common LLM formatting errors
+        // Fix missing commas between fields: "key": "value" "nextKey" -> "key": "value", "nextKey"
+        response = response.replaceAll("(?<=[\\\"\\d\\}\\]])\\s+\\\"", ", \"");
         
+        // Fix double commas caused by the above or AI laziness
+        response = response.replace(", ,", ",");
+        
+        // Fix missing commas between objects in array: } { -> }, {
+        response = response.replace("} {", "}, {");
+        response = response.replace("}{", "}, {");
+
         // Final cleanup of common LLM artifacts
         return response.trim();
     }
@@ -534,31 +536,34 @@ public class QuestionExtractionService {
      */
     @org.springframework.scheduling.annotation.Async
     public void enrichQuestionsInBatchesAsync(String testId, List<Question> questions) {
-        if (questions == null || questions.isEmpty()) return;
+        System.out.println("Starting background enrichment for test: " + testId);
         
-        System.out.println("Starting batch background enrichment for " + questions.size() + " questions in test: " + testId);
-        
-        // Filter out already enriched questions
-        List<Question> toEnrich = questions.stream()
+        // Always refresh test from DB to avoid stale objects
+        Test currentTest = testRepository.findById(testId).orElse(null);
+        if (currentTest == null) return;
+
+        List<Question> toEnrich = currentTest.getQuestions().stream()
             .filter(q -> q.getTextHi() == null || q.getTextHi().isBlank())
             .toList();
             
         if (toEnrich.isEmpty()) {
             System.out.println("All questions already enriched for test: " + testId);
+            // Ensure flag is set anyway
+            currentTest.setAiEnriched(true);
+            testRepository.save(currentTest);
             return;
         }
 
-        // Reduced to 3 to prevent response size timeouts and provider-level cuts (429/503)
         int batchSize = 3;
         for (int i = 0; i < toEnrich.size(); i += batchSize) {
             int end = Math.min(i + batchSize, toEnrich.size());
             List<Question> batch = toEnrich.subList(i, end);
             
-            System.out.println("Enriching batch " + (i/batchSize + 1) + " (" + batch.size() + " questions) for test: " + testId + "...");
+            System.out.println("Enriching batch " + (i/batchSize + 1) + " (" + batch.size() + " Qs) for test: " + testId + "...");
             
             enrichQuestionBatch(batch);
             
-            // Save progress after each batch
+            // Re-fetch to save batch progress without overwriting other changes
             testRepository.findById(testId).ifPresent(test -> {
                 for (Question batchQ : batch) {
                     for (int j = 0; j < test.getQuestions().size(); j++) {
@@ -571,9 +576,8 @@ public class QuestionExtractionService {
                 testRepository.save(test);
             });
             
-            // Wait 10 seconds between batches to stay within rate limits (adjusted for batch size)
             if (end < toEnrich.size()) {
-                try { Thread.sleep(10000); } catch (InterruptedException ignored) {}
+                try { Thread.sleep(8000); } catch (InterruptedException ignored) {}
             }
         }
         
@@ -583,7 +587,7 @@ public class QuestionExtractionService {
             testRepository.save(test);
         });
         
-        System.out.println("Batch background enrichment complete for test: " + testId);
+        System.out.println("Background enrichment finished for test: " + testId);
     }
 
     private void enrichQuestionBatch(List<Question> batch) {
@@ -636,7 +640,7 @@ public class QuestionExtractionService {
                 .replace("{count}", String.valueOf(batch.size()))
                 .replace("{batchContent}", batchContent.toString());
 
-        int maxRetries = 3;
+        int maxRetries = 5;
         int attempt = 0;
         String response = null;
         String currentModel = "llama-3.1-8b-instant"; 
@@ -645,37 +649,42 @@ public class QuestionExtractionService {
             try {
                 attempt++;
                 OpenAiChatOptions.Builder optionsBuilder = OpenAiChatOptions.builder()
-                        .withMaxTokens(batch.size() * 1200); // Increased per-question token allowance
+                        .withMaxTokens(batch.size() * 1200);
                 
                 ChatClient activeClient = chatClient;
                 if (currentModel.equals("gemini-fallback") && geminiChatClient != null) {
                     activeClient = geminiChatClient;
+                    System.out.println("Enrichment: Using Gemini Fallback (Attempt " + attempt + ")");
                 } else if (currentModel != null) {
                     optionsBuilder.withModel(currentModel);
+                    System.out.println("Enrichment: Using Primary Model " + currentModel + " (Attempt " + attempt + ")");
                 }
 
                 response = activeClient.call(new org.springframework.ai.chat.prompt.Prompt(finalPrompt, optionsBuilder.build()))
                         .getResult().getOutput().getContent();
                 break;
             } catch (Exception e) {
+                String fullError = e.toString().toLowerCase();
                 String errorMsg = e.getMessage() != null ? e.getMessage() : "Unknown Error";
                 System.err.println("Batch enrichment attempt " + attempt + " failed: " + errorMsg);
                 
-                // If we get an HTML response (gateway error/429/503), or explicit 429, fallback to Gemini immediately
-                boolean isGatewayError = errorMsg.contains("text/html") || errorMsg.contains("content type [text/html]");
-                boolean isRateLimit = errorMsg.contains("rate_limit_exceeded") || errorMsg.contains("429");
+                // Detection for gateway errors (text/html) or rate limits (429)
+                boolean isGatewayError = fullError.contains("text/html") || fullError.contains("content type [text/html]");
+                boolean isRateLimit = fullError.contains("rate_limit_exceeded") || fullError.contains("429");
                 
                 if ((isGatewayError || isRateLimit) && geminiChatClient != null && !currentModel.equals("gemini-fallback")) {
-                    System.out.println("Switching to Gemini for batch enrichment due to provider error...");
+                    System.out.println("ALERT: Provider returned HTML/RateLimit. Switching to Gemini Fallback...");
                     currentModel = "gemini-fallback";
-                    attempt--; // Don't count the model switch as an attempt failure
+                    attempt = 0; // Reset attempts for the new model
                     continue;
                 }
 
-                if (attempt >= maxRetries) return;
+                if (attempt >= maxRetries) {
+                    System.err.println("Max retries reached for batch enrichment. Skipping this batch.");
+                    return;
+                }
                 
-                // Exponential backoff
-                try { Thread.sleep(5000 * attempt); } catch (InterruptedException ignored) {}
+                try { Thread.sleep(6000 * attempt); } catch (InterruptedException ignored) {}
             }
         }
 

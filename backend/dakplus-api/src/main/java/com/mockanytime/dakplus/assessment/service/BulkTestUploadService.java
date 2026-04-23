@@ -19,17 +19,25 @@ public class BulkTestUploadService {
     private final QuestionExtractionService questionExtractionService;
     private final TestService testService;
 
+    @lombok.Data
+    @lombok.AllArgsConstructor
+    public static class RawFileData {
+        private String filename;
+        private byte[] content;
+        private String contentType;
+    }
+
     @Async
-    public void processBulkUpload(MultipartFile[] files, String topicId, String subtopicId, List<String> courseIds, String userId) {
-        System.out.println("Starting bulk upload processing for " + files.length + " files...");
+    public void processBulkUploadAsync(List<RawFileData> files, String topicId, String subtopicId, List<String> courseIds, String userId) {
+        System.out.println("Starting background bulk processing for " + files.size() + " files...");
         
-        for (MultipartFile file : files) {
+        for (RawFileData fileData : files) {
             try {
-                String filename = file.getOriginalFilename();
+                String filename = fileData.getFilename();
                 System.out.println("Processing file: " + filename);
                 
-                // 1. Extract Text
-                String text = documentParsingService.extractText(file);
+                // 1. Extract Text from bytes
+                String text = documentParsingService.extractTextFromBytes(fileData.getContent(), filename);
                 if (text == null || text.isBlank()) {
                     System.err.println("Empty text extracted from: " + filename);
                     continue;
@@ -50,7 +58,6 @@ public class BulkTestUploadService {
                     if (finalCourseIds == null || finalCourseIds.isEmpty()) {
                         finalCourseIds = detected.getCourseIds();
                     }
-                    System.out.println("AI suggested Topic: " + finalTopicId + ", Courses: " + finalCourseIds);
                 }
                 
                 // 3. Extract Questions (English)
@@ -60,15 +67,11 @@ public class BulkTestUploadService {
                     continue;
                 }
                 
-                // 3. Create Test
+                // 4. Create Test object
                 Test test = new Test();
                 String title = filename;
                 if (title != null) {
-                    // Remove extension
-                    if (title.contains(".")) {
-                        title = title.substring(0, title.lastIndexOf("."));
-                    }
-                    // Replace underscores/dashes with spaces and capitalize
+                    if (title.contains(".")) title = title.substring(0, title.lastIndexOf("."));
                     title = title.replace("_", " ").replace("-", " ").trim();
                     if (title.length() > 2) {
                         title = title.substring(0, 1).toUpperCase() + title.substring(1);
@@ -80,19 +83,18 @@ public class BulkTestUploadService {
                 test.setCourseIds(finalCourseIds);
                 test.setCreatedBy(userId);
                 test.setQuestions(questions);
-                test.setDurationMinutes(questions.size()); // Default 1 min per question
+                test.setDurationMinutes(questions.size());
                 
                 Test savedTest = testService.createTest(test);
-                System.out.println("Created test: " + savedTest.getTitle() + " with " + questions.size() + " questions.");
+                System.out.println("Created test: " + savedTest.getTitle() + " (" + questions.size() + " Qs)");
                 
-                // 4. Trigger Batch Enrichment (Hindi + Explanations)
+                // 5. Trigger Background Enrichment
                 questionExtractionService.enrichQuestionsInBatchesAsync(savedTest.getId(), savedTest.getQuestions());
                 
             } catch (Exception e) {
-                System.err.println("Error processing bulk file " + file.getOriginalFilename() + ": " + e.getMessage());
+                System.err.println("Error processing bulk file " + fileData.getFilename() + ": " + e.getMessage());
             }
         }
-        
-        System.out.println("Bulk upload processing complete.");
+        System.out.println("Bulk background processing complete.");
     }
 }
