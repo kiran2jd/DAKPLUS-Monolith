@@ -55,11 +55,7 @@ export const testService = {
         if (topicId) formData.append('topicId', topicId);
         if (subtopicId) formData.append('subtopicId', subtopicId);
 
-        const response = await api.post('/tests/extract-questions', formData, {
-            headers: {
-                'Content-Type': 'multipart/form-data'
-            }
-        });
+        const response = await api.post('/tests/extract-questions', formData);
         return response.data;
     },
 
@@ -69,9 +65,7 @@ export const testService = {
         if (topicId) formData.append('topicId', topicId);
         if (subtopicId) formData.append('subtopicId', subtopicId);
 
-        const response = await api.post('/tests/extract-questions-script', formData, {
-            headers: { 'Content-Type': 'multipart/form-data' }
-        });
+        const response = await api.post('/tests/extract-questions-script', formData);
         return response.data;
     },
 
@@ -86,9 +80,7 @@ export const testService = {
             courseIds.forEach(id => formData.append('courseIds', id));
         }
 
-        const response = await api.post('/tests/bulk-upload', formData, {
-            headers: { 'Content-Type': 'multipart/form-data' }
-        });
+        const response = await api.post('/tests/bulk-upload', formData);
         return response.data;
     }
 };

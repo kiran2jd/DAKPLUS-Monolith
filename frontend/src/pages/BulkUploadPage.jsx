@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { CloudUpload, X, CheckCircle, Info, Sparkles, Settings } from 'lucide-react';
+import { CloudUpload, X, CheckCircle, Info, Sparkles, Settings, FileText } from 'lucide-react';
 import { testService } from '../services/test';
 import { topicService } from '../services/topic';
 
@@ -65,6 +65,11 @@ export default function BulkUploadPage() {
         e.preventDefault();
         if (selectedFiles.length === 0) {
             setError("Please select at least one file.");
+            return;
+        }
+
+        if (!autoDetect && !selectedTopic) {
+            setError("Please select a target topic for Manual Selection mode.");
             return;
         }
 
@@ -280,7 +285,3 @@ export default function BulkUploadPage() {
     );
 }
 
-// Re-using FileText icon from lucide-react (imported at top)
-function FileText({ size }) {
-    return <FileText size={size} />;
-}
