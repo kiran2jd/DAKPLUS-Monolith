@@ -259,96 +259,61 @@ public class QuestionExtractionService {
                 {text}
                 """;
 
-        BeanOutputParser<QuestionList> parser = new BeanOutputParser<>(QuestionList.class);
-
         Prompt prompt = new Prompt(promptString.replace("{text}", text));
-        long startTime = System.currentTimeMillis();
-        System.out.println("Sending extraction prompt to AI Engine...");
-        
         String response = null;
-        int maxRetries = 3;
+        int maxRetries = 5;
         int attempt = 0;
-        String currentModel = null; 
+        String currentModel = "llama-3.1-8b-instant"; 
 
         while (attempt < maxRetries) {
             try {
                 attempt++;
-                
-                OpenAiChatOptions.Builder optionsBuilder = OpenAiChatOptions.builder()
-                        .withMaxTokens(8192); // Max coverage
+                OpenAiChatOptions.Builder optionsBuilder = OpenAiChatOptions.builder().withMaxTokens(8192);
                 
                 ChatClient activeClient = chatClient;
-                
-                if (currentModel != null) {
-                    if (currentModel.equals("gemini-fallback")) {
-                        activeClient = geminiChatClient;
-                        System.out.println("Using Gemini (Tertiary Fallback) for extraction.");
-                    } else {
-                        optionsBuilder.withModel(currentModel);
-                        System.out.println("Using model: " + currentModel + " for extraction attempt " + attempt);
-                    }
-                } else {
-                    System.out.println("Using Groq 8B (Primary) for extraction.");
-                }
-
-                if (activeClient == null) {
+                if (currentModel.equals("gemini-fallback") && geminiChatClient != null) {
                     activeClient = geminiChatClient;
-                    System.out.println("Groq client not available, falling back to Gemini.");
+                    System.out.println("Extraction: Using Gemini Fallback (Attempt " + attempt + ")");
+                } else {
+                    optionsBuilder.withModel(currentModel);
+                    System.out.println("Extraction: Using model " + currentModel + " (Attempt " + attempt + ")");
                 }
 
                 response = activeClient.call(new Prompt(prompt.getContents(), optionsBuilder.build()))
                         .getResult().getOutput().getContent();
-                break; // Success!
+                break;
             } catch (Exception e) {
+                String fullError = e.toString().toLowerCase();
                 String errorMsg = e.getMessage() != null ? e.getMessage() : "Unknown Error";
-                System.err.println("AI call attempt " + attempt + " failed: " + errorMsg);
+                System.err.println("Extraction attempt " + attempt + " failed: " + errorMsg);
+                
+                boolean isGatewayError = fullError.contains("text/html") || fullError.contains("content type [text/html]");
+                boolean isRateLimit = fullError.contains("rate_limit_exceeded") || fullError.contains("429");
+                
+                if (isGatewayError || isRateLimit) {
+                    if (currentModel.equals("llama-3.1-8b-instant")) {
+                        System.out.println("Switching to Groq 70B...");
+                        currentModel = "llama-3.3-70b-versatile";
+                        attempt = 0;
+                        continue;
+                    } else if (currentModel.equals("llama-3.3-70b-versatile") && geminiChatClient != null) {
+                        System.out.println("Switching to Gemini Fallback...");
+                        currentModel = "gemini-fallback";
+                        attempt = 0;
+                        continue;
+                    }
+                }
 
                 if (attempt >= maxRetries) {
-                    System.err.println("Max retries exceeded for chunk. Skipping.");
+                    System.err.println("Max retries reached for extraction chunk.");
                     return List.of();
                 }
-
-                long waitTime = 3000; 
                 
-                if (errorMsg.contains("rate_limit_exceeded") || errorMsg.contains("429") || errorMsg.contains("413")) {
-                    System.out.println("Rate limit hit! Rotating models...");
-                    
-                    long extractedWaitTime = 5; // Default 5s
-                    java.util.regex.Matcher m = java.util.regex.Pattern.compile("again in ([\\d\\.]+)s").matcher(errorMsg);
-                    if (m.find()) {
-                        extractedWaitTime = (long) Double.parseDouble(m.group(1)) + 2;
-                        waitTime = (extractedWaitTime * 1000);
-                    } else {
-                        waitTime = 5000; // Rotating models so short wait is okay
-                    }
-
-                    if (attempt >= maxRetries) {
-                        System.err.println("Max retries exceeded for chunk due to rate limit.");
-                        throw new com.mockanytime.dakplus.assessment.exception.AiRateLimitException(
-                            "AI Service Quota Reached: The AI engine is currently busy. Please wait about " + extractedWaitTime + " seconds.",
-                            extractedWaitTime
-                        );
-                    }
-                    
-                    if (currentModel == null) {
-                        // Switch from 8B (Primary) to 70B (Secondary)
-                        currentModel = "llama-3.3-70b-versatile";
-                    } else if (currentModel.equals("llama-3.3-70b-versatile")) {
-                        // Switch from 70B (Secondary) to Gemini (Tertiary)
-                        currentModel = "gemini-fallback";
-                    }
-                } else {
-                    if (attempt >= maxRetries) {
-                        System.err.println("Max retries exceeded for chunk. Skipping.");
-                        return List.of();
-                    }
-                    System.out.println("Transient error. Wait 3s...");
-                    waitTime = 3000;
-                }
-
-                try { Thread.sleep(waitTime); } catch (InterruptedException ignored) {}
+                try { Thread.sleep(6000 * attempt); } catch (InterruptedException ignored) {}
             }
         }
+
+        if (response == null) return List.of();
 
         try {
             String sanitizedJson = sanitizeAndParseJson(response, true);
