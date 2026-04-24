@@ -7,6 +7,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.Date;
 
 @Service
 public class TestService {
@@ -18,7 +19,12 @@ public class TestService {
     }
 
     public Test createTest(Test test) {
+        test.setCreatedAt(new Date());
         return testRepository.save(test);
+    }
+
+    public boolean existsByTitleAndTopicAndCreatedBy(String title, String topicId, String userId) {
+        return testRepository.existsByTitleAndTopicIdAndCreatedBy(title, topicId, userId);
     }
 
     public List<Test> getAllTests() {

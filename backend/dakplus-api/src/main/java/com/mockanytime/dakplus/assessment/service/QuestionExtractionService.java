@@ -12,6 +12,7 @@ import org.springframework.beans.factory.annotation.Value;
 import jakarta.annotation.PostConstruct;
 import java.util.List;
 import java.util.Map;
+import java.util.ArrayList;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.databind.DeserializationFeature;
@@ -812,17 +813,62 @@ public class QuestionExtractionService {
 
         try {
             String cleanJson = sanitizeAndParseJson(response, false);
-            java.util.Map<String, Object> map = mapper.readValue(cleanJson, java.util.Map.class);
+            java.util.Map<String, Object> map = null;
+            try {
+                map = mapper.readValue(cleanJson, java.util.Map.class);
+            } catch (Exception je) {
+                System.err.println("Jackson failed, attempting manual regex recovery for enrichment...");
+                map = manuallyExtractEnrichmentData(response);
+            }
             
-            if (map.containsKey("textHi")) q.setTextHi((String) map.get("textHi"));
-            if (map.containsKey("optionsHi")) q.setOptionsHi((java.util.List<String>) map.get("optionsHi"));
-            if (map.containsKey("explanation")) q.setExplanation((String) map.get("explanation"));
-            if (map.containsKey("explanationHi")) q.setExplanationHi((String) map.get("explanationHi"));
+            if (map != null) {
+                if (map.containsKey("textHi")) q.setTextHi((String) map.get("textHi"));
+                if (map.containsKey("optionsHi")) q.setOptionsHi((java.util.List<String>) map.get("optionsHi"));
+                if (map.containsKey("explanation")) q.setExplanation((String) map.get("explanation"));
+                if (map.containsKey("explanationHi")) q.setExplanationHi((String) map.get("explanationHi"));
+            }
             
         } catch (Exception e) {
             System.err.println("Enrichment parsing failed for question: " + e.getMessage());
             System.err.println("Raw response was: " + response);
         }
+    }
+
+    /**
+     * Emergency recovery: Extract fields using regex if JSON is totally broken
+     */
+    private java.util.Map<String, Object> manuallyExtractEnrichmentData(String raw) {
+        java.util.Map<String, Object> map = new java.util.HashMap<>();
+        
+        try {
+            // Extract textHi
+            java.util.regex.Matcher mText = java.util.regex.Pattern.compile("\"textHi\"\\s*:\\s*\"(.*?)\"(?:,|\\n|\\})", java.util.regex.Pattern.DOTALL).matcher(raw);
+            if (mText.find()) map.put("textHi", mText.group(1));
+            
+            // Extract explanation
+            java.util.regex.Matcher mExp = java.util.regex.Pattern.compile("\"explanation\"\\s*:\\s*\"(.*?)\"(?:,|\\n|\\})", java.util.regex.Pattern.DOTALL).matcher(raw);
+            if (mExp.find()) map.put("explanation", mExp.group(1));
+            
+            // Extract explanationHi
+            java.util.regex.Matcher mExpHi = java.util.regex.Pattern.compile("\"explanationHi\"\\s*:\\s*\"(.*?)\"(?:,|\\n|\\})", java.util.regex.Pattern.DOTALL).matcher(raw);
+            if (mExpHi.find()) map.put("explanationHi", mExpHi.group(1));
+            
+            // Extract optionsHi (Simplified array extraction)
+            java.util.regex.Matcher mOpt = java.util.regex.Pattern.compile("\"optionsHi\"\\s*:\\s*\\[(.*?)\\]", java.util.regex.Pattern.DOTALL).matcher(raw);
+            if (mOpt.find()) {
+                String optContent = mOpt.group(1);
+                List<String> opts = new ArrayList<>();
+                java.util.regex.Matcher mEachOpt = java.util.regex.Pattern.compile("\"(.*?)\"").matcher(optContent);
+                while (mEachOpt.find()) {
+                    opts.add(mEachOpt.group(1));
+                }
+                if (opts.size() == 4) map.put("optionsHi", opts);
+            }
+        } catch (Exception e) {
+            System.err.println("Manual regex recovery failed: " + e.getMessage());
+        }
+        
+        return map.isEmpty() ? null : map;
     }
 
     public static class QuestionList {

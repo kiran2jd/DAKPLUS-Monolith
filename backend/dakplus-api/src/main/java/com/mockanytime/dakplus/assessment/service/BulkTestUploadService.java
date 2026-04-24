@@ -86,6 +86,13 @@ public class BulkTestUploadService {
                 test.setSubtopicId(finalSubtopicId);
                 test.setCourseIds(finalCourseIds);
                 test.setCreatedBy(userId);
+                
+                // Duplicate check: Title + Topic + CreatedBy
+                if (testService.existsByTitleAndTopicAndCreatedBy(test.getTitle(), test.getTopicId(), userId)) {
+                    System.out.println("BULK: Skipping duplicate test: " + test.getTitle());
+                    continue;
+                }
+                
                 test.setQuestions(questions);
                 test.setDurationMinutes(questions.size());
                 test.updateCounts();
@@ -94,14 +101,14 @@ public class BulkTestUploadService {
                 successCount++;
                 System.out.println("BULK: Successfully created test: " + savedTest.getTitle() + " (ID: " + savedTest.getId() + ")");
                 
-                // 5. Trigger Background Enrichment
-                System.out.println("BULK: Triggering background enrichment for " + savedTest.getTitle());
-                questionExtractionService.enrichQuestionsInBatchesAsync(savedTest.getId(), savedTest.getQuestions());
+                // [DEACTIVATED] Trigger Background Enrichment
+                // We now leave this for manual trigger to speed up bulk uploads of 100+ sets
+                // questionExtractionService.enrichQuestionsInBatchesAsync(savedTest.getId(), savedTest.getQuestions());
                 
-                // Add a delay between files to avoid overwhelming the AI providers
+                // Add a small delay between files to avoid metadata rate limits
                 if (i < files.size() - 1) {
-                    System.out.println("BULK: Waiting 10s before next file...");
-                    try { Thread.sleep(10000); } catch (InterruptedException ignored) {}
+                    System.out.println("BULK: Waiting 3s before next file...");
+                    try { Thread.sleep(3000); } catch (InterruptedException ignored) {}
                 }
                 
             } catch (Exception e) {

@@ -10,4 +10,5 @@ public interface TestRepository extends MongoRepository<Test, String> {
     List<TestSummary> findSummaryByCreatedBy(String createdBy);
     List<Test> findByCourseIdsContaining(String courseId);
     List<Test> findByTopicId(String topicId);
+    boolean existsByTitleAndTopicIdAndCreatedBy(String title, String topicId, String createdBy);
 }
