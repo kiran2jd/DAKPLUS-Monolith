@@ -38,7 +38,7 @@ spring:
         model: llama-3.1-8b-instant
         max-tokens: 2000
     gemini:
-      base-url: ${GEMINI_BASE_URL:https://generativelanguage.googleapis.com/v1beta}
+      base-url: ${GEMINI_BASE_URL:https://generativelanguage.googleapis.com/v1beta/openai}
       api-key: ${GEMINI_API_KEY:}
       chat:
         options:
