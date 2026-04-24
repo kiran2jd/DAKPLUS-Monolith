@@ -230,7 +230,10 @@ public class QuestionExtractionService {
         List<Question> allQuestions = new java.util.ArrayList<>();
         for (int i = 0; i < chunks.size(); i++) {
             System.out.println("SMART-ANCHOR: Processing chunk " + (i + 1) + "/" + chunks.size() + "...");
-            List<Question> chunkQs = extractQuestionsFromSingleChunk(chunks.get(i), topicId, subtopicId);
+            
+            // For ULTRA-STABLE mode, we force Gemini as the primary model to avoid Groq's gateway errors
+            List<Question> chunkQs = extractQuestionsWithModel(chunks.get(i), topicId, subtopicId, "gemini-fallback");
+            
             if (chunkQs != null) {
                 allQuestions.addAll(chunkQs);
                 System.out.println("SMART-ANCHOR: Successfully extracted " + chunkQs.size() + " questions from chunk " + (i + 1));
@@ -268,6 +271,13 @@ public class QuestionExtractionService {
     }
 
     private List<Question> extractQuestionsFromSingleChunk(String text, String topicId, String subtopicId) {
+        return extractQuestionsWithModel(text, topicId, subtopicId, "llama-3.1-8b-instant");
+    }
+
+    /**
+     * Internal method that allows forcing a specific starting model (e.g., Gemini for stability)
+     */
+    private List<Question> extractQuestionsWithModel(String text, String topicId, String subtopicId, String startModel) {
         String promptString = """
                 Extract all multiple choice questions from the provided text.
                 ONLY EXTRACT ENGLISH CONTENT for now.
@@ -277,26 +287,17 @@ public class QuestionExtractionService {
                 2. "correctAnswer" must match one of the "options" exactly.
                 3. MANDATORY METADATA PRESERVATION: You MUST keep any text in brackets at the end of questions (e.g., "(PA/SA Exam - 2020 UP)"). 
                    STRICT RULE: DO NOT move this text into the options. It MUST remain in "text".
-                4. Extract EVERY SINGLE question in the text. Do not summarize or skip. Even if the text is messy, try to recover the questions.
-                5. STRICT 4-OPTION RULE: Almost all Indian Postal exams have EXACTLY 4 options. Ensure you find and extract all 4 options for every question.
-                6. STRICT OPTION CLEANLINESS: Options must contain ONLY the choice content. 
-                   - DO NOT include the next question in an option.
-                   - DO NOT include question numbers (1., 2., etc.) inside the options.
-                   - If an option seems to contain another question, STOP and separate them.
-                7. Output ONLY JSON. No surrounding text.
-                8. "textHi", "optionsHi", "explanation", "explanationHi" should be empty strings for now.
+                4. Extract EVERY SINGLE question in the text. Do not summarize or skip.
+                5. STRICT 4-OPTION RULE: Ensure you find and extract all 4 options for every question.
+                6. Output ONLY JSON. No surrounding text.
                 
                 FORMAT:
                 {
                   "questions": [
                     {
                       "text": "English question text here... (Metadata in brackets here)",
-                      "textHi": "",
                       "options": ["Option 1", "Option 2", "Option 3", "Option 4"],
-                      "optionsHi": ["", "", "", ""],
                       "correctAnswer": "Option 1",
-                      "explanation": "",
-                      "explanationHi": "",
                       "type": "mcq",
                       "points": 1
                     }
@@ -311,7 +312,7 @@ public class QuestionExtractionService {
         String response = null;
         int maxRetries = 5;
         int attempt = 0;
-        String currentModel = "llama-3.1-8b-instant"; 
+        String currentModel = startModel; 
 
         while (attempt < maxRetries) {
             try {
@@ -321,10 +322,10 @@ public class QuestionExtractionService {
                 ChatClient activeClient = chatClient;
                 if (currentModel.equals("gemini-fallback") && geminiChatClient != null) {
                     activeClient = geminiChatClient;
-                    System.out.println("Extraction: Using Gemini Fallback (Attempt " + attempt + ")");
+                    System.out.println("Extraction (" + startModel + "): Using Gemini (Attempt " + attempt + ")");
                 } else {
                     optionsBuilder.withModel(currentModel);
-                    System.out.println("Extraction: Using model " + currentModel + " (Attempt " + attempt + ")");
+                    System.out.println("Extraction (" + startModel + "): Using model " + currentModel + " (Attempt " + attempt + ")");
                 }
 
                 response = activeClient.call(new Prompt(prompt.getContents(), optionsBuilder.build()))
@@ -335,29 +336,24 @@ public class QuestionExtractionService {
                 String errorMsg = e.getMessage() != null ? e.getMessage() : "Unknown Error";
                 System.err.println("Extraction attempt " + attempt + " failed: " + errorMsg);
                 
+                // Fallback Sequence
                 boolean isGatewayError = fullError.contains("text/html") || fullError.contains("content type [text/html]");
                 boolean isRateLimit = fullError.contains("rate_limit_exceeded") || fullError.contains("429");
                 
                 if (isGatewayError || isRateLimit) {
                     if (currentModel.equals("llama-3.1-8b-instant")) {
-                        System.out.println("Switching to Groq 70B...");
                         currentModel = "llama-3.3-70b-versatile";
                         attempt = 0;
                         continue;
                     } else if (currentModel.equals("llama-3.3-70b-versatile") && geminiChatClient != null) {
-                        System.out.println("Switching to Gemini Fallback...");
                         currentModel = "gemini-fallback";
                         attempt = 0;
                         continue;
                     }
                 }
 
-                if (attempt >= maxRetries) {
-                    System.err.println("Max retries reached for extraction chunk.");
-                    return List.of();
-                }
-                
-                try { Thread.sleep(6000 * attempt); } catch (InterruptedException ignored) {}
+                if (attempt >= maxRetries) return List.of();
+                try { Thread.sleep(5000 * attempt); } catch (InterruptedException ignored) {}
             }
         }
 
@@ -368,17 +364,21 @@ public class QuestionExtractionService {
             QuestionList parsed = mapper.readValue(sanitizedJson, QuestionList.class);
             List<Question> questions = parsed.getQuestions();
             if (questions != null) {
-                questions.removeIf(q -> !isValidQuestion(q));
                 questions.forEach(q -> {
                     q.setTopicId(topicId);
                     q.setSubtopicId(subtopicId);
                     if (q.getType() == null) q.setType("mcq");
                     if (q.getPoints() == 0) q.setPoints(1);
+                    // Ensure empty fields for enrichment later
+                    if (q.getTextHi() == null) q.setTextHi("");
+                    if (q.getOptionsHi() == null) q.setOptionsHi(new ArrayList<>(List.of("", "", "", "")));
+                    if (q.getExplanation() == null) q.setExplanation("");
+                    if (q.getExplanationHi() == null) q.setExplanationHi("");
                 });
                 return questions;
             }
         } catch (Exception e) {
-            System.err.println("Failed to parse chunk JSON: " + e.getMessage());
+            System.err.println("Extraction parsing failed: " + e.getMessage());
         }
         return List.of();
     }
