@@ -197,6 +197,33 @@ public class TestController {
         ));
     }
 
+    @PostMapping("/bulk-upload-smart")
+    public ResponseEntity<?> bulkUploadSmart(
+            @RequestParam("files") MultipartFile[] files,
+            @RequestParam(value = "topicId", required = false) String topicId,
+            @RequestParam(value = "subtopicId", required = false) String subtopicId,
+            @RequestParam(value = "courseIds", required = false) List<String> courseIds,
+            @RequestHeader(value = "X-User-Id", required = false) String userId) {
+        
+        if (files == null || files.length == 0) return ResponseEntity.badRequest().body("No files provided.");
+        
+        List<BulkTestUploadService.RawFileData> rawFiles = new java.util.ArrayList<>();
+        for (MultipartFile file : files) {
+            try {
+                rawFiles.add(new BulkTestUploadService.RawFileData(file.getOriginalFilename(), file.getBytes(), file.getContentType()));
+            } catch (java.io.IOException e) {
+                System.err.println("Failed to read file: " + file.getOriginalFilename());
+            }
+        }
+        
+        bulkTestUploadService.processBulkUploadSmartAsync(rawFiles, topicId, subtopicId, courseIds, userId);
+        
+        return ResponseEntity.ok(java.util.Map.of(
+            "message", "ULTRA-STABLE Bulk upload started for " + rawFiles.size() + " files.",
+            "fileCount", rawFiles.size()
+        ));
+    }
+
     @PostMapping("/{testId}/retry-enrichment")
     public ResponseEntity<?> retryEnrichment(@PathVariable String testId) {
         Optional<Test> testOpt = testService.getTestById(testId);

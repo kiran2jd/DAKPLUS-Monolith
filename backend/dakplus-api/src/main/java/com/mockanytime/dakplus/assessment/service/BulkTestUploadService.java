@@ -118,4 +118,66 @@ public class BulkTestUploadService {
         }
         System.out.println("BULK: Background processing complete. Successfully added " + successCount + "/" + files.size() + " tests.");
     }
+
+    @Async
+    public void processBulkUploadSmartAsync(List<RawFileData> files, String topicId, String subtopicId, List<String> courseIds, String userId) {
+        System.out.println("BULK-SMART: Received " + files.size() + " files for ULTRA-STABLE background processing.");
+        
+        int successCount = 0;
+        for (int i = 0; i < files.size(); i++) {
+            RawFileData fileData = files.get(i);
+            String filename = fileData.getFilename();
+            System.out.println("BULK-SMART: [" + (i + 1) + "/" + files.size() + "] Processing: " + filename);
+            
+            try {
+                String text = documentParsingService.extractTextFromBytes(fileData.getContent(), filename);
+                if (text == null || text.isBlank()) continue;
+                
+                String finalTopicId = topicId;
+                String finalSubtopicId = subtopicId;
+                List<String> finalCourseIds = courseIds;
+                
+                if (finalTopicId == null || finalTopicId.isBlank()) {
+                    TestMetadataDTO detected = questionExtractionService.detectTestMetadata(text);
+                    finalTopicId = detected.getTopicId();
+                    finalSubtopicId = detected.getSubtopicId();
+                    if (finalCourseIds == null || finalCourseIds.isEmpty()) finalCourseIds = detected.getCourseIds();
+                }
+                
+                // CALL THE NEW SMART ANCHOR EXTRACTION
+                List<Question> questions = questionExtractionService.extractQuestionsSmartAnchor(text, finalTopicId, finalSubtopicId);
+                if (questions.isEmpty()) continue;
+                
+                Test test = new Test();
+                String title = filename;
+                if (title != null && title.contains(".")) title = title.substring(0, title.lastIndexOf("."));
+                test.setTitle(title);
+                test.setTopicId(finalTopicId);
+                test.setSubtopicId(finalSubtopicId);
+                test.setCourseIds(finalCourseIds);
+                test.setCreatedBy(userId);
+                
+                if (testService.existsByTitleAndTopicAndCreatedBy(test.getTitle(), test.getTopicId(), userId)) {
+                    System.out.println("BULK-SMART: Skipping duplicate: " + test.getTitle());
+                    continue;
+                }
+                
+                test.setQuestions(questions);
+                test.setDurationMinutes(questions.size());
+                test.updateCounts();
+                
+                testService.createTest(test);
+                successCount++;
+                System.out.println("BULK-SMART: Created test: " + test.getTitle());
+                
+                if (i < files.size() - 1) {
+                    try { Thread.sleep(5000); } catch (InterruptedException ignored) {}
+                }
+                
+            } catch (Exception e) {
+                System.err.println("BULK-SMART ERROR: " + filename + " -> " + e.getMessage());
+            }
+        }
+        System.out.println("BULK-SMART complete. Added " + successCount + "/" + files.size());
+    }
 }

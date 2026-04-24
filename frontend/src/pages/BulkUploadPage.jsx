@@ -17,6 +17,7 @@ export default function BulkUploadPage() {
     const [selectedSubtopic, setSelectedSubtopic] = useState('');
     const [courseIds, setCourseIds] = useState([]);
     const [autoDetect, setAutoDetect] = useState(true);
+    const [stableMode, setStableMode] = useState(false); // NEW
 
     useEffect(() => {
         const fetchTopics = async () => {
@@ -78,7 +79,8 @@ export default function BulkUploadPage() {
         setSuccess('');
 
         try {
-            const response = await testService.bulkUpload(
+            const uploadMethod = stableMode ? testService.bulkUploadSmart : testService.bulkUpload;
+            const response = await uploadMethod(
                 selectedFiles,
                 autoDetect ? null : selectedTopic,
                 autoDetect ? null : selectedSubtopic,
@@ -167,8 +169,34 @@ export default function BulkUploadPage() {
                         </div>
                     )}
 
-                    {/* Mode Selection */}
+                    {/* Processing Strategy */}
                     <div className="bg-white dark:bg-gray-900 rounded-2xl p-6 border border-gray-200 dark:border-gray-700 shadow-sm">
+                        <label className="block text-sm font-black text-gray-700 dark:text-gray-300 mb-4 uppercase tracking-wider">Processing Reliability</label>
+                        <div className="flex flex-col sm:flex-row gap-4 mb-8">
+                            <button
+                                type="button"
+                                onClick={() => setStableMode(false)}
+                                className={`flex-1 flex items-center justify-center gap-3 p-4 rounded-xl border-2 transition-all ${!stableMode ? 'border-red-600 bg-red-50/50 dark:bg-red-900/20 text-red-700 dark:text-red-400' : 'border-gray-100 dark:border-gray-800 text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800'}`}
+                            >
+                                <Sparkles size={20} />
+                                <div className="text-left">
+                                    <p className="font-bold">Standard AI</p>
+                                    <p className="text-[10px] opacity-70">Best for simple documents</p>
+                                </div>
+                            </button>
+                            <button
+                                type="button"
+                                onClick={() => setStableMode(true)}
+                                className={`flex-1 flex items-center justify-center gap-3 p-4 rounded-xl border-2 transition-all ${stableMode ? 'border-red-600 bg-red-50/50 dark:bg-red-900/20 text-red-700 dark:text-red-400' : 'border-gray-100 dark:border-gray-800 text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800'}`}
+                            >
+                                <CheckCircle size={20} />
+                                <div className="text-left">
+                                    <p className="font-bold">Ultra-Stable Mode</p>
+                                    <p className="text-[10px] opacity-70">Recommended for 100+ sets</p>
+                                </div>
+                            </button>
+                        </div>
+
                         <label className="block text-sm font-black text-gray-700 dark:text-gray-300 mb-4 uppercase tracking-wider">Categorization Strategy</label>
                         <div className="flex flex-col sm:flex-row gap-4">
                             <button

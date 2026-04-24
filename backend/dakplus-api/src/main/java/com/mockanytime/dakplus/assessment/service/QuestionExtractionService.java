@@ -152,7 +152,6 @@ public class QuestionExtractionService {
     public List<Question> extractQuestions(String text, String topicId, String subtopicId) {
         if (text == null || text.isBlank()) return List.of();
         
-        // Lowered to 12k to process ~10-15 questions at once while staying under Groq's 6,000 TPM limit
         int maxChunkSize = 12000;
         List<Question> allQuestions = new java.util.ArrayList<>();
         
@@ -163,7 +162,6 @@ public class QuestionExtractionService {
         while (currentPos < text.length()) {
             int endPos = Math.min(currentPos + maxChunkSize, text.length());
             
-            // Try to find a smart split point (newline or question number) if we aren't at the very end
             if (endPos < text.length()) {
                 int smartSplit = findSmartSplitPoint(text, currentPos, endPos);
                 if (smartSplit > currentPos) {
@@ -182,13 +180,63 @@ public class QuestionExtractionService {
             currentPos = endPos;
             chunkCount++;
             
-            // Pause between chunks - increased to 5s to avoid TPM limits
             if (currentPos < text.length()) {
                 try { Thread.sleep(5000); } catch (InterruptedException ignored) {}
             }
         }
         
         System.out.println("Total questions extracted across all smart chunks: " + allQuestions.size());
+        return allQuestions;
+    }
+
+    /**
+     * NEW SMART-ANCHOR EXTRACTION (Separate Flow)
+     * Extremely aggressive splitting based strictly on question numbers to prevent data loss.
+     */
+    public List<Question> extractQuestionsSmartAnchor(String text, String topicId, String subtopicId) {
+        if (text == null || text.isBlank()) return List.of();
+        
+        System.out.println("SMART-ANCHOR: Analyzing text structure...");
+        
+        // Find positions of question numbers like "1. ", "2. ", "3. "
+        java.util.regex.Pattern pattern = java.util.regex.Pattern.compile("(?m)^\\s*\\d+[:\\.\\)\\-]\\s+");
+        java.util.regex.Matcher matcher = pattern.matcher(text);
+        
+        List<Integer> anchorPositions = new java.util.ArrayList<>();
+        while (matcher.find()) {
+            anchorPositions.add(matcher.start());
+        }
+        
+        System.out.println("SMART-ANCHOR: Found " + anchorPositions.size() + " question anchors.");
+        
+        if (anchorPositions.isEmpty()) {
+            System.out.println("SMART-ANCHOR: No anchors found. Falling back to standard flow.");
+            return extractQuestions(text, topicId, subtopicId);
+        }
+        
+        List<String> chunks = new java.util.ArrayList<>();
+        int questionsPerChunk = 5; 
+        
+        for (int i = 0; i < anchorPositions.size(); i += questionsPerChunk) {
+            int start = anchorPositions.get(i);
+            int nextIdx = Math.min(i + questionsPerChunk, anchorPositions.size());
+            int end = (nextIdx < anchorPositions.size()) ? anchorPositions.get(nextIdx) : text.length();
+            
+            chunks.add(text.substring(start, end).trim());
+        }
+        
+        System.out.println("SMART-ANCHOR: Split into " + chunks.size() + " logical chunks.");
+        
+        List<Question> allQuestions = new java.util.ArrayList<>();
+        for (int i = 0; i < chunks.size(); i++) {
+            System.out.println("SMART-ANCHOR: Processing chunk " + (i + 1) + "/" + chunks.size() + "...");
+            List<Question> chunkQs = extractQuestionsFromSingleChunk(chunks.get(i), topicId, subtopicId);
+            if (chunkQs != null) {
+                allQuestions.addAll(chunkQs);
+                System.out.println("SMART-ANCHOR: Successfully extracted " + chunkQs.size() + " questions from chunk " + (i + 1));
+            }
+        }
+        
         return allQuestions;
     }
 
