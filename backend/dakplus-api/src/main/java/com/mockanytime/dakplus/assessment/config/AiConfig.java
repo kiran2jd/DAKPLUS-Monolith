@@ -35,7 +35,7 @@ public class AiConfig {
     @Value("${spring.ai.gemini.api-key:}")
     private String geminiApiKey;
 
-    @Value("${spring.ai.gemini.base-url:https://generativelanguage.googleapis.com/v1beta}")
+    @Value("${spring.ai.gemini.base-url:https://generativelanguage.googleapis.com/v1beta/openai}")
     private String geminiBaseUrl;
 
     @Value("${spring.ai.gemini.chat.options.model:models/gemini-1.5-flash}")

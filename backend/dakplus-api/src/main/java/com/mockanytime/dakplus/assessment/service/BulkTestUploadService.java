@@ -29,19 +29,22 @@ public class BulkTestUploadService {
 
     @Async
     public void processBulkUploadAsync(List<RawFileData> files, String topicId, String subtopicId, List<String> courseIds, String userId) {
-        System.out.println("Starting background bulk processing for " + files.size() + " files...");
+        System.out.println("BULK: Received " + files.size() + " files for background processing.");
         
-        for (RawFileData fileData : files) {
+        int successCount = 0;
+        for (int i = 0; i < files.size(); i++) {
+            RawFileData fileData = files.get(i);
+            String filename = fileData.getFilename();
+            System.out.println("BULK: [" + (i + 1) + "/" + files.size() + "] Processing file: " + filename);
+            
             try {
-                String filename = fileData.getFilename();
-                System.out.println("Processing file: " + filename);
-                
                 // 1. Extract Text from bytes
                 String text = documentParsingService.extractTextFromBytes(fileData.getContent(), filename);
                 if (text == null || text.isBlank()) {
-                    System.err.println("Empty text extracted from: " + filename);
+                    System.err.println("BULK: Failed to extract text from " + filename);
                     continue;
                 }
+                System.out.println("BULK: Extracted " + text.length() + " characters from " + filename);
                 
                 // 2. Detect Metadata if not provided
                 String finalTopicId = topicId;
@@ -49,7 +52,7 @@ public class BulkTestUploadService {
                 List<String> finalCourseIds = courseIds;
                 
                 if (finalTopicId == null || finalTopicId.isBlank() || finalCourseIds == null || finalCourseIds.isEmpty()) {
-                    System.out.println("Detecting metadata for: " + filename + "...");
+                    System.out.println("BULK: Detecting metadata for " + filename + "...");
                     TestMetadataDTO detected = questionExtractionService.detectTestMetadata(text);
                     if (finalTopicId == null || finalTopicId.isBlank()) {
                         finalTopicId = detected.getTopicId();
@@ -61,9 +64,10 @@ public class BulkTestUploadService {
                 }
                 
                 // 3. Extract Questions (English)
+                System.out.println("BULK: Extracting English questions for " + filename + "...");
                 List<Question> questions = questionExtractionService.extractQuestions(text, finalTopicId, finalSubtopicId);
                 if (questions.isEmpty()) {
-                    System.err.println("No questions extracted from: " + filename);
+                    System.err.println("BULK: No questions found in " + filename);
                     continue;
                 }
                 
@@ -87,15 +91,24 @@ public class BulkTestUploadService {
                 test.updateCounts();
                 
                 Test savedTest = testService.createTest(test);
-                System.out.println("Created test: " + savedTest.getTitle() + " (" + questions.size() + " Qs)");
+                successCount++;
+                System.out.println("BULK: Successfully created test: " + savedTest.getTitle() + " (ID: " + savedTest.getId() + ")");
                 
                 // 5. Trigger Background Enrichment
+                System.out.println("BULK: Triggering background enrichment for " + savedTest.getTitle());
                 questionExtractionService.enrichQuestionsInBatchesAsync(savedTest.getId(), savedTest.getQuestions());
                 
+                // Add a delay between files to avoid overwhelming the AI providers
+                if (i < files.size() - 1) {
+                    System.out.println("BULK: Waiting 10s before next file...");
+                    try { Thread.sleep(10000); } catch (InterruptedException ignored) {}
+                }
+                
             } catch (Exception e) {
-                System.err.println("Error processing bulk file " + fileData.getFilename() + ": " + e.getMessage());
+                System.err.println("BULK ERROR: Failed to process file " + filename + ". Error: " + e.getMessage());
+                e.printStackTrace();
             }
         }
-        System.out.println("Bulk background processing complete.");
+        System.out.println("BULK: Background processing complete. Successfully added " + successCount + "/" + files.size() + " tests.");
     }
 }
