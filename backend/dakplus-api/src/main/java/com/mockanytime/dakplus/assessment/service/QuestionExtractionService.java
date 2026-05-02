@@ -2,9 +2,10 @@ package com.mockanytime.dakplus.assessment.service;
 
 import com.mockanytime.dakplus.assessment.model.Question;
 import com.mockanytime.dakplus.assessment.model.Test;
-import org.springframework.ai.chat.ChatClient;
+import org.springframework.ai.chat.model.ChatModel;
 import org.springframework.ai.chat.prompt.Prompt;
 import org.springframework.ai.openai.OpenAiChatOptions;
+import org.springframework.ai.anthropic.AnthropicChatOptions;
 import org.springframework.ai.parser.BeanOutputParser;
 import org.springframework.stereotype.Service;
 import org.springframework.beans.factory.annotation.Value;
@@ -25,11 +26,11 @@ public class QuestionExtractionService {
             .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
 
     @org.springframework.beans.factory.annotation.Autowired(required = false)
-    private ChatClient chatClient;
+    private ChatModel chatClient;
 
     @org.springframework.beans.factory.annotation.Autowired(required = false)
     @org.springframework.beans.factory.annotation.Qualifier("geminiChatClient")
-    private ChatClient geminiChatClient;
+    private ChatModel geminiChatClient;
 
     @org.springframework.beans.factory.annotation.Autowired
     private com.mockanytime.dakplus.assessment.repository.TestRepository testRepository;
@@ -37,10 +38,10 @@ public class QuestionExtractionService {
     @org.springframework.beans.factory.annotation.Autowired
     private TopicService topicService;
 
-    @Value("${spring.ai.openai.api-key:}")
+    @Value("${spring.ai.anthropic.api-key:}")
     private String apiKey;
 
-    @Value("${spring.ai.openai.base-url:}")
+    @Value("${spring.ai.anthropic.base-url:}")
     private String baseUrl;
 
     public com.mockanytime.dakplus.assessment.dto.TestMetadataDTO detectTestMetadata(String text) {
@@ -88,8 +89,8 @@ public class QuestionExtractionService {
                 .replace("{text}", sampleText);
 
         try {
-            OpenAiChatOptions options = OpenAiChatOptions.builder()
-                    .withModel("llama-3.1-8b-instant")
+            AnthropicChatOptions options = AnthropicChatOptions.builder()
+                    .withModel("claude-3-5-sonnet-20241022")
                     .withMaxTokens(500)
                     .build();
 
@@ -110,27 +111,23 @@ public class QuestionExtractionService {
         System.out.println("Base URL: " + baseUrl);
 
         // Check Environment Variables Directly
-        String envGroq = System.getenv("GROQ_API_KEY");
+        String envAnthropic = System.getenv("ANTHROPIC_API_KEY");
         String envOpenAI = System.getenv("SPRING_AI_OPENAI_API_KEY");
 
         System.out.println("Direct Env Check:");
-        System.out.println("- GROQ_API_KEY exists: " + (envGroq != null && !envGroq.isEmpty()));
-        if (envGroq != null && envGroq.length() > 5) {
-            System.out.println("- GROQ_API_KEY starts with 'gsk_': " + envGroq.startsWith("gsk_"));
-            System.out.println(
-                    "- GROQ_API_KEY starts with quote: " + (envGroq.startsWith("\"") || envGroq.startsWith("'")));
+        System.out.println("- ANTHROPIC_API_KEY exists: " + (envAnthropic != null && !envAnthropic.isEmpty()));
+        if (envAnthropic != null && envAnthropic.length() > 5) {
+            System.out.println("- ANTHROPIC_API_KEY starts with 'sk-ant-': " + envAnthropic.startsWith("sk-ant-"));
         }
 
         System.out.println("- SPRING_AI_OPENAI_API_KEY exists: " + (envOpenAI != null && !envOpenAI.isEmpty()));
 
         // Check the Resolved Spring Property
         if (apiKey == null || apiKey.isEmpty()) {
-            System.err.println("CRITICAL: Resolved 'spring.ai.openai.api-key' is EMPTY!");
+            System.err.println("CRITICAL: API key is EMPTY!");
         } else {
-            // Defensive cleanup: remove quotes or whitespace that might be in Railway
-            // variables
             String cleanKey = apiKey.trim().replace("\"", "").replace("'", "");
-            boolean startsWithGsk = cleanKey.startsWith("gsk_");
+            boolean startsWithSkAnt = cleanKey.startsWith("sk-ant-");
 
             String maskedKey = cleanKey.length() > 8
                     ? cleanKey.substring(0, 5) + "..." + cleanKey.substring(cleanKey.length() - 3)
@@ -138,13 +135,7 @@ public class QuestionExtractionService {
 
             System.out.println("Resolved API Key Info:");
             System.out.println("- Masked Key: " + maskedKey);
-            System.out.println("- Length: " + cleanKey.length());
-            System.out.println("- Valid Groq Prefix (gsk_): " + startsWithGsk);
-
-            if (!startsWithGsk && baseUrl.contains("groq")) {
-                System.err
-                        .println("ALERT: You are calling Groq but the key does NOT start with 'gsk_'. This will 401.");
-            }
+            System.out.println("- Valid Anthropic Prefix (sk-ant-): " + startsWithSkAnt);
         }
         System.out.println("============================");
     }
@@ -271,7 +262,7 @@ public class QuestionExtractionService {
     }
 
     private List<Question> extractQuestionsFromSingleChunk(String text, String topicId, String subtopicId) {
-        return extractQuestionsWithModel(text, topicId, subtopicId, "llama-3.1-8b-instant");
+        return extractQuestionsWithModel(text, topicId, subtopicId, "claude-3-5-sonnet-20241022");
     }
 
     /**
@@ -317,18 +308,19 @@ public class QuestionExtractionService {
         while (attempt < maxRetries) {
             try {
                 attempt++;
-                OpenAiChatOptions.Builder optionsBuilder = OpenAiChatOptions.builder().withMaxTokens(8192);
+                org.springframework.ai.chat.prompt.ChatOptions options;
                 
-                ChatClient activeClient = chatClient;
+                ChatModel activeClient = chatClient;
                 if (currentModel.equals("gemini-fallback") && geminiChatClient != null) {
                     activeClient = geminiChatClient;
+                    options = OpenAiChatOptions.builder().withMaxTokens(8192).build();
                     System.out.println("Extraction (" + startModel + "): Using Gemini (Attempt " + attempt + ")");
                 } else {
-                    optionsBuilder.withModel(currentModel);
+                    options = AnthropicChatOptions.builder().withModel(currentModel).withMaxTokens(8192).build();
                     System.out.println("Extraction (" + startModel + "): Using model " + currentModel + " (Attempt " + attempt + ")");
                 }
 
-                response = activeClient.call(new Prompt(prompt.getContents(), optionsBuilder.build()))
+                response = activeClient.call(new Prompt(prompt.getContents(), options))
                         .getResult().getOutput().getContent();
                 break;
             } catch (Exception e) {
@@ -337,15 +329,11 @@ public class QuestionExtractionService {
                 System.err.println("Extraction attempt " + attempt + " failed: " + errorMsg);
                 
                 // Fallback Sequence
-                boolean isGatewayError = fullError.contains("text/html") || fullError.contains("content type [text/html]");
-                boolean isRateLimit = fullError.contains("rate_limit_exceeded") || fullError.contains("429");
+                boolean isGatewayError = fullError.contains("text/html") || fullError.contains("content type [text/html]") || fullError.contains("502");
+                boolean isRateLimit = fullError.contains("rate_limit_exceeded") || fullError.contains("429") || fullError.contains("overloaded");
                 
                 if (isGatewayError || isRateLimit) {
-                    if (currentModel.equals("llama-3.1-8b-instant")) {
-                        currentModel = "llama-3.3-70b-versatile";
-                        attempt = 0;
-                        continue;
-                    } else if (currentModel.equals("llama-3.3-70b-versatile") && geminiChatClient != null) {
+                    if (currentModel.equals("claude-3-5-sonnet-20241022") && geminiChatClient != null) {
                         currentModel = "gemini-fallback";
                         attempt = 0;
                         continue;
@@ -661,24 +649,24 @@ public class QuestionExtractionService {
         int maxRetries = 5;
         int attempt = 0;
         String response = null;
-        String currentModel = "llama-3.1-8b-instant"; 
+        String currentModel = "claude-3-5-sonnet-20241022"; 
 
         while (attempt < maxRetries) {
             try {
                 attempt++;
-                OpenAiChatOptions.Builder optionsBuilder = OpenAiChatOptions.builder()
-                        .withMaxTokens(batch.size() * 1200);
+                org.springframework.ai.chat.prompt.ChatOptions options;
                 
-                ChatClient activeClient = chatClient;
+                ChatModel activeClient = chatClient;
                 if (currentModel.equals("gemini-fallback") && geminiChatClient != null) {
                     activeClient = geminiChatClient;
+                    options = OpenAiChatOptions.builder().withMaxTokens(batch.size() * 1200).build();
                     System.out.println("Enrichment: Using Gemini Fallback (Attempt " + attempt + ")");
-                } else if (currentModel != null) {
-                    optionsBuilder.withModel(currentModel);
+                } else {
+                    options = AnthropicChatOptions.builder().withModel(currentModel).withMaxTokens(batch.size() * 1200).build();
                     System.out.println("Enrichment: Using Primary Model " + currentModel + " (Attempt " + attempt + ")");
                 }
 
-                response = activeClient.call(new org.springframework.ai.chat.prompt.Prompt(finalPrompt, optionsBuilder.build()))
+                response = activeClient.call(new org.springframework.ai.chat.prompt.Prompt(finalPrompt, options))
                         .getResult().getOutput().getContent();
                 break;
             } catch (Exception e) {
@@ -772,26 +760,24 @@ public class QuestionExtractionService {
         String response = null;
         
         // Use a lightweight model for enrichment to save 70B tokens
-        String enrichmentModel = "llama-3.1-8b-instant";
-        String currentModel = null; // Fallback tracker
+        String enrichmentModel = "claude-3-5-sonnet-20241022";
+        String currentModel = enrichmentModel; // Fallback tracker
 
         while (attempt < maxRetries) {
             try {
                 attempt++;
-                OpenAiChatOptions.Builder optionsBuilder = OpenAiChatOptions.builder()
-                        .withMaxTokens(1500);
+                org.springframework.ai.chat.prompt.ChatOptions options;
                 
-                if (currentModel != null && !currentModel.equals("gemini-fallback")) {
-                    optionsBuilder.withModel(currentModel);
-                }
-                
-                ChatClient activeClient = chatClient;
-                if (currentModel != null && currentModel.equals("gemini-fallback") && geminiChatClient != null) {
+                ChatModel activeClient = chatClient;
+                if (currentModel.equals("gemini-fallback") && geminiChatClient != null) {
                     activeClient = geminiChatClient;
+                    options = OpenAiChatOptions.builder().withMaxTokens(1500).build();
                     System.out.println("Using Gemini for enrichment fallback...");
+                } else {
+                    options = AnthropicChatOptions.builder().withModel(currentModel).withMaxTokens(1500).build();
                 }
 
-                response = activeClient.call(new org.springframework.ai.chat.prompt.Prompt(finalPrompt, optionsBuilder.build()))
+                response = activeClient.call(new org.springframework.ai.chat.prompt.Prompt(finalPrompt, options))
                         .getResult().getOutput().getContent();
                 break;
             } catch (Exception e) {
