@@ -32,7 +32,7 @@ spring:
       base-url: ${GEMINI_BASE_URL:https://generativelanguage.googleapis.com/v1beta/openai}
       chat:
         options:
-          model: gemini-2.0-flash
+          model: gemini-2.5-flash
           max-tokens: 8192
     groq:
       api-key: ${GROQ_API_KEY:}

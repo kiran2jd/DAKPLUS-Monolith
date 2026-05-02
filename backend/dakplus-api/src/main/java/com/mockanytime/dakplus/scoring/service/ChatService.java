@@ -29,7 +29,7 @@ public class ChatService {
 
         try {
             return chatClient.call(new Prompt(systemPersona + "\n\nUser Question: " + message,
-                    OpenAiChatOptions.builder().withModel("gemini-2.0-flash").withMaxTokens(512).build()))
+                    OpenAiChatOptions.builder().withModel("gemini-2.5-flash").withMaxTokens(512).build()))
                     .getResult().getOutput().getContent();
         } catch (Exception e) {
             System.err.println("ChatService AI call failed: " + e.getMessage());

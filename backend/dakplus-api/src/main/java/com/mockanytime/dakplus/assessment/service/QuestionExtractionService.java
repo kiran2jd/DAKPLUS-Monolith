@@ -89,7 +89,7 @@ public class QuestionExtractionService {
 
         try {
             OpenAiChatOptions options = OpenAiChatOptions.builder()
-                    .withModel("gemini-2.0-flash")
+                    .withModel("gemini-2.5-flash")
                     .withMaxTokens(500)
                     .build();
 
@@ -228,7 +228,7 @@ public class QuestionExtractionService {
     }
 
     private List<Question> extractQuestionsFromSingleChunk(String text, String topicId, String subtopicId) {
-        return extractQuestionsWithModel(text, topicId, subtopicId, "gemini-2.0-flash");
+        return extractQuestionsWithModel(text, topicId, subtopicId, "gemini-2.5-flash");
     }
 
     /**
@@ -299,7 +299,7 @@ public class QuestionExtractionService {
                 boolean isRateLimit = fullError.contains("rate_limit_exceeded") || fullError.contains("429") || fullError.contains("overloaded");
                 
                 if (isGatewayError || isRateLimit) {
-                    if (currentModel.equals("gemini-2.0-flash") && groqChatClient != null) {
+                    if (currentModel.equals("gemini-2.5-flash") && groqChatClient != null) {
                         currentModel = "groq-fallback";
                         attempt = 0;
                         continue;
@@ -615,7 +615,7 @@ public class QuestionExtractionService {
         int maxRetries = 5;
         int attempt = 0;
         String response = null;
-        String currentModel = "gemini-2.0-flash"; 
+        String currentModel = "gemini-2.5-flash"; 
 
         while (attempt < maxRetries) {
             try {
@@ -726,7 +726,7 @@ public class QuestionExtractionService {
         String response = null;
         
         // Use a lightweight model for enrichment to save 70B tokens
-        String enrichmentModel = "gemini-2.0-flash";
+        String enrichmentModel = "gemini-2.5-flash";
         String currentModel = enrichmentModel; // Fallback tracker
 
         while (attempt < maxRetries) {

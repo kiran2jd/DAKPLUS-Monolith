@@ -18,7 +18,7 @@ public class AiConfig {
     @Value("${spring.ai.openai.base-url:https://generativelanguage.googleapis.com/v1beta/openai}")
     private String geminiBaseUrl;
 
-    @Value("${spring.ai.openai.chat.options.model:gemini-2.0-flash}")
+    @Value("${spring.ai.openai.chat.options.model:gemini-2.5-flash}")
     private String geminiModel;
 
     @Value("${spring.ai.openai.chat.options.max-tokens:8192}")
