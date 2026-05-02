@@ -512,6 +512,13 @@ public class QuestionExtractionService {
         System.out.println("Batch enrichment scheduled for test " + testId + ". Waiting 15 seconds before starting...");
         try { Thread.sleep(15000); } catch (InterruptedException ignored) {}
         
+        enrichQuestionsInBatchesSync(testId);
+    }
+
+    /**
+     * Synchronous core logic for batch enrichment. 
+     */
+    public void enrichQuestionsInBatchesSync(String testId) {
         System.out.println("Starting background enrichment for test: " + testId);
         
         // Always refresh test from DB to avoid stale objects
@@ -566,6 +573,28 @@ public class QuestionExtractionService {
         });
         
         System.out.println("Background enrichment finished for test: " + testId);
+    }
+
+    /**
+     * BULK BACKGROUND STAGE: Enriches multiple unenriched tests sequentially.
+     */
+    @org.springframework.scheduling.annotation.Async
+    public void enrichUnenrichedTestsSequentiallyAsync(List<Test> tests) {
+        System.out.println("Bulk enrichment scheduled for " + tests.size() + " tests.");
+        int count = 1;
+        for (Test test : tests) {
+            System.out.println("--- BULK ENRICHMENT [" + count + "/" + tests.size() + "] ---");
+            // Wait 15 seconds between tests to stay within rate limits and allow system to breathe
+            try { Thread.sleep(15000); } catch (InterruptedException ignored) {}
+            
+            try {
+                enrichQuestionsInBatchesSync(test.getId());
+            } catch (Exception e) {
+                System.err.println("Error enriching test " + test.getId() + " sequentially: " + e.getMessage());
+            }
+            count++;
+        }
+        System.out.println("Bulk sequential enrichment completely finished.");
     }
 
     private void enrichQuestionBatch(List<Question> batch) {

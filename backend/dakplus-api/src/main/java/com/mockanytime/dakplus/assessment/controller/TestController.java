@@ -236,4 +236,23 @@ public class TestController {
         
         return ResponseEntity.ok().body(java.util.Map.of("message", "Enrichment process re-triggered in the background."));
     }
+
+    @PostMapping("/bulk-retry-enrichment")
+    public ResponseEntity<?> bulkRetryEnrichment() {
+        List<Test> allTests = testService.getAllTests();
+        List<Test> unenrichedTests = allTests.stream()
+            .filter(t -> t.getQuestions() != null && t.getEnrichedCount() < t.getQuestions().size())
+            .toList();
+
+        if (unenrichedTests.isEmpty()) {
+            return ResponseEntity.ok(java.util.Map.of("message", "All tests are already fully enriched. Nothing to do."));
+        }
+
+        questionExtractionService.enrichUnenrichedTestsSequentiallyAsync(unenrichedTests);
+
+        return ResponseEntity.ok(java.util.Map.of(
+            "message", "Bulk sequential enrichment started in the background.",
+            "testsFound", unenrichedTests.size()
+        ));
+    }
 }
