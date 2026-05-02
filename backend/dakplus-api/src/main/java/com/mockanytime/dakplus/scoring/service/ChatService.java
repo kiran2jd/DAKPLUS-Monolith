@@ -2,7 +2,7 @@ package com.mockanytime.dakplus.scoring.service;
 
 import org.springframework.ai.chat.model.ChatModel;
 import org.springframework.ai.chat.prompt.Prompt;
-import org.springframework.ai.anthropic.AnthropicChatOptions;
+import org.springframework.ai.openai.OpenAiChatOptions;
 import org.springframework.stereotype.Service;
 import lombok.RequiredArgsConstructor;
 
@@ -29,7 +29,7 @@ public class ChatService {
 
         try {
             return chatClient.call(new Prompt(systemPersona + "\n\nUser Question: " + message,
-                    AnthropicChatOptions.builder().withMaxTokens(512).build()))
+                    OpenAiChatOptions.builder().withMaxTokens(512).build()))
                     .getResult().getOutput().getContent();
         } catch (Exception e) {
             System.err.println("ChatService AI call failed: " + e.getMessage());
