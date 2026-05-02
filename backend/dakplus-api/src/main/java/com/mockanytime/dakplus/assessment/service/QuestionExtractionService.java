@@ -469,6 +469,9 @@ public class QuestionExtractionService {
     public void enrichQuestionsAsync(String testId, List<Question> questions) {
         if (questions == null || questions.isEmpty()) return;
         
+        System.out.println("Enrichment scheduled for test " + testId + ". Waiting 15 seconds before starting...");
+        try { Thread.sleep(15000); } catch (InterruptedException ignored) {}
+        
         System.out.println("Starting background enrichment for " + questions.size() + " questions in test: " + testId);
         
         int count = 0;
@@ -506,6 +509,9 @@ public class QuestionExtractionService {
      */
     @org.springframework.scheduling.annotation.Async
     public void enrichQuestionsInBatchesAsync(String testId, List<Question> questions) {
+        System.out.println("Batch enrichment scheduled for test " + testId + ". Waiting 15 seconds before starting...");
+        try { Thread.sleep(15000); } catch (InterruptedException ignored) {}
+        
         System.out.println("Starting background enrichment for test: " + testId);
         
         // Always refresh test from DB to avoid stale objects
