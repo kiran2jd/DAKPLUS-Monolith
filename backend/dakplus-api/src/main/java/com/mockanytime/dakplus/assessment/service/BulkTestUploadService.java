@@ -101,9 +101,8 @@ public class BulkTestUploadService {
                 successCount++;
                 System.out.println("BULK: Successfully created test: " + savedTest.getTitle() + " (ID: " + savedTest.getId() + ")");
                 
-                // [DEACTIVATED] Trigger Background Enrichment
-                // We now leave this for manual trigger to speed up bulk uploads of 100+ sets
-                // questionExtractionService.enrichQuestionsInBatchesAsync(savedTest.getId(), savedTest.getQuestions());
+                // Trigger Background Enrichment
+                questionExtractionService.enrichQuestionsInBatchesAsync(savedTest.getId(), savedTest.getQuestions());
                 
                 // Add a small delay between files to avoid metadata rate limits
                 if (i < files.size() - 1) {
@@ -166,9 +165,12 @@ public class BulkTestUploadService {
                 test.setDurationMinutes(questions.size());
                 test.updateCounts();
                 
-                testService.createTest(test);
+                Test savedTest = testService.createTest(test);
                 successCount++;
                 System.out.println("BULK-SMART: Created test: " + test.getTitle());
+                
+                // Trigger Background Enrichment
+                questionExtractionService.enrichQuestionsInBatchesAsync(savedTest.getId(), savedTest.getQuestions());
                 
                 if (i < files.size() - 1) {
                     try { Thread.sleep(5000); } catch (InterruptedException ignored) {}
