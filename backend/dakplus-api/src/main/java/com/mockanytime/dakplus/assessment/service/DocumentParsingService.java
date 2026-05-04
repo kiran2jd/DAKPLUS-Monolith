@@ -19,11 +19,11 @@ import java.io.InputStream;
 @Service
 public class DocumentParsingService {
 
-    public String extractText(MultipartFile file) throws IOException {
+    public com.mockanytime.dakplus.assessment.dto.DocumentExtractionResult extractText(MultipartFile file) throws IOException {
         return extractTextFromBytes(file.getBytes(), file.getOriginalFilename());
     }
 
-    public String extractTextFromBytes(byte[] bytes, String filename) throws IOException {
+    public com.mockanytime.dakplus.assessment.dto.DocumentExtractionResult extractTextFromBytes(byte[] bytes, String filename) throws IOException {
         long size = bytes.length;
         System.out.println("=== Extraction Request ===");
         System.out.println("Filename: " + filename);
@@ -31,33 +31,33 @@ public class DocumentParsingService {
         
         if (filename == null || filename.isBlank()) {
             System.err.println("Error: Filename is null or blank.");
-            return "";
+            return new com.mockanytime.dakplus.assessment.dto.DocumentExtractionResult("");
         }
 
-        String result = "";
+        com.mockanytime.dakplus.assessment.dto.DocumentExtractionResult result = new com.mockanytime.dakplus.assessment.dto.DocumentExtractionResult();
         String lowerName = filename.toLowerCase();
         
         if (lowerName.endsWith(".pdf")) {
-            result = extractFromPdf(bytes);
+            result.setText(extractFromPdf(bytes));
         } else if (lowerName.endsWith(".docx")) {
             result = extractFromWord(bytes);
         } else if (lowerName.endsWith(".doc")) {
-            result = extractFromOldWord(bytes);
+            result.setText(extractFromOldWord(bytes));
         } else if (lowerName.endsWith(".txt")) {
-            result = new String(bytes);
+            result.setText(new String(bytes));
         } else if (isImageFile(filename)) {
-            result = performOcr(bytes);
+            result.setText(performOcr(bytes));
         } else {
             try {
                 System.out.println("No clear type detected. Trying PDF fallback parser...");
-                result = extractFromPdf(bytes);
+                result.setText(extractFromPdf(bytes));
             } catch (Exception e) {
                 System.err.println("Error: Unsupported file type and PDF fallback failed: " + filename);
                 throw new IllegalArgumentException("Unsupported file type: " + filename + ". Please ensure your file has a .pdf, .docx, or .txt extension.");
             }
         }
         
-        System.out.println("Extraction Result: " + (result != null ? result.length() : 0) + " characters.");
+        System.out.println("Extraction Result: " + (result.getText() != null ? result.getText().length() : 0) + " characters.");
         return result;
     }
 
@@ -73,65 +73,56 @@ public class DocumentParsingService {
         }
     }
 
-    private String extractFromWord(byte[] bytes) throws IOException {
+    private com.mockanytime.dakplus.assessment.dto.DocumentExtractionResult extractFromWord(byte[] bytes) throws IOException {
         try (InputStream inputStream = new ByteArrayInputStream(bytes);
-                XWPFDocument doc = new XWPFDocument(inputStream);
-                XWPFWordExtractor extractor = new XWPFWordExtractor(doc)) {
+                XWPFDocument doc = new XWPFDocument(inputStream)) {
 
-            String mainText = extractor.getText();
-            StringBuilder fullText = new StringBuilder(mainText != null ? mainText : "");
+            StringBuilder fullText = new StringBuilder();
+            java.util.Map<String, String> imageMap = new java.util.HashMap<>();
 
-            // SUPPLEMENTAL SCAN: Specifically look for Tables/Images that standard extractor might miss.
-            // We search for unique elements to avoid doubling "mainText".
-            if (fullText.length() < 500) { // If truly empty, do a full manual scan
-                System.out.println("Word Extraction: Standard extractor returned very little text. Full manual scan...");
-                for (org.apache.poi.xwpf.usermodel.XWPFParagraph p : doc.getParagraphs()) {
-                    String pText = p.getText();
-                    if (pText != null && !pText.isBlank()) {
-                        fullText.append(pText).append("\n");
-                    }
-                }
-            }
-            
-            // 2. Always check tables but only append if text isn't already there
-            for (org.apache.poi.xwpf.usermodel.XWPFTable table : doc.getTables()) {
-                StringBuilder tableText = new StringBuilder();
-                for (org.apache.poi.xwpf.usermodel.XWPFTableRow row : table.getRows()) {
-                    for (org.apache.poi.xwpf.usermodel.XWPFTableCell cell : row.getTableCells()) {
-                        String cellText = cell.getText();
-                        if (cellText != null && !cellText.isBlank()) {
-                            tableText.append(cellText).append(" ");
+            for (org.apache.poi.xwpf.usermodel.IBodyElement element : doc.getBodyElements()) {
+                if (element instanceof org.apache.poi.xwpf.usermodel.XWPFParagraph) {
+                    org.apache.poi.xwpf.usermodel.XWPFParagraph p = (org.apache.poi.xwpf.usermodel.XWPFParagraph) element;
+                    for (org.apache.poi.xwpf.usermodel.XWPFRun run : p.getRuns()) {
+                        String runText = run.text();
+                        if (runText != null) {
+                            fullText.append(runText);
+                        }
+                        
+                        // Extract inline images
+                        for (org.apache.poi.xwpf.usermodel.XWPFPicture pic : run.getEmbeddedPictures()) {
+                            org.apache.poi.xwpf.usermodel.XWPFPictureData picData = pic.getPictureData();
+                            if (picData != null) {
+                                String ext = picData.suggestFileExtension();
+                                String mimeType = "image/" + (ext.equals("jpg") ? "jpeg" : ext);
+                                String base64 = java.util.Base64.getEncoder().encodeToString(picData.getData());
+                                String dataUrl = "data:" + mimeType + ";base64," + base64;
+                                
+                                String imageId = "IMG_" + java.util.UUID.randomUUID().toString().substring(0, 8);
+                                imageMap.put("[IMAGE_ID: " + imageId + "]", dataUrl);
+                                
+                                fullText.append("\n[IMAGE_ID: ").append(imageId).append("]\n");
+                                System.out.println("Extracted inline image: " + imageId);
+                            }
                         }
                     }
-                    tableText.append("\n");
-                }
-                
-                // Only append table text if it's not already wellrepresented in "mainText"
-                String tStr = tableText.toString();
-                if (tStr.length() > 10 && !mainText.contains(tStr.substring(0, Math.min(20, tStr.length())))) {
-                    System.out.println("Word Extraction: Supplementing missing table content...");
-                    fullText.append("\n[Table Content]:\n").append(tStr);
-                }
-            }
-
-            // Extract images and perform OCR
-            try {
-                for (org.apache.poi.xwpf.usermodel.XWPFPictureData picture : doc.getAllPictures()) {
-                    try {
-                        String ocrResult = performOcr(picture.getData());
-                        if (ocrResult != null && !ocrResult.isBlank()) {
-                            System.out.println("OCR Success: Extracted " + ocrResult.length() + " chars from image.");
-                            fullText.append("\n[Image Text Content]:\n").append(ocrResult).append("\n");
+                    fullText.append("\n");
+                } else if (element instanceof org.apache.poi.xwpf.usermodel.XWPFTable) {
+                    org.apache.poi.xwpf.usermodel.XWPFTable table = (org.apache.poi.xwpf.usermodel.XWPFTable) element;
+                    for (org.apache.poi.xwpf.usermodel.XWPFTableRow row : table.getRows()) {
+                        for (org.apache.poi.xwpf.usermodel.XWPFTableCell cell : row.getTableCells()) {
+                            String cellText = cell.getText();
+                            if (cellText != null && !cellText.isBlank()) {
+                                fullText.append(cellText).append(" ");
+                            }
                         }
-                    } catch (Exception e) {
-                        System.err.println("Non-critical: OCR failed for an image chunk. " + e.getMessage());
+                        fullText.append("\n");
                     }
+                    fullText.append("\n");
                 }
-            } catch (Exception e) {
-                System.err.println("Warning: Could not extract pictures from DOCX: " + e.getMessage());
             }
 
-            return fullText.toString();
+            return new com.mockanytime.dakplus.assessment.dto.DocumentExtractionResult(fullText.toString(), imageMap);
         }
     }
 

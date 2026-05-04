@@ -39,7 +39,8 @@ public class BulkTestUploadService {
             
             try {
                 // 1. Extract Text from bytes
-                String text = documentParsingService.extractTextFromBytes(fileData.getContent(), filename);
+                com.mockanytime.dakplus.assessment.dto.DocumentExtractionResult extractionResult = documentParsingService.extractTextFromBytes(fileData.getContent(), filename);
+                String text = extractionResult.getText();
                 if (text == null || text.isBlank()) {
                     System.err.println("BULK: Failed to extract text from " + filename);
                     continue;
@@ -65,7 +66,7 @@ public class BulkTestUploadService {
                 
                 // 3. Extract Questions (English)
                 System.out.println("BULK: Extracting English questions for " + filename + "...");
-                List<Question> questions = questionExtractionService.extractQuestions(text, finalTopicId, finalSubtopicId);
+                List<Question> questions = questionExtractionService.extractQuestions(text, finalTopicId, finalSubtopicId, extractionResult.getImageMap());
                 if (questions.isEmpty()) {
                     System.err.println("BULK: No questions found in " + filename);
                     continue;
@@ -129,7 +130,8 @@ public class BulkTestUploadService {
             System.out.println("BULK-SMART: [" + (i + 1) + "/" + files.size() + "] Processing: " + filename);
             
             try {
-                String text = documentParsingService.extractTextFromBytes(fileData.getContent(), filename);
+                com.mockanytime.dakplus.assessment.dto.DocumentExtractionResult extractionResult = documentParsingService.extractTextFromBytes(fileData.getContent(), filename);
+                String text = extractionResult.getText();
                 if (text == null || text.isBlank()) continue;
                 
                 String finalTopicId = topicId;
@@ -144,7 +146,7 @@ public class BulkTestUploadService {
                 }
                 
                 // CALL THE NEW SMART ANCHOR EXTRACTION
-                List<Question> questions = questionExtractionService.extractQuestionsSmartAnchor(text, finalTopicId, finalSubtopicId);
+                List<Question> questions = questionExtractionService.extractQuestionsSmartAnchor(text, finalTopicId, finalSubtopicId, extractionResult.getImageMap());
                 if (questions.isEmpty()) continue;
                 
                 Test test = new Test();

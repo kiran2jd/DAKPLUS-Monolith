@@ -92,12 +92,13 @@ public class TestController {
             @RequestParam("file") MultipartFile file,
             @RequestParam(value = "topicId", required = false) String topicId,
             @RequestParam(value = "subtopicId", required = false) String subtopicId) throws Exception {
-        String text = documentParsingService.extractText(file);
+        com.mockanytime.dakplus.assessment.dto.DocumentExtractionResult extractionResult = documentParsingService.extractText(file);
+        String text = extractionResult.getText();
         if (text == null || text.trim().isEmpty()) {
             return ResponseEntity.badRequest().body("The document appears to be empty or contains no readable text. Please try a different file.");
         }
         try {
-            List<Question> questions = questionExtractionService.extractQuestions(text, topicId, subtopicId);
+            List<Question> questions = questionExtractionService.extractQuestions(text, topicId, subtopicId, extractionResult.getImageMap());
             
             // Check for duplicates if topicId is available
             if (topicId != null) {
@@ -125,7 +126,8 @@ public class TestController {
             @RequestParam("file") MultipartFile file,
             @RequestParam(value = "topicId", required = false) String topicId,
             @RequestParam(value = "subtopicId", required = false) String subtopicId) throws Exception {
-        String text = documentParsingService.extractText(file);
+        com.mockanytime.dakplus.assessment.dto.DocumentExtractionResult extractionResult = documentParsingService.extractText(file);
+        String text = extractionResult.getText();
         if (text == null || text.trim().isEmpty()) {
             return ResponseEntity.badRequest().body("The document appears to be empty or contains no readable text.");
         }
@@ -136,7 +138,7 @@ public class TestController {
         if (questions.isEmpty()) {
             System.out.println("Bulk Script failed to find questions. Falling back to AI extraction...");
             try {
-                questions = questionExtractionService.extractQuestions(text, topicId, subtopicId);
+                questions = questionExtractionService.extractQuestions(text, topicId, subtopicId, extractionResult.getImageMap());
             } catch (com.mockanytime.dakplus.assessment.exception.AiRateLimitException e) {
                 return ResponseEntity.status(429).body(java.util.Map.of(
                     "error", "Quota Limit Reached",

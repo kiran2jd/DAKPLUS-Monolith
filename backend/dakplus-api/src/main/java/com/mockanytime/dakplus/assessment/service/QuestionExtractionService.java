@@ -106,7 +106,7 @@ public class QuestionExtractionService {
 
 
 
-    public List<Question> extractQuestions(String text, String topicId, String subtopicId) {
+    public List<Question> extractQuestions(String text, String topicId, String subtopicId, java.util.Map<String, String> imageMap) {
         if (text == null || text.isBlank()) return List.of();
         
         int maxChunkSize = 12000;
@@ -129,7 +129,7 @@ public class QuestionExtractionService {
             String chunk = text.substring(currentPos, endPos);
             System.out.println("Processing chunk " + chunkCount + " (range: " + currentPos + "-" + endPos + ", length: " + chunk.length() + ")");
             
-            List<Question> chunkQuestions = extractQuestionsFromSingleChunk(chunk, topicId, subtopicId);
+            List<Question> chunkQuestions = extractQuestionsFromSingleChunk(chunk, topicId, subtopicId, imageMap);
             if (chunkQuestions != null && !chunkQuestions.isEmpty()) {
                 allQuestions.addAll(chunkQuestions);
             }
@@ -150,7 +150,7 @@ public class QuestionExtractionService {
      * NEW SMART-ANCHOR EXTRACTION (Separate Flow)
      * Extremely aggressive splitting based strictly on question numbers to prevent data loss.
      */
-    public List<Question> extractQuestionsSmartAnchor(String text, String topicId, String subtopicId) {
+    public List<Question> extractQuestionsSmartAnchor(String text, String topicId, String subtopicId, java.util.Map<String, String> imageMap) {
         if (text == null || text.isBlank()) return List.of();
         
         System.out.println("SMART-ANCHOR: Analyzing text structure...");
@@ -168,7 +168,7 @@ public class QuestionExtractionService {
         
         if (anchorPositions.isEmpty()) {
             System.out.println("SMART-ANCHOR: No anchors found. Falling back to standard flow.");
-            return extractQuestions(text, topicId, subtopicId);
+            return extractQuestions(text, topicId, subtopicId, imageMap);
         }
         
         List<String> chunks = new java.util.ArrayList<>();
@@ -189,7 +189,7 @@ public class QuestionExtractionService {
             System.out.println("SMART-ANCHOR: Processing chunk " + (i + 1) + "/" + chunks.size() + "...");
             
             // For ULTRA-STABLE mode, we force Groq as the fallback model
-            List<Question> chunkQs = extractQuestionsWithModel(chunks.get(i), topicId, subtopicId, "groq-fallback");
+            List<Question> chunkQs = extractQuestionsWithModel(chunks.get(i), topicId, subtopicId, "groq-fallback", imageMap);
             
             if (chunkQs != null) {
                 allQuestions.addAll(chunkQs);
@@ -227,14 +227,14 @@ public class QuestionExtractionService {
         return end; // No smart split found
     }
 
-    private List<Question> extractQuestionsFromSingleChunk(String text, String topicId, String subtopicId) {
-        return extractQuestionsWithModel(text, topicId, subtopicId, "gemini-2.5-flash");
+    private List<Question> extractQuestionsFromSingleChunk(String text, String topicId, String subtopicId, java.util.Map<String, String> imageMap) {
+        return extractQuestionsWithModel(text, topicId, subtopicId, "gemini-2.5-flash", imageMap);
     }
 
     /**
      * Internal method that allows forcing a specific starting model (e.g., Gemini for stability)
      */
-    private List<Question> extractQuestionsWithModel(String text, String topicId, String subtopicId, String startModel) {
+    private List<Question> extractQuestionsWithModel(String text, String topicId, String subtopicId, String startModel, java.util.Map<String, String> imageMap) {
         String promptString = """
                 Extract all multiple choice questions from the provided text.
                 ONLY EXTRACT ENGLISH CONTENT for now.
@@ -246,7 +246,8 @@ public class QuestionExtractionService {
                    STRICT RULE: DO NOT move this text into the options. It MUST remain in "text".
                 4. Extract EVERY SINGLE question in the text. Do not summarize or skip.
                 5. STRICT 4-OPTION RULE: Ensure you find and extract all 4 options for every question.
-                6. Output ONLY JSON. No surrounding text.
+                6. IMAGE HANDLING: If a question or its options contains an image placeholder like [IMAGE_ID: <UUID>], you MUST extract that EXACT placeholder string and place it in the "imageUrl" field.
+                7. Output ONLY JSON. No surrounding text.
                 
                 FORMAT:
                 {
@@ -255,6 +256,7 @@ public class QuestionExtractionService {
                       "text": "English question text here... (Metadata in brackets here)",
                       "options": ["Option 1", "Option 2", "Option 3", "Option 4"],
                       "correctAnswer": "Option 1",
+                      "imageUrl": "[IMAGE_ID: ...]",
                       "type": "mcq",
                       "points": 1
                     }
@@ -328,6 +330,14 @@ public class QuestionExtractionService {
                     if (q.getOptionsHi() == null) q.setOptionsHi(new ArrayList<>(List.of("", "", "", "")));
                     if (q.getExplanation() == null) q.setExplanation("");
                     if (q.getExplanationHi() == null) q.setExplanationHi("");
+                    
+                    // Replace Image Placeholder with Base64 String
+                    if (q.getImageUrl() != null && imageMap != null) {
+                        String imgUrl = q.getImageUrl().trim();
+                        if (imgUrl.startsWith("[IMAGE_ID:") && imageMap.containsKey(imgUrl)) {
+                            q.setImageUrl(imageMap.get(imgUrl));
+                        }
+                    }
                 });
                 return questions;
             }
