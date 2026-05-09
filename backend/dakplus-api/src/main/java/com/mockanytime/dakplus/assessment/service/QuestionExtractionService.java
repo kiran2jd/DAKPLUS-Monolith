@@ -307,12 +307,12 @@ public class QuestionExtractionService {
                             userMessage = new org.springframework.ai.chat.messages.UserMessage(
                                 "Extract all questions from this image. \n\n" +
                                 "IMPORTANT RULES for this Image:\n" +
-                                "1. Extract the question text and options into the JSON fields.\n" +
-                                "2. Use the exact placeholder `" + placeholder + "` in the 'imageUrl' field.\n" +
-                                "3. SMART CROP (CRITICAL): Identify the bounding box of ONLY the diagram/figure. \n" +
-                                "   - The box MUST encapsulate all lines, vertices, and edges of the shape.\n" +
-                                "   - BE GENEROUS: It is better to include a little extra white space than to cut the shape.\n" +
-                                "   - Return `diagram_bbox`: [ymin, xmin, ymax, xmax] (values 0-1000).",
+                                "1. Extract text and options into JSON.\n" +
+                                "2. Use placeholder `" + placeholder + "`.\n" +
+                                "3. SMART CROP (CRITICAL): Return `diagram_bbox`: [ymin, xmin, ymax, xmax] (0-1000).\n" +
+                                "   - INCLUDE A HUGE MARGIN: Ensure the box is at least 20% larger than the actual figure in all directions.\n" +
+                                "   - DO NOT CUT VERTICES: The top point and bottom corners of the shape MUST be well inside the box.\n" +
+                                "   - Better to show some white space than to cut a single line.",
                                 java.util.List.of(media)
                             );
                         } else {
