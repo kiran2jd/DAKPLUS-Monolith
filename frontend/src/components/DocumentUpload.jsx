@@ -3,52 +3,69 @@ import { Upload, FileText, CheckCircle, AlertCircle, Loader2 } from 'lucide-reac
 import { testService } from '../services/test';
 
 export default function DocumentUpload({ onQuestionsExtracted, topicId, subtopicId }) {
-    const [file, setFile] = useState(null);
+    const [files, setFiles] = useState([]);
     const [uploading, setUploading] = useState(false);
+    const [progress, setProgress] = useState({ current: 0, total: 0 });
     const [error, setError] = useState('');
     const [success, setSuccess] = useState(false);
     const [duplicateCount, setDuplicateCount] = useState(0);
     const [extractedQuestions, setExtractedQuestions] = useState([]);
 
     const handleFileChange = (e) => {
-        const selectedFile = e.target.files[0];
-        if (selectedFile) {
-            const isDocument = selectedFile.type === 'application/pdf' || 
-                             selectedFile.type === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document';
-            const isImage = selectedFile.type.startsWith('image/');
-            const isText = selectedFile.type === 'text/plain';
+        const selectedFiles = Array.from(e.target.files);
+        const validFiles = selectedFiles.filter(f => {
+            const isDocument = f.type === 'application/pdf' || 
+                             f.type === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document';
+            const isImage = f.type.startsWith('image/');
+            const isText = f.type === 'text/plain';
+            return isDocument || isImage || isText;
+        });
 
-            if (isDocument || isImage || isText) {
-                setFile(selectedFile);
-                setError('');
-                setSuccess(false);
-            } else {
-                setError('Format not supported. Please use PDF, Word, Images, or Text.');
-                setFile(null);
+        if (validFiles.length > 0) {
+            setFiles(validFiles);
+            setError('');
+            setSuccess(false);
+            if (validFiles.length !== selectedFiles.length) {
+                setError(`${selectedFiles.length - validFiles.length} files ignored (unsupported format).`);
             }
+        } else {
+            setError('Format not supported. Please use PDF, Word, Images, or Text.');
+            setFiles([]);
         }
     };
 
     const handleUpload = async () => {
-        if (!file) return;
+        if (files.length === 0) return;
         setUploading(true);
         setError('');
+        setProgress({ current: 0, total: files.length });
+        
+        let allExtracted = [];
+        let totalDups = 0;
+
         try {
-            // FORCE PURE AI METHOD (Gemini Flash) for superior metadata preservation
-            const questions = await testService.extractQuestions(file, topicId, subtopicId);
-            
-            if (!questions || questions.length === 0) {
-                throw new Error("No questions could be extracted. Please ensure the document or image contains clear MCQ content.");
+            for (let i = 0; i < files.length; i++) {
+                setProgress(prev => ({ ...prev, current: i + 1 }));
+                const file = files[i];
+                
+                const questions = await testService.extractQuestions(file, topicId, subtopicId);
+                if (questions && questions.length > 0) {
+                    allExtracted = [...allExtracted, ...questions];
+                    totalDups += questions.filter(q => q.isDuplicate).length;
+                }
             }
             
-            const dups = questions.filter(q => q.isDuplicate).length;
-            setDuplicateCount(dups);
-            setExtractedQuestions(questions);
+            if (allExtracted.length === 0) {
+                throw new Error("No questions could be extracted. Please ensure the files contain clear MCQ content.");
+            }
             
-            if (dups === 0) {
-                onQuestionsExtracted(questions);
+            setDuplicateCount(totalDups);
+            setExtractedQuestions(allExtracted);
+            
+            if (totalDups === 0) {
+                onQuestionsExtracted(allExtracted);
                 setSuccess(true);
-                setFile(null);
+                setFiles([]);
             }
         } catch (err) {
             console.error("Extraction Error:", err);
@@ -63,32 +80,32 @@ export default function DocumentUpload({ onQuestionsExtracted, topicId, subtopic
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-4">
                 <div className="flex items-center space-x-2">
                     <FileText className="text-indigo-600 dark:text-indigo-400" size={20} />
-                    <h3 className="font-semibold text-gray-800 dark:text-gray-100 text-sm sm:text-base">Upload Q&A Document or Image</h3>
+                    <h3 className="font-semibold text-gray-800 dark:text-gray-100 text-sm sm:text-base">Upload Documents or Images</h3>
                 </div>
                 {success && (
                     <span className="text-xs text-green-600 dark:text-green-400 flex items-center">
-                        <CheckCircle size={14} className="mr-1" /> Questions Added!
+                        <CheckCircle size={14} className="mr-1" /> {extractedQuestions.length} Questions Added!
                     </span>
                 )}
             </div>
 
             <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 leading-relaxed mb-4">
-                Our advanced AI will scan your file to extract questions, options, and metadata.
-                Supports PDF, Word, JPG, and PNG files.
+                Select one or **multiple images/files**. We will extract questions from all and add them to this test.
             </p>
 
                 <div className="relative group">
                     <input
                         type="file"
+                        multiple
                         onChange={handleFileChange}
                         accept=".pdf,.docx,.doc,.txt,.jpg,.jpeg,.png,.webp"
                         className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
                     />
-                    <div className={`p-4 border border-gray-200 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-800 flex items-center justify-between group-hover:border-indigo-300 transition ${file ? 'border-indigo-500' : ''}`}>
+                    <div className={`p-4 border border-gray-200 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-800 flex items-center justify-between group-hover:border-indigo-300 transition ${files.length > 0 ? 'border-indigo-500' : ''}`}>
                         <div className="flex items-center space-x-3 overflow-hidden">
                             <Upload size={18} className="text-gray-400" />
                             <span className="text-sm text-gray-500 truncate">
-                                {file ? file.name : "Select File (PDF, Word, or Image)"}
+                                {files.length > 0 ? `${files.length} files selected` : "Select Files (Multiple allowed)"}
                             </span>
                         </div>
                         <button
@@ -101,25 +118,25 @@ export default function DocumentUpload({ onQuestionsExtracted, topicId, subtopic
                 </div>
 
                 {error && (
-                    <div className="flex items-center text-xs text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/20 p-2 rounded">
+                    <div className="flex items-center text-xs text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/20 p-2 rounded mt-2">
                         <AlertCircle size={14} className="mr-2" /> {error}
                     </div>
                 )}
 
                 <button
                     onClick={handleUpload}
-                    disabled={!file || uploading}
-                    className="w-full py-3 bg-indigo-600 text-white rounded-lg font-bold flex items-center justify-center space-x-2 hover:bg-indigo-700 disabled:bg-gray-400 transition shadow-lg shadow-indigo-500/20"
+                    disabled={files.length === 0 || uploading}
+                    className="w-full mt-4 py-3 bg-indigo-600 text-white rounded-lg font-bold flex items-center justify-center space-x-2 hover:bg-indigo-700 disabled:bg-gray-400 transition shadow-lg shadow-indigo-500/20"
                 >
                     {uploading ? (
                         <>
                             <Loader2 className="animate-spin" size={18} />
-                            <span>Processing Document...</span>
+                            <span>Processing {progress.current}/{progress.total}...</span>
                         </>
                     ) : (
                         <>
                             <Upload size={18} />
-                            <span>Extract Questions</span>
+                            <span>Extract {files.length > 0 ? files.length : ''} Files</span>
                         </>
                     )}
                 </button>
