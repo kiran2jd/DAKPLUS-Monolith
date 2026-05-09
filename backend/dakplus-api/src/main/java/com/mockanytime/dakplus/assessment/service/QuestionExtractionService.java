@@ -247,7 +247,8 @@ public class QuestionExtractionService {
                 4. Extract EVERY SINGLE question in the text. Do not summarize or skip.
                 5. STRICT 4-OPTION RULE: Ensure you find and extract all 4 options for every question.
                 6. IMAGE HANDLING: If a question has a main image, place the `[IMAGE_ID: <UUID>]` placeholder in the "imageUrl" field. If an OPTION itself is an image, place the `[IMAGE_ID: <UUID>]` placeholder exactly as the string for that option.
-                7. Output ONLY JSON. No surrounding text.
+                7. ABSOLUTE REQUIREMENT: You MUST preserve every `[IMAGE_ID: ...]` tag exactly as it appears in the source text. Do not omit them.
+                8. Output ONLY JSON. No surrounding text.
                 
                 FORMAT:
                 {
@@ -333,42 +334,41 @@ public class QuestionExtractionService {
                     
                     // Replace Image Placeholders with stored URLs
                     if (imageMap != null && !imageMap.isEmpty()) {
-                        if (q.getImageUrl() != null && imageMap.containsKey(q.getImageUrl().trim())) {
-                            q.setImageUrl(imageMap.get(q.getImageUrl().trim()));
-                        }
-                        
-                        if (q.getText() != null) {
+                        // 1. Precise replacement for imageUrl field
+                        if (q.getImageUrl() != null) {
+                            String imgUrl = q.getImageUrl().trim();
                             for (java.util.Map.Entry<String, String> entry : imageMap.entrySet()) {
-                                if (q.getText().contains(entry.getKey())) {
-                                    q.setText(q.getText().replace(entry.getKey(), entry.getValue()));
+                                if (imgUrl.contains(entry.getKey()) || 
+                                    (imgUrl.contains(entry.getKey().replace("[", "").replace("]", "")) )) {
+                                    q.setImageUrl(entry.getValue());
+                                    break;
                                 }
                             }
                         }
                         
-                        if (q.getOptions() != null) {
-                            java.util.List<String> newOpts = new java.util.ArrayList<>();
-                            for (String opt : q.getOptions()) {
-                                String modifiedOpt = opt;
-                                if (modifiedOpt != null) {
-                                    for (java.util.Map.Entry<String, String> entry : imageMap.entrySet()) {
-                                        if (modifiedOpt.contains(entry.getKey())) {
-                                            modifiedOpt = modifiedOpt.replace(entry.getKey(), entry.getValue());
-                                        }
-                                    }
-                                }
-                                newOpts.add(modifiedOpt);
+                        // 2. Global replacement in text and options using flexible regex
+                        for (java.util.Map.Entry<String, String> entry : imageMap.entrySet()) {
+                            String placeholder = entry.getKey();
+                            String url = entry.getValue();
+                            // Create a regex that handles optional brackets and spaces
+                            String cleanId = placeholder.replace("[", "").replace("]", "").replace("IMAGE_ID:", "").trim();
+                            String regex = "\\[?\\s*IMAGE_ID:\\s*" + java.util.regex.Pattern.quote(cleanId) + "\\s*\\]?";
+                            
+                            if (q.getText() != null) {
+                                q.setText(q.getText().replaceAll(regex, url));
                             }
-                            q.setOptions(newOpts);
-                        }
-                        
-                        if (q.getCorrectAnswer() != null) {
-                            String modifiedAns = q.getCorrectAnswer();
-                            for (java.util.Map.Entry<String, String> entry : imageMap.entrySet()) {
-                                if (modifiedAns.contains(entry.getKey())) {
-                                    modifiedAns = modifiedAns.replace(entry.getKey(), entry.getValue());
+                            
+                            if (q.getOptions() != null) {
+                                java.util.List<String> newOpts = new java.util.ArrayList<>();
+                                for (String opt : q.getOptions()) {
+                                    newOpts.add(opt != null ? opt.replaceAll(regex, url) : null);
                                 }
+                                q.setOptions(newOpts);
                             }
-                            q.setCorrectAnswer(modifiedAns);
+                            
+                            if (q.getCorrectAnswer() != null) {
+                                q.setCorrectAnswer(q.getCorrectAnswer().replaceAll(regex, url));
+                            }
                         }
                     }
                 });
