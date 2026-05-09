@@ -43,6 +43,9 @@ public class QuestionExtractionService {
     @Value("${spring.ai.openai.base-url:}")
     private String baseUrl;
 
+    @Value("${app.upload.dir:uploads}")
+    private String uploadDir;
+
     public com.mockanytime.dakplus.assessment.dto.TestMetadataDTO detectTestMetadata(String text) {
         if (text == null || text.isBlank()) return new com.mockanytime.dakplus.assessment.dto.TestMetadataDTO();
 
@@ -236,6 +239,24 @@ public class QuestionExtractionService {
         return end; // No smart split found
     }
 
+    private String getSystemPrompt(String topicId, String subtopicId) {
+        StringBuilder sb = new StringBuilder();
+        sb.append("You are an expert examiner for Indian Postal Exams.\n");
+        sb.append("Extract all multiple choice questions from the provided text.\n");
+        sb.append("ONLY EXTRACT ENGLISH CONTENT for now.\n\n");
+        sb.append("RULES:\n");
+        sb.append("1. JSON ONLY.\n");
+        sb.append("2. \"correctAnswer\" must match one of the \"options\" exactly.\n");
+        sb.append("3. MANDATORY METADATA PRESERVATION: You MUST keep any text in brackets at the end of questions (e.g., \"(PA/SA Exam - 2020 UP)\").\n");
+        sb.append("4. Extract EVERY SINGLE question. Do not summarize.\n");
+        sb.append("5. STRICT 4-OPTION RULE: Ensure 4 options per question.\n");
+        sb.append("6. IMAGE HANDLING: Use `[IMAGE_ID: <UUID>]` placeholders for images.\n");
+        sb.append("7. Output ONLY JSON.\n\n");
+        sb.append("FORMAT:\n");
+        sb.append("{\n  \"questions\": [\n    {\n      \"text\": \"...\",\n      \"options\": [\"...\", \"...\", \"...\", \"...\"],\n      \"correctAnswer\": \"...\",\n      \"imageUrl\": \"...\",\n      \"type\": \"mcq\",\n      \"points\": 1\n    }\n  ]\n}");
+        return sb.toString();
+    }
+
     private List<Question> extractQuestionsFromSingleChunk(String text, String topicId, String subtopicId, java.util.Map<String, String> imageMap) {
         return extractQuestionsWithModel(text, topicId, subtopicId, "gemini-2.5-flash", imageMap);
     }
@@ -273,7 +294,7 @@ public class QuestionExtractionService {
                             byte[] imageBytes = java.nio.file.Files.readAllBytes(imagePath);
                             String mimeType = fileName.toLowerCase().endsWith(".png") ? "image/png" : "image/jpeg";
                             
-                            org.springframework.ai.model.Media media = new org.springframework.ai.model.Media(
+                            org.springframework.ai.chat.messages.Media media = new org.springframework.ai.chat.messages.Media(
                                 org.springframework.util.MimeTypeUtils.parseMimeType(mimeType), 
                                 imageBytes
                             );
