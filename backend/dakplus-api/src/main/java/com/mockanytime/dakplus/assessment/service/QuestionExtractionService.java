@@ -246,7 +246,7 @@ public class QuestionExtractionService {
                    STRICT RULE: DO NOT move this text into the options. It MUST remain in "text".
                 4. Extract EVERY SINGLE question in the text. Do not summarize or skip.
                 5. STRICT 4-OPTION RULE: Ensure you find and extract all 4 options for every question.
-                6. IMAGE HANDLING: If a question or its options contains an image placeholder like [IMAGE_ID: <UUID>], you MUST extract that EXACT placeholder string and place it in the "imageUrl" field.
+                6. IMAGE HANDLING: If a question has a main image, place the `[IMAGE_ID: <UUID>]` placeholder in the "imageUrl" field. If an OPTION itself is an image, place the `[IMAGE_ID: <UUID>]` placeholder exactly as the string for that option.
                 7. Output ONLY JSON. No surrounding text.
                 
                 FORMAT:
@@ -331,11 +331,38 @@ public class QuestionExtractionService {
                     if (q.getExplanation() == null) q.setExplanation("");
                     if (q.getExplanationHi() == null) q.setExplanationHi("");
                     
-                    // Replace Image Placeholder with Base64 String
-                    if (q.getImageUrl() != null && imageMap != null) {
-                        String imgUrl = q.getImageUrl().trim();
-                        if (imgUrl.startsWith("[IMAGE_ID:") && imageMap.containsKey(imgUrl)) {
-                            q.setImageUrl(imageMap.get(imgUrl));
+                    // Replace Image Placeholders with Base64 Strings everywhere
+                    if (imageMap != null && !imageMap.isEmpty()) {
+                        if (q.getImageUrl() != null && q.getImageUrl().trim().startsWith("[IMAGE_ID:") && imageMap.containsKey(q.getImageUrl().trim())) {
+                            q.setImageUrl(imageMap.get(q.getImageUrl().trim()));
+                        }
+                        
+                        if (q.getText() != null) {
+                            for (Map.Entry<String, String> entry : imageMap.entrySet()) {
+                                if (q.getText().contains(entry.getKey())) q.setText(q.getText().replace(entry.getKey(), entry.getValue()));
+                            }
+                        }
+                        
+                        if (q.getOptions() != null) {
+                            List<String> newOpts = new ArrayList<>();
+                            for (String opt : q.getOptions()) {
+                                String modifiedOpt = opt;
+                                if (modifiedOpt != null) {
+                                    for (Map.Entry<String, String> entry : imageMap.entrySet()) {
+                                        if (modifiedOpt.contains(entry.getKey())) modifiedOpt = modifiedOpt.replace(entry.getKey(), entry.getValue());
+                                    }
+                                }
+                                newOpts.add(modifiedOpt);
+                            }
+                            q.setOptions(newOpts);
+                        }
+                        
+                        if (q.getCorrectAnswer() != null) {
+                            String modifiedAns = q.getCorrectAnswer();
+                            for (Map.Entry<String, String> entry : imageMap.entrySet()) {
+                                if (modifiedAns.contains(entry.getKey())) modifiedAns = modifiedAns.replace(entry.getKey(), entry.getValue());
+                            }
+                            q.setCorrectAnswer(modifiedAns);
                         }
                     }
                 });

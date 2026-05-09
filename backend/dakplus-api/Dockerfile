@@ -8,7 +8,7 @@ COPY src ./src
 RUN mvn package -DskipTests
 
 # Run stage
-FROM eclipse-temurin:17-jdk-focal
+FROM eclipse-temurin:17-jdk-jammy
 WORKDIR /app
 
 # Install Tesseract OCR and dependencies

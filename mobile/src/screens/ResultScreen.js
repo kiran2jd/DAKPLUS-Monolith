@@ -7,6 +7,7 @@ import {
     SafeAreaView,
     Dimensions,
     TouchableOpacity,
+    Image,
 } from 'react-native';
 import { ScrollView } from 'react-native-gesture-handler';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -317,9 +318,16 @@ export default function ResultScreen({ navigation, route }) {
                                 {idx + 1}. {language === 'hi' && detail.questionTextHi ? detail.questionTextHi : detail.questionText}
                             </Text>
                             <View style={styles.answerRow}>
-                                <Text style={[styles.answerText, { color: detail.correct ? '#059669' : '#dc2626' }]}>
-                                    Your Answer: {detail.userAnswer}
-                                </Text>
+                                {detail.userAnswer && detail.userAnswer.startsWith('data:image/') ? (
+                                    <View style={{ flex: 1 }}>
+                                        <Text style={[styles.answerText, { color: detail.correct ? '#059669' : '#dc2626', marginBottom: 4 }]}>Your Answer:</Text>
+                                        <Image source={{ uri: detail.userAnswer }} style={{ width: 100, height: 60, borderRadius: 8, backgroundColor: '#f8fafc' }} resizeMode="contain" />
+                                    </View>
+                                ) : (
+                                    <Text style={[styles.answerText, { color: detail.correct ? '#059669' : '#dc2626' }]}>
+                                        Your Answer: {detail.userAnswer}
+                                    </Text>
+                                )}
                                 {detail.correct ? (
                                     <Text style={styles.correctBadge}>✓ Correct</Text>
                                 ) : (
@@ -336,7 +344,14 @@ export default function ResultScreen({ navigation, route }) {
                                 )}
                             </View>
                             {!detail.correct && (
-                                <Text style={styles.correctAnswerText}>Correct Answer: {detail.correctAnswer}</Text>
+                                detail.correctAnswer && detail.correctAnswer.startsWith('data:image/') ? (
+                                    <View style={{ marginTop: 8 }}>
+                                        <Text style={styles.correctAnswerText}>Correct Answer:</Text>
+                                        <Image source={{ uri: detail.correctAnswer }} style={{ width: 100, height: 60, borderRadius: 8, backgroundColor: '#f8fafc' }} resizeMode="contain" />
+                                    </View>
+                                ) : (
+                                    <Text style={styles.correctAnswerText}>Correct Answer: {detail.correctAnswer}</Text>
+                                )
                             )}
                             {/* Check multiple possible field names for explanations */}
                             {(detail.explanation || detail.shortAnswer || detail.comment || detail.explanationHi) && (

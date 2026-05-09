@@ -380,30 +380,43 @@ export default function TakeTestScreen({ navigation, route }) {
                 )}
 
                 <View style={styles.optionsList}>
-                    {question.options.map((option, index) => (
-                        <TouchableOpacity
-                            key={index}
-                            style={[
-                                styles.optionButton,
-                                answers[currentQuestion] === option ? styles.selectedOption : null
-                            ]}
-                            onPress={() => handleAnswer(option)}
-                            activeOpacity={0.7}
-                        >
-                            <View style={[
-                                styles.optionCircle,
-                                answers[currentQuestion] === option ? styles.selectedCircle : null
-                            ]} />
-                            <Text style={[
-                                styles.optionText,
-                                answers[currentQuestion] === option ? styles.selectedOptionText : null
-                            ]}>
-                                {(language === 'hi' && question.optionsHi && question.optionsHi[index])
-                                    ? question.optionsHi[index]
-                                    : option}
-                            </Text>
-                        </TouchableOpacity>
-                    ))}
+                    {question.options.map((option, index) => {
+                        const displayOptionText = (language === 'hi' && question.optionsHi && question.optionsHi[index])
+                            ? question.optionsHi[index]
+                            : option;
+                        const isImage = displayOptionText && displayOptionText.startsWith('data:image/');
+
+                        return (
+                            <TouchableOpacity
+                                key={index}
+                                style={[
+                                    styles.optionButton,
+                                    answers[currentQuestion] === option ? styles.selectedOption : null
+                                ]}
+                                onPress={() => handleAnswer(option)}
+                                activeOpacity={0.7}
+                            >
+                                <View style={[
+                                    styles.optionCircle,
+                                    answers[currentQuestion] === option ? styles.selectedCircle : null
+                                ]} />
+                                {isImage ? (
+                                    <Image
+                                        source={{ uri: displayOptionText }}
+                                        style={{ width: '80%', height: 100, borderRadius: 8, backgroundColor: '#f8fafc' }}
+                                        resizeMode="contain"
+                                    />
+                                ) : (
+                                    <Text style={[
+                                        styles.optionText,
+                                        answers[currentQuestion] === option ? styles.selectedOptionText : null
+                                    ]}>
+                                        {displayOptionText}
+                                    </Text>
+                                )}
+                            </TouchableOpacity>
+                        );
+                    })}
                 </View>
             </ScrollView>
 
