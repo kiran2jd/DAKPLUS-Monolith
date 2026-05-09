@@ -307,11 +307,12 @@ public class QuestionExtractionService {
                             userMessage = new org.springframework.ai.chat.messages.UserMessage(
                                 "Extract all questions from this image. \n\n" +
                                 "IMPORTANT RULES for this Image:\n" +
-                                "1. If the image contains a DIAGRAM (figure), extract the question text and options into the JSON fields.\n" +
-                                "2. Use the exact placeholder `" + placeholder + "` in the 'imageUrl' field of the JSON for any question that refers to this figure.\n" +
-                                "3. SMART CROP: Identify the bounding box of ONLY the diagram/figure part of the image (exclude the text of the question/options). \n" +
-                                "   Return this in a new field `diagram_bbox`: [ymin, xmin, ymax, xmax] where values are 0-1000.\n" +
-                                "4. Output ONLY the valid JSON list.",
+                                "1. Extract the question text and options into the JSON fields.\n" +
+                                "2. Use the exact placeholder `" + placeholder + "` in the 'imageUrl' field.\n" +
+                                "3. SMART CROP (CRITICAL): Identify the bounding box of ONLY the diagram/figure. \n" +
+                                "   - The box MUST encapsulate all lines, vertices, and edges of the shape.\n" +
+                                "   - BE GENEROUS: It is better to include a little extra white space than to cut the shape.\n" +
+                                "   - Return `diagram_bbox`: [ymin, xmin, ymax, xmax] (values 0-1000).",
                                 java.util.List.of(media)
                             );
                         } else {

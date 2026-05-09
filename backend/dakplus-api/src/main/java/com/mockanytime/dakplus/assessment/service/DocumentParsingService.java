@@ -248,9 +248,9 @@ public class DocumentParsingService {
             int y2 = (bbox.get(2) * height) / 1000;
             int x2 = (bbox.get(3) * width) / 1000;
             
-            // Apply 5% padding to avoid cutting off edges
-            int padX = (int)(width * 0.05);
-            int padY = (int)(height * 0.05);
+            // Apply 10% padding to avoid cutting off edges (user reported edges still gone at 5%)
+            int padX = (int)(width * 0.10);
+            int padY = (int)(height * 0.10);
             
             x1 = Math.max(0, x1 - padX);
             y1 = Math.max(0, y1 - padY);
@@ -265,7 +265,7 @@ public class DocumentParsingService {
             BufferedImage cropped = original.getSubimage(x1, y1, cropWidth, cropHeight);
             String ext = fileName.substring(fileName.lastIndexOf(".") + 1);
             ImageIO.write(cropped, ext, imagePath.toFile());
-            System.out.println("SMART CROP: Successfully cropped " + fileName + " with padding. Original box: " + bbox);
+            System.out.println("SMART CROP: Successfully cropped " + fileName + " with 10% padding. Original box: " + bbox);
             
         } catch (IOException e) {
             System.err.println("SMART CROP ERROR: " + e.getMessage());
