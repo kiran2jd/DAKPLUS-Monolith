@@ -52,7 +52,7 @@ export const topicService = {
 
         const response = await api.post('files/upload', formData, {
             headers: {
-                'Content-Type': 'multipart/form-data',
+                Accept: 'application/json'
             },
         });
         return response.data;
