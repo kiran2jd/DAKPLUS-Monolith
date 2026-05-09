@@ -19,6 +19,13 @@ import java.io.InputStream;
 @Service
 public class DocumentParsingService {
 
+    @org.springframework.beans.factory.annotation.Value("${app.upload.dir:uploads}")
+    private String uploadDir;
+
+    private java.nio.file.Path getUploadPath() {
+        return java.nio.file.Paths.get(uploadDir).toAbsolutePath().normalize();
+    }
+
     public com.mockanytime.dakplus.assessment.dto.DocumentExtractionResult extractText(MultipartFile file) throws IOException {
         return extractTextFromBytes(file.getBytes(), file.getOriginalFilename());
     }
@@ -95,14 +102,24 @@ public class DocumentParsingService {
                             if (picData != null) {
                                 String ext = picData.suggestFileExtension();
                                 String mimeType = "image/" + (ext.equals("jpg") ? "jpeg" : ext);
-                                String base64 = java.util.Base64.getEncoder().encodeToString(picData.getData());
-                                String dataUrl = "data:" + mimeType + ";base64," + base64;
+                                String imageId = java.util.UUID.randomUUID().toString();
+                                String fileName = imageId + "." + ext;
+                                java.nio.file.Path filePath = getUploadPath().resolve(fileName);
                                 
-                                String imageId = "IMG_" + java.util.UUID.randomUUID().toString().substring(0, 8);
-                                imageMap.put("[IMAGE_ID: " + imageId + "]", dataUrl);
+                                // Ensure upload directory exists
+                                if (!java.nio.file.Files.exists(getUploadPath())) {
+                                    java.nio.file.Files.createDirectories(getUploadPath());
+                                }
                                 
-                                fullText.append("\n[IMAGE_ID: ").append(imageId).append("]\n");
-                                System.out.println("Extracted inline image: " + imageId);
+                                // Save file to disk
+                                java.nio.file.Files.write(filePath, picData.getData());
+                                
+                                String imageUrl = "/api/files/download/" + fileName;
+                                String placeholder = "[IMAGE_ID: " + imageId + "]";
+                                imageMap.put(placeholder, imageUrl);
+                                
+                                fullText.append("\n").append(placeholder).append("\n");
+                                System.out.println("Saved extracted image: " + fileName);
                             }
                         }
                     }

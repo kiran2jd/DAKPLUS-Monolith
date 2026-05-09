@@ -331,25 +331,29 @@ public class QuestionExtractionService {
                     if (q.getExplanation() == null) q.setExplanation("");
                     if (q.getExplanationHi() == null) q.setExplanationHi("");
                     
-                    // Replace Image Placeholders with Base64 Strings everywhere
+                    // Replace Image Placeholders with stored URLs
                     if (imageMap != null && !imageMap.isEmpty()) {
-                        if (q.getImageUrl() != null && q.getImageUrl().trim().startsWith("[IMAGE_ID:") && imageMap.containsKey(q.getImageUrl().trim())) {
+                        if (q.getImageUrl() != null && imageMap.containsKey(q.getImageUrl().trim())) {
                             q.setImageUrl(imageMap.get(q.getImageUrl().trim()));
                         }
                         
                         if (q.getText() != null) {
-                            for (Map.Entry<String, String> entry : imageMap.entrySet()) {
-                                if (q.getText().contains(entry.getKey())) q.setText(q.getText().replace(entry.getKey(), entry.getValue()));
+                            for (java.util.Map.Entry<String, String> entry : imageMap.entrySet()) {
+                                if (q.getText().contains(entry.getKey())) {
+                                    q.setText(q.getText().replace(entry.getKey(), entry.getValue()));
+                                }
                             }
                         }
                         
                         if (q.getOptions() != null) {
-                            List<String> newOpts = new ArrayList<>();
+                            java.util.List<String> newOpts = new java.util.ArrayList<>();
                             for (String opt : q.getOptions()) {
                                 String modifiedOpt = opt;
                                 if (modifiedOpt != null) {
-                                    for (Map.Entry<String, String> entry : imageMap.entrySet()) {
-                                        if (modifiedOpt.contains(entry.getKey())) modifiedOpt = modifiedOpt.replace(entry.getKey(), entry.getValue());
+                                    for (java.util.Map.Entry<String, String> entry : imageMap.entrySet()) {
+                                        if (modifiedOpt.contains(entry.getKey())) {
+                                            modifiedOpt = modifiedOpt.replace(entry.getKey(), entry.getValue());
+                                        }
                                     }
                                 }
                                 newOpts.add(modifiedOpt);
@@ -359,8 +363,10 @@ public class QuestionExtractionService {
                         
                         if (q.getCorrectAnswer() != null) {
                             String modifiedAns = q.getCorrectAnswer();
-                            for (Map.Entry<String, String> entry : imageMap.entrySet()) {
-                                if (modifiedAns.contains(entry.getKey())) modifiedAns = modifiedAns.replace(entry.getKey(), entry.getValue());
+                            for (java.util.Map.Entry<String, String> entry : imageMap.entrySet()) {
+                                if (modifiedAns.contains(entry.getKey())) {
+                                    modifiedAns = modifiedAns.replace(entry.getKey(), entry.getValue());
+                                }
                             }
                             q.setCorrectAnswer(modifiedAns);
                         }
