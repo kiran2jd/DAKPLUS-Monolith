@@ -386,27 +386,22 @@ public class QuestionExtractionService {
     private String sanitizeAndParseJson(String response, boolean isList) {
         if (response == null || response.isBlank()) return isList ? "{\"questions\":[]}" : "{}";
         
-        response = response.trim();
+        // 1. Find the first occurrence of { or [ to bypass markdown/text preamble
+        int firstBrace = response.indexOf("{");
+        int firstBracket = response.indexOf("[");
+        int start = -1;
         
-        // 1. Remove Markdown code blocks
-        if (response.contains("```")) {
-            // Find the first occurrence of { or [
-            int firstBrace = response.indexOf("{");
-            int firstBracket = response.indexOf("[");
-            int start = -1;
+        if (firstBrace != -1 && (firstBracket == -1 || firstBrace < firstBracket)) start = firstBrace;
+        else if (firstBracket != -1) start = firstBracket;
+        
+        if (start != -1) {
+            // Find the last occurrence of } or ] to bypass post-JSON text
+            int lastBrace = response.lastIndexOf("}");
+            int lastBracket = response.lastIndexOf("]");
+            int end = Math.max(lastBrace, lastBracket);
             
-            if (firstBrace != -1 && (firstBracket == -1 || firstBrace < firstBracket)) start = firstBrace;
-            else if (firstBracket != -1) start = firstBracket;
-            
-            if (start != -1) {
-                // Find the last occurrence of } or ]
-                int lastBrace = response.lastIndexOf("}");
-                int lastBracket = response.lastIndexOf("]");
-                int end = Math.max(lastBrace, lastBracket);
-                
-                if (end > start) {
-                    response = response.substring(start, end + 1);
-                }
+            if (end > start) {
+                response = response.substring(start, end + 1);
             }
         }
         

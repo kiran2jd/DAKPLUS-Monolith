@@ -4,6 +4,7 @@ import { testService } from '../services/test';
 import { resultService } from '../services/result';
 import { Clock, ChevronLeft, ChevronRight, CheckCircle, Flag } from 'lucide-react';
 import ReportModal from '../components/ReportModal';
+import { getImageURL } from '../services/api';
 
 export default function TakeTestPage() {
     const { testId } = useParams();
@@ -308,7 +309,7 @@ export default function TakeTestPage() {
                         {question.imageUrl && (
                             <div className="mb-8 rounded-2xl overflow-hidden border-2 border-dashed border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-700/50 p-4 flex justify-center group">
                                 <img
-                                    src={question.imageUrl}
+                                    src={getImageURL(question.imageUrl)}
                                     alt="Question Diagram"
                                     className="max-h-[400px] object-contain transition group-hover:scale-[1.02]"
                                 />

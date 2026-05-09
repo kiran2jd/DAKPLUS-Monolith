@@ -46,4 +46,11 @@ api.interceptors.request.use((config) => {
     return config;
 });
 
+export const getImageURL = (url) => {
+    if (!url) return '';
+    if (url.startsWith('http')) return url;
+    const base = (import.meta.env.VITE_API_BASE_URL || 'http://localhost:1010/api').replace('/api', '');
+    return `${base}${url}`;
+};
+
 export default api;
