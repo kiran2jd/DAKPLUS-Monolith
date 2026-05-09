@@ -46,6 +46,13 @@ api.interceptors.request.use(async (config) => {
         config.headers.Authorization = `Bearer ${token}`;
     }
 
+    // Force Axios to recalculate Content-Type for FormData to ensure boundary is present
+    if (config.data instanceof FormData) {
+        if (config.headers['Content-Type']) {
+            delete config.headers['Content-Type'];
+        }
+    }
+
     const userStr = await SecureStore.getItemAsync('user');
     if (userStr) {
         const user = JSON.parse(userStr);
