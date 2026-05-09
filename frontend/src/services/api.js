@@ -49,8 +49,11 @@ api.interceptors.request.use((config) => {
 export const getImageURL = (url) => {
     if (!url) return '';
     if (url.startsWith('http')) return url;
-    const base = (import.meta.env.VITE_API_BASE_URL || 'http://localhost:1010/api').replace('/api', '');
-    return `${base}${url}`;
+    const base = import.meta.env.VITE_API_BASE_URL || 'http://localhost:1010/api';
+    // Ensure we don't double slash
+    const cleanBase = base.endsWith('/') ? base.slice(0, -1) : base;
+    const cleanUrl = url.startsWith('/') ? url : `/${url}`;
+    return `${cleanBase}${cleanUrl}`;
 };
 
 export default api;

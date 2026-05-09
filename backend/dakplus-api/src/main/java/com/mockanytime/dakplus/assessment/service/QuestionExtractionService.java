@@ -381,9 +381,8 @@ public class QuestionExtractionService {
                             String cleanId = placeholder.replace("[", "").replace("]", "").replace("IMAGE_ID:", "").trim();
                             String regex = "\\[?\\s*IMAGE_ID:\\s*" + java.util.regex.Pattern.quote(cleanId) + "\\s*\\]?";
                             
-                            if (q.getText() != null) {
-                                q.setText(q.getText().replaceAll(regex, url));
-                            }
+                            // 1. Replace in text, options, and correctAnswer (standard placeholders)
+                            if (q.getText() != null) q.setText(q.getText().replaceAll(regex, url));
                             
                             if (q.getOptions() != null) {
                                 java.util.List<String> newOpts = new java.util.ArrayList<>();
@@ -395,6 +394,27 @@ public class QuestionExtractionService {
                             
                             if (q.getCorrectAnswer() != null) {
                                 q.setCorrectAnswer(q.getCorrectAnswer().replaceAll(regex, url));
+                            }
+
+                            // 2. Specialized handling for imageUrl field
+                            // If the AI put the placeholder, or just the UUID, or just the filename in the imageUrl field
+                            if (q.getImageUrl() != null) {
+                                String currentImgUrl = q.getImageUrl().trim();
+                                // If it's the exact placeholder or contains it
+                                if (currentImgUrl.contains("IMAGE_ID:")) {
+                                    q.setImageUrl(currentImgUrl.replaceAll(regex, url));
+                                } 
+                                // If it's just the UUID or filename and matches this imageId
+                                else if (currentImgUrl.contains(cleanId)) {
+                                    q.setImageUrl(url);
+                                }
+                            }
+                            
+                            // 3. Fallback: If imageUrl is null but text had a placeholder, 
+                            // we might want to move it to imageUrl if the text is now empty or it's clearly a diagram question
+                            if ((q.getImageUrl() == null || q.getImageUrl().isBlank()) && q.getText() != null && q.getText().contains(url)) {
+                                // Optional: logic to extract the URL from text and move to imageUrl
+                                // For now, we trust the AI to put it in imageUrl if we prompted it correctly
                             }
                         }
                     }

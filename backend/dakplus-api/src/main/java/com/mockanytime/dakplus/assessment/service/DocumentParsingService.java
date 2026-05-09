@@ -61,7 +61,7 @@ public class DocumentParsingService {
             java.nio.file.Files.createDirectories(target.getParent());
             java.nio.file.Files.write(target, bytes);
             
-            String imageUrl = "/api/files/download/" + fileName;
+            String imageUrl = "/files/download/" + fileName;
             String placeholder = "[IMAGE_ID: " + imageId + "]";
             result.getImageMap().put(placeholder, imageUrl);
             
@@ -128,7 +128,7 @@ public class DocumentParsingService {
                                 // Save file to disk
                                 java.nio.file.Files.write(filePath, picData.getData());
                                 
-                                String imageUrl = "/api/files/download/" + fileName;
+                                String imageUrl = "/files/download/" + fileName;
                                 String placeholder = "[IMAGE_ID: " + imageId + "]";
                                 imageMap.put(placeholder, imageUrl);
                                 

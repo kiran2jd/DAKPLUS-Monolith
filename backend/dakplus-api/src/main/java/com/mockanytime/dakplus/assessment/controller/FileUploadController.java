@@ -52,7 +52,7 @@ public class FileUploadController {
             // Return file URL
             Map<String, String> response = new HashMap<>();
             // Use the absolute path or a well-defined relative path
-            response.put("url", "/api/files/download/" + fileName);
+            response.put("url", "/files/download/" + fileName);
             response.put("fileName", fileName);
             return ResponseEntity.ok(response);
         } catch (IOException e) {
