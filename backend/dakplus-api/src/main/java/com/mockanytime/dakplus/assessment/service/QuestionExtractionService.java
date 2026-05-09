@@ -90,13 +90,22 @@ public class QuestionExtractionService {
         try {
             OpenAiChatOptions options = OpenAiChatOptions.builder()
                     .withModel("gemini-2.5-flash")
-                    .withMaxTokens(500)
+                    .withMaxTokens(1000)
                     .build();
 
             String response = chatClient.call(new org.springframework.ai.chat.prompt.Prompt(finalPrompt, options))
                     .getResult().getOutput().getContent();
 
             String cleanJson = sanitizeAndParseJson(response, false);
+            // If the JSON is still broken, try one last manual recovery
+            if (!cleanJson.endsWith("}")) {
+                if (cleanJson.contains("\"")) {
+                    if (cleanJson.chars().filter(ch -> ch == '\"').count() % 2 != 0) {
+                        cleanJson += "\"";
+                    }
+                }
+                cleanJson += "}";
+            }
             return mapper.readValue(cleanJson, com.mockanytime.dakplus.assessment.dto.TestMetadataDTO.class);
         } catch (Exception e) {
             System.err.println("Metadata detection failed: " + e.getMessage());
@@ -231,66 +240,63 @@ public class QuestionExtractionService {
         return extractQuestionsWithModel(text, topicId, subtopicId, "gemini-2.5-flash", imageMap);
     }
 
-    /**
-     * Internal method that allows forcing a specific starting model (e.g., Gemini for stability)
-     */
     private List<Question> extractQuestionsWithModel(String text, String topicId, String subtopicId, String startModel, java.util.Map<String, String> imageMap) {
-        String promptString = """
-                Extract all multiple choice questions from the provided text.
-                ONLY EXTRACT ENGLISH CONTENT for now.
-                
-                RULES:
-                1. JSON ONLY.
-                2. "correctAnswer" must match one of the "options" exactly.
-                3. MANDATORY METADATA PRESERVATION: You MUST keep any text in brackets at the end of questions (e.g., "(PA/SA Exam - 2020 UP)"). 
-                   STRICT RULE: DO NOT move this text into the options. It MUST remain in "text".
-                4. Extract EVERY SINGLE question in the text. Do not summarize or skip.
-                5. STRICT 4-OPTION RULE: Ensure you find and extract all 4 options for every question.
-                6. IMAGE HANDLING: If a question has a main image, place the `[IMAGE_ID: <UUID>]` placeholder in the "imageUrl" field. If an OPTION itself is an image, place the `[IMAGE_ID: <UUID>]` placeholder exactly as the string for that option.
-                7. ABSOLUTE REQUIREMENT: You MUST preserve every `[IMAGE_ID: ...]` tag exactly as it appears in the source text. Do not omit them.
-                8. Output ONLY JSON. No surrounding text.
-                
-                FORMAT:
-                {
-                  "questions": [
-                    {
-                      "text": "English question text here... (Metadata in brackets here)",
-                      "options": ["Option 1", "Option 2", "Option 3", "Option 4"],
-                      "correctAnswer": "Option 1",
-                      "imageUrl": "[IMAGE_ID: ...]",
-                      "type": "mcq",
-                      "points": 1
-                    }
-                  ]
-                }
-
-                Text to analyze:
-                {text}
-                """;
-
-        Prompt prompt = new Prompt(promptString.replace("{text}", text));
-        String response = null;
+        String systemPrompt = getSystemPrompt(topicId, subtopicId);
+        
         int maxRetries = 5;
         int attempt = 0;
         String currentModel = startModel; 
+        String response = null;
 
         while (attempt < maxRetries) {
             try {
                 attempt++;
-                org.springframework.ai.chat.prompt.ChatOptions options;
+                OpenAiChatOptions options = OpenAiChatOptions.builder()
+                        .withModel(currentModel.equals("groq-fallback") ? "llama-3.3-70b-versatile" : currentModel)
+                        .withMaxTokens(8192)
+                        .build();
+
+                org.springframework.ai.chat.messages.UserMessage userMessage;
                 
-                ChatModel activeClient = chatClient;
-                if (currentModel.equals("groq-fallback") && groqChatClient != null) {
-                    activeClient = groqChatClient;
-                    options = OpenAiChatOptions.builder().withMaxTokens(8192).build();
-                    System.out.println("Extraction (" + startModel + "): Using Groq (Attempt " + attempt + ")");
+                // VISION SUPPORT: If this is an image extraction request
+                if (text.startsWith("IMAGE_EXTRACTION_REQUEST:") && imageMap != null) {
+                    System.out.println("VISION: Detected Image Extraction Request. Preparing Multimodal Payload...");
+                    String placeholder = text.substring("IMAGE_EXTRACTION_REQUEST:".length()).split("\n")[0].trim();
+                    String relativeUrl = imageMap.get(placeholder);
+                    
+                    if (relativeUrl != null) {
+                        String fileName = relativeUrl.substring(relativeUrl.lastIndexOf("/") + 1);
+                        java.nio.file.Path imagePath = java.nio.file.Paths.get(uploadDir).resolve(fileName).toAbsolutePath();
+                        
+                        if (java.nio.file.Files.exists(imagePath)) {
+                            System.out.println("VISION: Attaching image file: " + imagePath);
+                            byte[] imageBytes = java.nio.file.Files.readAllBytes(imagePath);
+                            String mimeType = fileName.toLowerCase().endsWith(".png") ? "image/png" : "image/jpeg";
+                            
+                            org.springframework.ai.model.Media media = new org.springframework.ai.model.Media(
+                                org.springframework.util.MimeTypeUtils.parseMimeType(mimeType), 
+                                imageBytes
+                            );
+                            
+                            userMessage = new org.springframework.ai.chat.messages.UserMessage(
+                                "Extract the question and options from this image. " + text, 
+                                java.util.List.of(media)
+                            );
+                        } else {
+                            userMessage = new org.springframework.ai.chat.messages.UserMessage(text);
+                        }
+                    } else {
+                        userMessage = new org.springframework.ai.chat.messages.UserMessage(text);
+                    }
                 } else {
-                    options = OpenAiChatOptions.builder().withModel(currentModel).withMaxTokens(8192).build();
-                    System.out.println("Extraction (" + startModel + "): Using model " + currentModel + " (Attempt " + attempt + ")");
+                    userMessage = new org.springframework.ai.chat.messages.UserMessage(text);
                 }
 
-                response = activeClient.call(new Prompt(prompt.getContents(), options))
-                        .getResult().getOutput().getContent();
+                org.springframework.ai.chat.messages.SystemMessage sysMsg = new org.springframework.ai.chat.messages.SystemMessage(systemPrompt);
+                org.springframework.ai.chat.prompt.Prompt prompt = new org.springframework.ai.chat.prompt.Prompt(java.util.List.of(sysMsg, userMessage), options);
+
+                System.out.println("Extraction (" + startModel + "): Using model " + currentModel + " (Attempt " + attempt + ")");
+                response = chatClient.call(prompt).getResult().getOutput().getContent();
                 break;
             } catch (Exception e) {
                 String fullError = e.toString().toLowerCase();
@@ -415,12 +421,26 @@ public class QuestionExtractionService {
         response = response.trim();
         if (!response.endsWith("}") && !response.endsWith("]")) {
             System.out.println("Applying truncated JSON recovery logic...");
-            int lastClosingBrace = response.lastIndexOf("}");
-            if (lastClosingBrace != -1) {
-                response = response.substring(0, lastClosingBrace + 1);
-                if (isList && !response.endsWith("]}") && !response.endsWith("]")) {
-                    response += "]}";
-                }
+            
+            // Check for unclosed quote
+            long quoteCount = response.chars().filter(ch -> ch == '\"').count();
+            if (quoteCount % 2 != 0) {
+                response += "\"";
+            }
+            
+            // Close any open braces/brackets
+            long openBraceCount = response.chars().filter(ch -> ch == '{').count();
+            long closeBraceCount = response.chars().filter(ch -> ch == '}').count();
+            while (closeBraceCount < openBraceCount) {
+                response += "}";
+                closeBraceCount++;
+            }
+            
+            long openBracketCount = response.chars().filter(ch -> ch == '[').count();
+            long closeBracketCount = response.chars().filter(ch -> ch == ']').count();
+            while (closeBracketCount < openBracketCount) {
+                response += "]";
+                closeBracketCount++;
             }
         }
 

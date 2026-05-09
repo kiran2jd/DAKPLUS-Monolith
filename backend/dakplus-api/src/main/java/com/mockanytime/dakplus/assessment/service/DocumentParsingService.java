@@ -53,7 +53,20 @@ public class DocumentParsingService {
         } else if (lowerName.endsWith(".txt")) {
             result.setText(new String(bytes));
         } else if (isImageFile(filename)) {
-            result.setText(performOcr(bytes));
+            // New Image Support: Save image and return placeholder
+            String imageId = java.util.UUID.randomUUID().toString();
+            String ext = lowerName.substring(lowerName.lastIndexOf(".") + 1);
+            String fileName = imageId + "." + ext;
+            java.nio.file.Path target = getUploadPath().resolve(fileName);
+            java.nio.file.Files.createDirectories(target.getParent());
+            java.nio.file.Files.write(target, bytes);
+            
+            String imageUrl = "/api/files/download/" + fileName;
+            String placeholder = "[IMAGE_ID: " + imageId + "]";
+            result.getImageMap().put(placeholder, imageUrl);
+            
+            // Return placeholder as the main text so QuestionExtractionService knows there's an image
+            result.setText("IMAGE_EXTRACTION_REQUEST: " + placeholder + "\n(Extract question and options from this figure)");
         } else {
             try {
                 System.out.println("No clear type detected. Trying PDF fallback parser...");
@@ -69,8 +82,9 @@ public class DocumentParsingService {
     }
 
     private boolean isImageFile(String filename) {
+        if (filename == null) return false;
         String lower = filename.toLowerCase();
-        return lower.endsWith(".png") || lower.endsWith(".jpg") || lower.endsWith(".jpeg") || lower.endsWith(".bmp");
+        return lower.endsWith(".png") || lower.endsWith(".jpg") || lower.endsWith(".jpeg") || lower.endsWith(".webp");
     }
 
     private String extractFromPdf(byte[] bytes) throws IOException {
