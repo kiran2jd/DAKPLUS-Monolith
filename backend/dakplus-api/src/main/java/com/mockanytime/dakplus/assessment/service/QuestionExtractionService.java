@@ -37,6 +37,9 @@ public class QuestionExtractionService {
     @org.springframework.beans.factory.annotation.Autowired
     private TopicService topicService;
 
+    @org.springframework.beans.factory.annotation.Autowired
+    private DocumentParsingService docParsingService;
+
     @Value("${spring.ai.openai.api-key:}")
     private String apiKey;
 
@@ -269,6 +272,7 @@ public class QuestionExtractionService {
         String currentModel = startModel; 
         String response = null;
 
+        String currentImageFileName = null;
         while (attempt < maxRetries) {
             try {
                 attempt++;
@@ -287,6 +291,7 @@ public class QuestionExtractionService {
                     
                     if (relativeUrl != null) {
                         String fileName = relativeUrl.substring(relativeUrl.lastIndexOf("/") + 1);
+                        currentImageFileName = fileName;
                         java.nio.file.Path imagePath = java.nio.file.Paths.get(uploadDir).resolve(fileName).toAbsolutePath();
                         
                         if (java.nio.file.Files.exists(imagePath)) {
@@ -300,7 +305,13 @@ public class QuestionExtractionService {
                             );
                             
                             userMessage = new org.springframework.ai.chat.messages.UserMessage(
-                                "Extract the question and options from this image. " + text, 
+                                "Extract all questions from this image. \n\n" +
+                                "IMPORTANT RULES for this Image:\n" +
+                                "1. If the image contains a DIAGRAM (figure), extract the question text and options into the JSON fields.\n" +
+                                "2. Use the exact placeholder `" + placeholder + "` in the 'imageUrl' field of the JSON for any question that refers to this figure.\n" +
+                                "3. SMART CROP: Identify the bounding box of ONLY the diagram/figure part of the image (exclude the text of the question/options). \n" +
+                                "   Return this in a new field `diagram_bbox`: [ymin, xmin, ymax, xmax] where values are 0-1000.\n" +
+                                "4. Output ONLY the valid JSON list.",
                                 java.util.List.of(media)
                             );
                         } else {
@@ -345,6 +356,26 @@ public class QuestionExtractionService {
 
         try {
             String sanitizedJson = sanitizeAndParseJson(response, true);
+            
+            // SMART CROP HANDLING: Check for diagram_bbox before conversion to Question objects
+            if (currentImageFileName != null) {
+                try {
+                    Map<String, Object> root = mapper.readValue(sanitizedJson, Map.class);
+                    List<Map<String, Object>> qList = (List<Map<String, Object>>) root.get("questions");
+                    if (qList != null && !qList.isEmpty()) {
+                        for (Map<String, Object> qMap : qList) {
+                            if (qMap.containsKey("diagram_bbox")) {
+                                List<Integer> bbox = (List<Integer>) qMap.get("diagram_bbox");
+                                docParsingService.cropImage(currentImageFileName, bbox);
+                                break; // Only need to crop once per image
+                            }
+                        }
+                    }
+                } catch (Exception e) {
+                    System.err.println("SMART CROP: Failed to parse bbox: " + e.getMessage());
+                }
+            }
+
             QuestionList parsed = mapper.readValue(sanitizedJson, QuestionList.class);
             List<Question> questions = parsed.getQuestions();
             if (questions != null) {

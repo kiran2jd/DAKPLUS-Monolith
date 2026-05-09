@@ -229,4 +229,43 @@ public class DocumentParsingService {
             }
         }
     }
+    public void cropImage(String fileName, java.util.List<Integer> bbox) {
+        if (bbox == null || bbox.size() < 4) return;
+        
+        java.nio.file.Path imagePath = getUploadPath().resolve(fileName);
+        if (!java.nio.file.Files.exists(imagePath)) return;
+        
+        try {
+            BufferedImage original = ImageIO.read(imagePath.toFile());
+            if (original == null) return;
+            
+            int width = original.getWidth();
+            int height = original.getHeight();
+            
+            // Gemini coordinates are 0-1000 [ymin, xmin, ymax, xmax]
+            int y1 = (bbox.get(0) * height) / 1000;
+            int x1 = (bbox.get(1) * width) / 1000;
+            int y2 = (bbox.get(2) * height) / 1000;
+            int x2 = (bbox.get(3) * width) / 1000;
+            
+            // Clamp values
+            x1 = Math.max(0, x1);
+            y1 = Math.max(0, y1);
+            x2 = Math.min(width, x2);
+            y2 = Math.min(height, y2);
+            
+            int cropWidth = x2 - x1;
+            int cropHeight = y2 - y1;
+            
+            if (cropWidth <= 0 || cropHeight <= 0) return;
+            
+            BufferedImage cropped = original.getSubimage(x1, y1, cropWidth, cropHeight);
+            String ext = fileName.substring(fileName.lastIndexOf(".") + 1);
+            ImageIO.write(cropped, ext, imagePath.toFile());
+            System.out.println("SMART CROP: Successfully cropped " + fileName + " to diagram box " + bbox);
+            
+        } catch (IOException e) {
+            System.err.println("SMART CROP ERROR: " + e.getMessage());
+        }
+    }
 }
