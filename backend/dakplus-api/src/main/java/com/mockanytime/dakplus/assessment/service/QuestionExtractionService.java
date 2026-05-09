@@ -309,10 +309,10 @@ public class QuestionExtractionService {
                                 "IMPORTANT RULES for this Image:\n" +
                                 "1. Extract text and options into JSON.\n" +
                                 "2. Use placeholder `" + placeholder + "`.\n" +
-                                "3. SMART CROP (SURGICAL): Return `diagram_bbox`: [ymin, xmin, ymax, xmax].\n" +
-                                "   - EXCLUDE ALL TEXT: The box MUST NOT include any words, question text, or option labels (a, b, c, d).\n" +
-                                "   - TIGHT ON SHAPE: Make the box tight around the lines and vertices of the figure only.\n" +
-                                "   - DO NOT cut any lines of the shape.",
+                                "3. SMART CROP: Return `diagram_bbox`: [ymin, xmin, ymax, xmax] (0-1000).\n" +
+                                "   - ENCAPSULATE SHAPE: The box MUST include every single pixel of the figure's lines and vertices.\n" +
+                                "   - INTERNAL MARGIN: Ensure there is a small amount of white space (internal margin) between the shape's edges and your box boundaries.\n" +
+                                "   - EXCLUDE TEXT: If question text is nearby, try to exclude it, but NEVER at the cost of cutting the shape.",
                                 java.util.List.of(media)
                             );
                         } else {
