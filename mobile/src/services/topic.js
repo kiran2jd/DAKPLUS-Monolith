@@ -1,3 +1,4 @@
+import { Platform } from 'react-native';
 import api from './api';
 
 export const topicService = {
@@ -45,9 +46,9 @@ export const topicService = {
     uploadSyllabusFile: async (fileUri, fileName, mimeType) => {
         const formData = new FormData();
         formData.append('file', {
-            uri: fileUri,
-            name: fileName,
-            type: mimeType
+            uri: Platform.OS === 'android' ? fileUri : fileUri.replace('file://', ''),
+            name: fileName || 'image.jpg',
+            type: mimeType || 'image/jpeg'
         });
 
         const response = await api.post('files/upload', formData, {
