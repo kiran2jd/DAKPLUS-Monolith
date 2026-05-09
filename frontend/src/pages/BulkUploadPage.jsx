@@ -124,20 +124,20 @@ export default function BulkUploadPage() {
                 <form onSubmit={handleSubmit} className="space-y-8">
                     {/* File Upload Section */}
                     <div className="relative group">
-                        <label className="block text-sm font-black text-gray-700 dark:text-gray-300 mb-3 uppercase tracking-wider">Select Test Files (PDF, Word, TXT)</label>
+                        <label className="block text-sm font-black text-gray-700 dark:text-gray-300 mb-3 uppercase tracking-wider">Select Test Files (PDF, Word, TXT, JPG, PNG)</label>
                         <div className="border-2 border-dashed border-gray-200 dark:border-gray-700 rounded-2xl p-10 flex flex-col items-center justify-center bg-gray-50/50 dark:bg-gray-800/30 group-hover:bg-gray-50 dark:group-hover:bg-gray-800 transition-all cursor-pointer">
                             <input
                                 type="file"
                                 multiple
                                 onChange={handleFileChange}
                                 className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
-                                accept=".pdf,.doc,.docx,.txt"
+                                accept=".pdf,.doc,.docx,.txt,.jpg,.jpeg,.png,.webp"
                             />
                             <div className="p-4 bg-red-50 dark:bg-red-900/20 rounded-full text-red-600 dark:text-red-400 mb-4 group-hover:scale-110 transition-transform">
                                 <CloudUpload size={40} />
                             </div>
                             <p className="text-gray-600 dark:text-gray-400 font-bold text-lg">Click to select or drag and drop</p>
-                            <p className="text-gray-400 dark:text-gray-500 text-sm mt-1">Support for PDF, Word and Text files</p>
+                            <p className="text-gray-400 dark:text-gray-500 text-sm mt-1">Support for PDF, Word, Images and Text files</p>
                         </div>
                     </div>
 

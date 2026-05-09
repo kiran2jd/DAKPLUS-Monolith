@@ -13,13 +13,17 @@ export default function DocumentUpload({ onQuestionsExtracted, topicId, subtopic
     const handleFileChange = (e) => {
         const selectedFile = e.target.files[0];
         if (selectedFile) {
-            if (selectedFile.type === 'application/pdf' ||
-                selectedFile.type === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document') {
+            const isDocument = selectedFile.type === 'application/pdf' || 
+                             selectedFile.type === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document';
+            const isImage = selectedFile.type.startsWith('image/');
+            const isText = selectedFile.type === 'text/plain';
+
+            if (isDocument || isImage || isText) {
                 setFile(selectedFile);
                 setError('');
                 setSuccess(false);
             } else {
-                setError('Only PDF and DOCX files are supported.');
+                setError('Format not supported. Please use PDF, Word, Images, or Text.');
                 setFile(null);
             }
         }
@@ -34,7 +38,7 @@ export default function DocumentUpload({ onQuestionsExtracted, topicId, subtopic
             const questions = await testService.extractQuestions(file, topicId, subtopicId);
             
             if (!questions || questions.length === 0) {
-                throw new Error("No questions could be extracted. Please ensure the document contains clear MCQ text.");
+                throw new Error("No questions could be extracted. Please ensure the document or image contains clear MCQ content.");
             }
             
             const dups = questions.filter(q => q.isDuplicate).length;
@@ -48,7 +52,7 @@ export default function DocumentUpload({ onQuestionsExtracted, topicId, subtopic
             }
         } catch (err) {
             console.error("Extraction Error:", err);
-            setError(err.message || "Failed to extract questions. Please ensure the document is in the correct format.");
+            setError(err.message || "Failed to extract questions. Please check the file format.");
         } finally {
             setUploading(false);
         }
@@ -59,7 +63,7 @@ export default function DocumentUpload({ onQuestionsExtracted, topicId, subtopic
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-4">
                 <div className="flex items-center space-x-2">
                     <FileText className="text-indigo-600 dark:text-indigo-400" size={20} />
-                    <h3 className="font-semibold text-gray-800 dark:text-gray-100 text-sm sm:text-base">Upload Q&A Document</h3>
+                    <h3 className="font-semibold text-gray-800 dark:text-gray-100 text-sm sm:text-base">Upload Q&A Document or Image</h3>
                 </div>
                 {success && (
                     <span className="text-xs text-green-600 dark:text-green-400 flex items-center">
@@ -69,22 +73,22 @@ export default function DocumentUpload({ onQuestionsExtracted, topicId, subtopic
             </div>
 
             <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 leading-relaxed mb-4">
-                Our advanced AI will scan your document to extract questions, options, and metadata.
-                Supports PDF and Word files.
+                Our advanced AI will scan your file to extract questions, options, and metadata.
+                Supports PDF, Word, JPG, and PNG files.
             </p>
 
                 <div className="relative group">
                     <input
                         type="file"
                         onChange={handleFileChange}
-                        accept=".pdf,.docx,.doc"
+                        accept=".pdf,.docx,.doc,.txt,.jpg,.jpeg,.png,.webp"
                         className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
                     />
                     <div className={`p-4 border border-gray-200 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-800 flex items-center justify-between group-hover:border-indigo-300 transition ${file ? 'border-indigo-500' : ''}`}>
                         <div className="flex items-center space-x-3 overflow-hidden">
                             <Upload size={18} className="text-gray-400" />
                             <span className="text-sm text-gray-500 truncate">
-                                {file ? file.name : "Select PDF or Word file"}
+                                {file ? file.name : "Select File (PDF, Word, or Image)"}
                             </span>
                         </div>
                         <button
