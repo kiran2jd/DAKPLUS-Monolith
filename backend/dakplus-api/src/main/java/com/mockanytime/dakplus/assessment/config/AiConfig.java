@@ -50,6 +50,7 @@ public class AiConfig {
     }
 
     private ChatModel createOpenAiClient(String url, String key, String modelName, Integer tokens) {
+        System.out.println("AI_CLIENT: Creating client for URL: " + url + " (Key length: " + (key != null ? key.length() : 0) + ")");
         OpenAiApi openAiApi = new OpenAiApi(url, key);
         
         OpenAiChatOptions options = OpenAiChatOptions.builder()

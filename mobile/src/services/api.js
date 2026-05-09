@@ -67,6 +67,13 @@ api.interceptors.request.use(async (config) => {
             config.headers['X-Session-Id'] = sessionId;
         }
     }
+
+    // DEBUG: Log header size if large
+    const headerSize = JSON.stringify(config.headers).length;
+    if (headerSize > 8192) {
+        console.warn(`[API] Large headers detected: ${headerSize} bytes`);
+    }
+
     return config;
 });
 
