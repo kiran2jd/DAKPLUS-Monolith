@@ -1,6 +1,9 @@
 server:
   port: ${PORT:1010}
-  max-http-header-size: 65536
+  max-http-header-size: 1048576
+  tomcat:
+    max-http-post-size: 104857600
+    max-swallow-size: 104857600
   servlet:
     context-path: /api
 

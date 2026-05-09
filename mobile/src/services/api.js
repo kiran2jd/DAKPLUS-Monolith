@@ -34,7 +34,7 @@ console.log('Primary API_BASE_URL:', API_BASE_URL);
 const api = axios.create({
     baseURL: API_BASE_URL,
     headers: {
-        'Content-Type': 'application/json',
+        Accept: 'application/json',
     },
     timeout: 60000, // 60 second timeout for mobile data resilience
 });
