@@ -386,6 +386,9 @@ public class QuestionExtractionService {
     private String sanitizeAndParseJson(String response, boolean isList) {
         if (response == null || response.isBlank()) return isList ? "{\"questions\":[]}" : "{}";
         
+        // 0. Remove any leading backticks or markdown markers immediately
+        response = response.replaceAll("^[`\\s]+json", "").replaceAll("^[`\\s]+", "");
+        
         // 1. Find the first occurrence of { or [ to bypass markdown/text preamble
         int firstBrace = response.indexOf("{");
         int firstBracket = response.indexOf("[");
@@ -404,6 +407,9 @@ public class QuestionExtractionService {
                 response = response.substring(start, end + 1);
             }
         }
+        
+        // 1.5 Strip any remaining backticks at the ends
+        response = response.replace("`", "").trim();
         
         // 2. Recovery for truncated JSON
         response = response.trim();
