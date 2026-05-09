@@ -1,5 +1,6 @@
 server:
   port: ${PORT:1010}
+  max-http-header-size: 65536
   servlet:
     context-path: /api
 
