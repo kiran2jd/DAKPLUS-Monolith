@@ -188,8 +188,8 @@ public class QuestionExtractionService {
         for (int i = 0; i < chunks.size(); i++) {
             System.out.println("SMART-ANCHOR: Processing chunk " + (i + 1) + "/" + chunks.size() + "...");
             
-            // For ULTRA-STABLE mode, we force Groq as the fallback model
-            List<Question> chunkQs = extractQuestionsWithModel(chunks.get(i), topicId, subtopicId, "groq-fallback", imageMap);
+            // Start with the primary model (Gemini) - it will fallback to Groq if needed
+            List<Question> chunkQs = extractQuestionsWithModel(chunks.get(i), topicId, subtopicId, "gemini-2.5-flash", imageMap);
             
             if (chunkQs != null) {
                 allQuestions.addAll(chunkQs);
