@@ -308,11 +308,10 @@ public class QuestionExtractionService {
                                 "Extract all questions from this image. \n\n" +
                                 "IMPORTANT RULES for this Image:\n" +
                                 "1. Extract text and options into JSON.\n" +
-                                "2. Use placeholder `" + placeholder + "`.\n" +
-                                "3. SMART CROP: Return `diagram_bbox`: [ymin, xmin, ymax, xmax] (0-1000).\n" +
-                                "   - ENCAPSULATE SHAPE: The box MUST include every single pixel of the figure's lines and vertices.\n" +
-                                "   - INTERNAL MARGIN: Ensure there is a small amount of white space (internal margin) between the shape's edges and your box boundaries.\n" +
-                                "   - EXCLUDE TEXT: If question text is nearby, try to exclude it, but NEVER at the cost of cutting the shape.",
+                                "2. Return `diagram_bbox`: [ymin, xmin, ymax, xmax] for the figure itself.\n" +
+                                "3. Return `text_bboxes`: [[ymin, xmin, ymax, xmax], ...] - a list of boxes for ALL text areas (question, options, headers) that should be removed.\n" +
+                                "4. Use placeholder `" + placeholder + "` in the 'imageUrl' field.\n" +
+                                "5. The goal is to isolate the diagram. Be generous with `text_bboxes` to ensure no words remain.",
                                 java.util.List.of(media)
                             );
                         } else {
@@ -358,22 +357,24 @@ public class QuestionExtractionService {
         try {
             String sanitizedJson = sanitizeAndParseJson(response, true);
             
-            // SMART CROP HANDLING: Check for diagram_bbox before conversion to Question objects
+            // SURGICAL MASK HANDLING: Remove text and crop to diagram
             if (currentImageFileName != null) {
                 try {
                     Map<String, Object> root = mapper.readValue(sanitizedJson, Map.class);
                     List<Map<String, Object>> qList = (List<Map<String, Object>>) root.get("questions");
                     if (qList != null && !qList.isEmpty()) {
                         for (Map<String, Object> qMap : qList) {
-                            if (qMap.containsKey("diagram_bbox")) {
-                                List<Integer> bbox = (List<Integer>) qMap.get("diagram_bbox");
-                                docParsingService.cropImage(currentImageFileName, bbox);
-                                break; // Only need to crop once per image
+                            List<Integer> diagramBbox = (List<Integer>) qMap.get("diagram_bbox");
+                            List<List<Integer>> textBboxes = (List<List<Integer>>) qMap.get("text_bboxes");
+                            
+                            if (diagramBbox != null || textBboxes != null) {
+                                docParsingService.maskAndCropImage(currentImageFileName, diagramBbox, textBboxes);
+                                break; // Only need to process the image once
                             }
                         }
                     }
                 } catch (Exception e) {
-                    System.err.println("SMART CROP: Failed to parse bbox: " + e.getMessage());
+                    System.err.println("SURGICAL MASK: Failed to process image: " + e.getMessage());
                 }
             }
 

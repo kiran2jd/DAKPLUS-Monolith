@@ -229,9 +229,7 @@ public class DocumentParsingService {
             }
         }
     }
-    public void cropImage(String fileName, java.util.List<Integer> bbox) {
-        if (bbox == null || bbox.size() < 4) return;
-        
+    public void maskAndCropImage(String fileName, java.util.List<Integer> diagramBbox, java.util.List<java.util.List<Integer>> textBboxes) {
         java.nio.file.Path imagePath = getUploadPath().resolve(fileName);
         if (!java.nio.file.Files.exists(imagePath)) return;
         
@@ -241,34 +239,61 @@ public class DocumentParsingService {
             
             int width = original.getWidth();
             int height = original.getHeight();
+            Graphics2D g = original.createGraphics();
+            g.setColor(Color.WHITE);
             
-            // Gemini coordinates are 0-1000 [ymin, xmin, ymax, xmax]
-            int y1 = (bbox.get(0) * height) / 1000;
-            int x1 = (bbox.get(1) * width) / 1000;
-            int y2 = (bbox.get(2) * height) / 1000;
-            int x2 = (bbox.get(3) * width) / 1000;
+            // 1. Mask out text areas with white
+            if (textBboxes != null) {
+                for (java.util.List<Integer> bbox : textBboxes) {
+                    if (bbox.size() >= 4) {
+                        int ty1 = (bbox.get(0) * height) / 1000;
+                        int tx1 = (bbox.get(1) * width) / 1000;
+                        int ty2 = (bbox.get(2) * height) / 1000;
+                        int tx2 = (bbox.get(3) * width) / 1000;
+                        g.fillRect(tx1, ty1, tx2 - tx1, ty2 - ty1);
+                    }
+                }
+            }
+            g.dispose();
             
-            // Use a 7% padding for the perfect balance (user reported 5% cuts edges, 10% takes text)
-            int padX = (int)(width * 0.07);
-            int padY = (int)(height * 0.07);
+            // 2. Crop to diagram with generous padding (since text is masked, we can be loose)
+            if (diagramBbox != null && diagramBbox.size() >= 4) {
+                int y1 = (diagramBbox.get(0) * height) / 1000;
+                int x1 = (diagramBbox.get(1) * width) / 1000;
+                int y2 = (diagramBbox.get(2) * height) / 1000;
+                int x2 = (diagramBbox.get(3) * width) / 1000;
+                
+                // Generous 15% padding (safe now because text is whited out!)
+                int padX = (int)(width * 0.15);
+                int padY = (int)(height * 0.15);
+                
+                x1 = Math.max(0, x1 - padX);
+                y1 = Math.max(0, y1 - padY);
+                x2 = Math.min(width, x2 + padX);
+                y2 = Math.min(height, y2 + padY);
+                
+                int cropWidth = x2 - x1;
+                int cropHeight = y2 - y1;
+                
+                if (cropWidth > 0 && cropHeight > 0) {
+                    BufferedImage cropped = original.getSubimage(x1, y1, cropWidth, cropHeight);
+                    String ext = fileName.substring(fileName.lastIndexOf(".") + 1);
+                    ImageIO.write(cropped, ext, imagePath.toFile());
+                } else {
+                    // Fallback: save masked but uncropped
+                    String ext = fileName.substring(fileName.lastIndexOf(".") + 1);
+                    ImageIO.write(original, ext, imagePath.toFile());
+                }
+            } else {
+                // Save masked but uncropped
+                String ext = fileName.substring(fileName.lastIndexOf(".") + 1);
+                ImageIO.write(original, ext, imagePath.toFile());
+            }
             
-            x1 = Math.max(0, x1 - padX);
-            y1 = Math.max(0, y1 - padY);
-            x2 = Math.min(width, x2 + padX);
-            y2 = Math.min(height, y2 + padY);
-            
-            int cropWidth = x2 - x1;
-            int cropHeight = y2 - y1;
-            
-            if (cropWidth <= 0 || cropHeight <= 0) return;
-            
-            BufferedImage cropped = original.getSubimage(x1, y1, cropWidth, cropHeight);
-            String ext = fileName.substring(fileName.lastIndexOf(".") + 1);
-            ImageIO.write(cropped, ext, imagePath.toFile());
-            System.out.println("SMART CROP: Successfully cropped " + fileName + " with 7% padding. Original box: " + bbox);
+            System.out.println("SURGICAL MASK: Successfully cleaned " + fileName);
             
         } catch (IOException e) {
-            System.err.println("SMART CROP ERROR: " + e.getMessage());
+            System.err.println("SURGICAL MASK ERROR: " + e.getMessage());
         }
     }
 }
