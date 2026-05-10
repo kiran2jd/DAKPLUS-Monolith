@@ -675,10 +675,11 @@ const styles = StyleSheet.create({
     },
     langText: {
         color: '#ffffff',
-        fontSize: 10,
-        borderWidth: 1,
-        borderColor: '#e2e8f0',
-        backgroundColor: '#f8fafc',
+        fontSize: 12,
+        fontWeight: 'bold',
+    },
+    activeLangText: {
+        color: '#dc2626',
     },
     activeReason: {
         backgroundColor: '#dc2626',
