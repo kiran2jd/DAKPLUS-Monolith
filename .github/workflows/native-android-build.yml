@@ -44,22 +44,40 @@ jobs:
 
       - name: 🔗 Generate Public Share Link
         run: |
+          # Disable exit on error temporarily
+          set +e
+          
           APK_PATH=$(find mobile/android/app/build/outputs/apk/release/ -name "*.apk" | head -n 1)
           echo "Uploading $APK_PATH..."
           
-          # Try file.io (very reliable)
-          RESPONSE=$(curl -s -F "file=@$APK_PATH" https://file.io)
-          DOWNLOAD_URL=$(echo $RESPONSE | jq -r '.link')
+          if [ -z "$APK_PATH" ]; then
+            echo "No APK found to upload!"
+            exit 0
+          fi
           
-          if [ "$DOWNLOAD_URL" != "null" ] && [ -n "$DOWNLOAD_URL" ]; then
+          # Try bashupload first as it's more reliable for CI runners
+          echo "Trying bashupload.com..."
+          BASH_URL=$(curl -s -T "$APK_PATH" https://bashupload.com/dakplus-app.apk | grep -o 'https://bashupload.com/[a-zA-Z0-9_-]*')
+          
+          if [ -n "$BASH_URL" ]; then
             echo "----------------------------------------------------------------"
-            echo "PUBLIC DOWNLOAD LINK: $DOWNLOAD_URL"
-            echo "Note: This link works for ONE download only for security."
+            echo "PUBLIC DOWNLOAD LINK: $BASH_URL"
             echo "----------------------------------------------------------------"
           else
-            echo "file.io failed, trying bashupload..."
-            BASH_URL=$(curl -s -T "$APK_PATH" https://bashupload.com/dakplus-app.apk)
-            echo "----------------------------------------------------------------"
-            echo "PUBLIC DOWNLOAD LINK (Fallback): $BASH_URL"
-            echo "----------------------------------------------------------------"
+            echo "bashupload failed, trying file.io..."
+            RESPONSE=$(curl -s -F "file=@$APK_PATH" https://file.io)
+            # Safely parse JSON
+            DOWNLOAD_URL=$(echo "$RESPONSE" | jq -r '.link // empty' 2>/dev/null)
+            
+            if [ -n "$DOWNLOAD_URL" ]; then
+              echo "----------------------------------------------------------------"
+              echo "PUBLIC DOWNLOAD LINK: $DOWNLOAD_URL"
+              echo "Note: This link works for ONE download only for security."
+              echo "----------------------------------------------------------------"
+            else
+              echo "Failed to generate public share link from both providers."
+            fi
           fi
+          
+          # Re-enable exit on error
+          set -e
