@@ -163,8 +163,8 @@ export default function ResultScreen({ navigation, route }) {
                 >
                     <Text style={styles.resultStatus}>{isPassed ? 'Congratulations!' : 'Keep Trying!'}</Text>
                     <View style={styles.scoreCircle}>
-                        <Text style={styles.percentage}>{Math.round(result.percentage)}%</Text>
-                        <Text style={styles.scoreText}>{result.score}/{result.totalPoints}</Text>
+                        <Text style={styles.percentage}>{Math.round(result.percentage || 0)}%</Text>
+                        <Text style={styles.scoreText}>{result.score || 0}/{result.totalPoints || 0}</Text>
                     </View>
                     <Text style={styles.testTitle}>{result.testTitle}</Text>
                     

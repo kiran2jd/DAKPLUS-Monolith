@@ -442,6 +442,7 @@ export default function TakeTestScreen({ navigation, route }) {
                         style={StyleSheet.absoluteFillObject}
                     />
                     <Text style={[styles.navButtonText, styles.nextButtonText]}>
+                        {currentQuestion === test.questions.length - 1 ? 'Submit' : 'Next'}
                     </Text>
                 </TouchableOpacity>
             </View>

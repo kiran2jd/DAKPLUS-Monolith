@@ -31,6 +31,10 @@ public class TestService {
         return testRepository.findAll();
     }
 
+    public List<TestSummary> getAllTestsSummary() {
+        return testRepository.findAllSummary();
+    }
+
     public List<Test> getTestsByCourse(String courseId) {
         return testRepository.findByCourseIdsContaining(courseId);
     }
