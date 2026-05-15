@@ -8,8 +8,9 @@ import {
     Dimensions,
     TouchableOpacity,
     Image,
+    ScrollView,
+    Alert,
 } from 'react-native';
-import { ScrollView } from 'react-native-gesture-handler';
 import { LinearGradient } from 'expo-linear-gradient';
 import { resultService } from '../services/result';
 import { authService } from '../services/auth';
@@ -251,7 +252,7 @@ export default function ResultScreen({ navigation, route }) {
                         </LinearGradient>
                     </TouchableOpacity>
 
-                    {user?.role?.toLowerCase() === 'student' && user?.subscriptionTier !== 'PREMIUM' && (
+                    {(user?.role || '').toLowerCase() === 'student' && user?.subscriptionTier !== 'PREMIUM' && (
                         <TouchableOpacity
                             style={styles.proCard}
                             onPress={() => navigation.navigate('Payment')}
@@ -313,22 +314,22 @@ export default function ResultScreen({ navigation, route }) {
                     </View>
 
                     {filteredAnswers.length > 0 ? filteredAnswers.map((detail, idx) => (
-                        <View key={idx} style={[styles.reviewCard, { borderColor: detail.correct ? '#059669' : '#dc2626' }]}>
+                        <View key={idx} style={[styles.reviewCard, { borderColor: detail?.correct ? '#059669' : '#dc2626' }]}>
                             <Text style={styles.reviewQuestion}>
-                                {idx + 1}. {language === 'hi' && detail.questionTextHi ? detail.questionTextHi : detail.questionText}
+                                {idx + 1}. {language === 'hi' && detail?.questionTextHi ? detail.questionTextHi : detail?.questionText}
                             </Text>
                             <View style={styles.answerRow}>
-                                {detail.userAnswer && detail.userAnswer.startsWith('data:image/') ? (
+                                {detail?.userAnswer && detail.userAnswer.startsWith('data:image/') ? (
                                     <View style={{ flex: 1 }}>
-                                        <Text style={[styles.answerText, { color: detail.correct ? '#059669' : '#dc2626', marginBottom: 4 }]}>Your Answer:</Text>
+                                        <Text style={[styles.answerText, { color: detail?.correct ? '#059669' : '#dc2626', marginBottom: 4 }]}>Your Answer:</Text>
                                         <Image source={{ uri: detail.userAnswer }} style={{ width: 100, height: 60, borderRadius: 8, backgroundColor: '#f8fafc' }} resizeMode="contain" />
                                     </View>
                                 ) : (
-                                    <Text style={[styles.answerText, { color: detail.correct ? '#059669' : '#dc2626' }]}>
-                                        Your Answer: {detail.userAnswer}
+                                    <Text style={[styles.answerText, { color: detail?.correct ? '#059669' : '#dc2626' }]}>
+                                        Your Answer: {detail?.userAnswer}
                                     </Text>
                                 )}
-                                {detail.correct ? (
+                                {detail?.correct ? (
                                     <Text style={styles.correctBadge}>✓ Correct</Text>
                                 ) : (
                                     <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
@@ -343,26 +344,26 @@ export default function ResultScreen({ navigation, route }) {
                                     </View>
                                 )}
                             </View>
-                            {!detail.correct && (
-                                detail.correctAnswer && detail.correctAnswer.startsWith('data:image/') ? (
+                            {!detail?.correct && (
+                                detail?.correctAnswer && detail.correctAnswer.startsWith('data:image/') ? (
                                     <View style={{ marginTop: 8 }}>
                                         <Text style={styles.correctAnswerText}>Correct Answer:</Text>
                                         <Image source={{ uri: detail.correctAnswer }} style={{ width: 100, height: 60, borderRadius: 8, backgroundColor: '#f8fafc' }} resizeMode="contain" />
                                     </View>
                                 ) : (
-                                    <Text style={styles.correctAnswerText}>Correct Answer: {detail.correctAnswer}</Text>
+                                    <Text style={styles.correctAnswerText}>Correct Answer: {detail?.correctAnswer}</Text>
                                 )
                             )}
                             {/* Check multiple possible field names for explanations */}
-                            {(detail.explanation || detail.shortAnswer || detail.comment || detail.explanationHi) && (
+                            {(detail?.explanation || detail?.shortAnswer || detail?.comment || detail?.explanationHi) && (
                                 <View style={styles.explanationBox}>
                                     <Text style={styles.explanationTitle}>
                                         {language === 'hi' ? 'फीडबैक / व्याख्या:' : 'Feedback / Explanation:'}
                                     </Text>
                                     <Text style={styles.explanationText}>
-                                        {language === 'hi' && detail.explanationHi 
+                                        {language === 'hi' && detail?.explanationHi 
                                             ? detail.explanationHi 
-                                            : (detail.explanation || detail.shortAnswer || detail.comment)}
+                                            : (detail?.explanation || detail?.shortAnswer || detail?.comment)}
                                     </Text>
                                 </View>
                             )}

@@ -338,8 +338,9 @@ public class QuestionExtractionService {
                 // Fallback Sequence
                 boolean isGatewayError = fullError.contains("text/html") || fullError.contains("content type [text/html]") || fullError.contains("502");
                 boolean isRateLimit = fullError.contains("rate_limit_exceeded") || fullError.contains("429") || fullError.contains("overloaded");
+                boolean isHighDemand = fullError.contains("503") || fullError.contains("high demand") || fullError.contains("unavailable") || fullError.contains("transientai");
                 
-                if (isGatewayError || isRateLimit) {
+                if (isGatewayError || isRateLimit || isHighDemand) {
                     if (currentModel.equals("gemini-2.5-flash") && groqChatClient != null) {
                         currentModel = "groq-fallback";
                         attempt = 0;
@@ -347,7 +348,12 @@ public class QuestionExtractionService {
                     }
                 }
 
-                if (attempt >= maxRetries) return List.of();
+                if (attempt >= maxRetries) {
+                    if (isRateLimit || isHighDemand) {
+                        throw new com.mockanytime.dakplus.assessment.exception.AiRateLimitException("API Quota or Demand Exceeded. Wait time required.", 60);
+                    }
+                    return List.of();
+                }
                 try { Thread.sleep(5000 * attempt); } catch (InterruptedException ignored) {}
             }
         }
@@ -816,9 +822,10 @@ public class QuestionExtractionService {
                 // Detection for gateway errors (text/html) or rate limits (429)
                 boolean isGatewayError = fullError.contains("text/html") || fullError.contains("content type [text/html]");
                 boolean isRateLimit = fullError.contains("rate_limit_exceeded") || fullError.contains("429");
+                boolean isHighDemand = fullError.contains("503") || fullError.contains("high demand") || fullError.contains("unavailable") || fullError.contains("transientai");
                 
-                if ((isGatewayError || isRateLimit) && groqChatClient != null && !currentModel.equals("groq-fallback")) {
-                    System.out.println("ALERT: Provider returned HTML/RateLimit. Switching to Groq Fallback...");
+                if ((isGatewayError || isRateLimit || isHighDemand) && groqChatClient != null && !currentModel.equals("groq-fallback")) {
+                    System.out.println("ALERT: Provider returned HTML/RateLimit/503. Switching to Groq Fallback...");
                     currentModel = "groq-fallback";
                     attempt = 0; // Reset attempts for the new model
                     continue;
@@ -920,6 +927,7 @@ public class QuestionExtractionService {
                         .getResult().getOutput().getContent();
                 break;
             } catch (Exception e) {
+                String fullError = e.toString().toLowerCase();
                 String errorMsg = e.getMessage() != null ? e.getMessage() : "Unknown Error";
                 System.err.println("Enrichment Groq call attempt " + attempt + " failed for question: " + errorMsg);
                 
@@ -929,15 +937,18 @@ public class QuestionExtractionService {
                 }
 
                 long waitTime = 20000; // Default substantial wait for enrichment
-                if (errorMsg.contains("rate_limit_exceeded") || errorMsg.contains("429")) {
+                boolean isRateLimit = fullError.contains("rate_limit_exceeded") || fullError.contains("429");
+                boolean isHighDemand = fullError.contains("503") || fullError.contains("high demand") || fullError.contains("unavailable") || fullError.contains("transientai");
+                
+                if (isRateLimit || isHighDemand) {
                     java.util.regex.Matcher m = java.util.regex.Pattern.compile("again in ([\\d\\.]+)s").matcher(errorMsg);
                     if (m.find()) {
                         waitTime = (long) (Double.parseDouble(m.group(1)) * 1000) + 3000; // Add 3s safety buffer
                     }
-                    System.out.println("Rate limit detected during enrichment. Backing off for " + waitTime + "ms...");
+                    System.out.println("Rate limit or High Demand detected during enrichment. Backing off for " + waitTime + "ms...");
                     
                     if (groqChatClient != null && (currentModel == null || !currentModel.equals("groq-fallback"))) {
-                        System.out.println("Switching Enrichment to Groq to bypass rate limit.");
+                        System.out.println("Switching Enrichment to Groq to bypass rate limit/high demand.");
                         currentModel = "groq-fallback";
                         waitTime = 1000;
                     }
