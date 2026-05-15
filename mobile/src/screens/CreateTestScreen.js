@@ -189,8 +189,8 @@ export default function CreateTestScreen({ navigation }) {
     };
 
     const handleCreate = async () => {
-        if (!title || questions.some(q => !q.text || !q.correctAnswer)) {
-            Alert.alert('Error', 'Please fill in all required fields and ensure each question has a correct answer.');
+        if (!title || questions.some(q => (!q.text && !q.imageUrl) || !q.correctAnswer)) {
+            Alert.alert('Error', 'Please provide either question text or an image, and ensure each question has a correct answer.');
             return;
         }
 

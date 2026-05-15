@@ -318,6 +318,13 @@ export default function ResultScreen({ navigation, route }) {
                             <Text style={styles.reviewQuestion}>
                                 {idx + 1}. {language === 'hi' && detail?.questionTextHi ? detail.questionTextHi : detail?.questionText}
                             </Text>
+                            {detail?.questionImageUrl && (
+                                <Image 
+                                    source={{ uri: detail.questionImageUrl }} 
+                                    style={{ width: '100%', height: 200, borderRadius: 12, backgroundColor: '#f8fafc', marginBottom: 16 }} 
+                                    resizeMode="contain" 
+                                />
+                            )}
                             <View style={styles.answerRow}>
                                 {detail?.userAnswer && detail.userAnswer.startsWith('data:image/') ? (
                                     <View style={{ flex: 1 }}>

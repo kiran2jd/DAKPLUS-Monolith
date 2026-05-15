@@ -73,6 +73,7 @@ public class ResultService {
             Result.AnswerDetail detail = new Result.AnswerDetail(
                     q.getId(),
                     q.getText(),
+                    q.getImageUrl(),
                     userAnswer != null ? userAnswer : "Not Answered",
                     correctAnswer,
                     q.getExplanation(),

@@ -14,7 +14,10 @@ import {
     Switch,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
+import { Ionicons } from '@expo/vector-icons';
+import * as DocumentPicker from 'expo-document-picker';
 import { testService } from '../services/test';
+import { topicService } from '../services/topic';
 
 export default function EditTestScreen({ navigation, route }) {
     const { testId } = route.params;
@@ -49,7 +52,9 @@ export default function EditTestScreen({ navigation, route }) {
                     options: q.options || ['', '', '', ''],
                     correctAnswer: q.correctAnswer,
                     explanation: q.explanation || '',
-                    points: q.points || 1
+                    points: q.points || 1,
+                    imageUrl: q.imageUrl || '',
+                    isUploading: false
                 })));
             }
         } catch (err) {
@@ -61,7 +66,7 @@ export default function EditTestScreen({ navigation, route }) {
     };
 
     const addQuestion = () => {
-        setQuestions([...questions, { text: '', options: ['', '', '', ''], correctAnswer: '', explanation: '', points: 1 }]);
+        setQuestions([...questions, { text: '', options: ['', '', '', ''], correctAnswer: '', explanation: '', points: 1, imageUrl: '', isUploading: false }]);
     };
 
     const updateQuestion = (index, field, value) => {
@@ -74,6 +79,30 @@ export default function EditTestScreen({ navigation, route }) {
         setQuestions(newQuestions);
     };
 
+    const pickQuestionImage = async (index) => {
+        try {
+            const result = await DocumentPicker.getDocumentAsync({
+                type: 'image/*',
+                copyToCacheDirectory: true
+            });
+
+            if (!result.canceled && result.assets && result.assets.length > 0) {
+                const asset = result.assets[0];
+                updateQuestion(index, 'isUploading', true);
+                try {
+                    const res = await topicService.uploadSyllabusFile(asset.uri, asset.name, asset.mimeType);
+                    updateQuestion(index, 'imageUrl', res.url);
+                } catch (err) {
+                    Alert.alert('Error', 'Image upload failed');
+                } finally {
+                    updateQuestion(index, 'isUploading', false);
+                }
+            }
+        } catch (err) {
+            Alert.alert('Error', 'Failed to pick image');
+        }
+    };
+
     const toggleCourse = (id) => {
         setCourseIds(prev => 
             prev.includes(id) ? prev.filter(c => c !== id) : [...prev, id]
@@ -81,8 +110,8 @@ export default function EditTestScreen({ navigation, route }) {
     };
 
     const handleUpdate = async () => {
-        if (!title || questions.some(q => !q.text || !q.correctAnswer)) {
-            Alert.alert('Error', 'Please fill in all required fields and ensure each question has a correct answer.');
+        if (!title || questions.some(q => (!q.text && !q.imageUrl) || !q.correctAnswer)) {
+            Alert.alert('Error', 'Please provide either question text or an image, and ensure each question has a correct answer.');
             return;
         }
 
@@ -213,6 +242,24 @@ export default function EditTestScreen({ navigation, route }) {
                                     placeholder="Enter question text..."
                                     placeholderTextColor="#94a3b8"
                                 />
+
+                                <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 15, gap: 10, marginTop: 10 }}>
+                                    <TouchableOpacity 
+                                        style={[styles.smallImgBtn, q.imageUrl ? styles.imgPicked : null]} 
+                                        onPress={() => pickQuestionImage(qIdx)}
+                                        disabled={q.isUploading}
+                                    >
+                                        <Ionicons name="image-outline" size={16} color={q.imageUrl ? '#10b981' : '#64748b'} />
+                                        <Text style={[styles.smallImgBtnText, q.imageUrl ? styles.imgPickedText : null]}>
+                                            {q.isUploading ? '...' : (q.imageUrl ? 'Image Added' : 'Add Image')}
+                                        </Text>
+                                    </TouchableOpacity>
+                                    {q.imageUrl && (
+                                        <TouchableOpacity onPress={() => updateQuestion(qIdx, 'imageUrl', '')}>
+                                            <Ionicons name="close-circle" size={18} color="#f87171" />
+                                        </TouchableOpacity>
+                                    )}
+                                </View>
                                 {q.options.map((opt, oIdx) => (
                                     <View key={oIdx} style={styles.optionRow}>
                                         <TouchableOpacity
@@ -395,5 +442,28 @@ const styles = StyleSheet.create({
     },
     courseChipSelected: { backgroundColor: '#dc2626', borderColor: '#dc2626' },
     courseChipText: { color: '#475569', fontSize: 13, fontWeight: '600' },
-    courseChipTextSelected: { color: '#fff', fontWeight: 'bold' }
+    courseChipTextSelected: { color: '#fff', fontWeight: 'bold' },
+    smallImgBtn: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        backgroundColor: '#ffffff',
+        paddingVertical: 6,
+        paddingHorizontal: 10,
+        borderRadius: 8,
+        borderWidth: 1,
+        borderColor: '#e2e8f0',
+        gap: 6
+    },
+    imgPicked: {
+        backgroundColor: 'rgba(16, 185, 129, 0.1)',
+        borderColor: '#10b981'
+    },
+    smallImgBtnText: {
+        color: '#64748b',
+        fontSize: 10,
+        fontWeight: 'bold'
+    },
+    imgPickedText: {
+        color: '#10b981'
+    }
 });

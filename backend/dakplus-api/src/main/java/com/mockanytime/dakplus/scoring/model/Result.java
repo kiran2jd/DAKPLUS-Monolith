@@ -40,6 +40,7 @@ public class Result {
     public static class AnswerDetail {
         private String questionId;
         private String questionText;
+        private String questionImageUrl; // Add image support for review
         private String userAnswer;
         private String correctAnswer;
         private String explanation;
@@ -49,11 +50,12 @@ public class Result {
         public AnswerDetail() {
         }
 
-        public AnswerDetail(String questionId, String questionText, String userAnswer, String correctAnswer, String explanation,
+        public AnswerDetail(String questionId, String questionText, String questionImageUrl, String userAnswer, String correctAnswer, String explanation,
                 boolean isCorrect,
                 int points) {
             this.questionId = questionId;
             this.questionText = questionText;
+            this.questionImageUrl = questionImageUrl;
             this.userAnswer = userAnswer;
             this.correctAnswer = correctAnswer;
             this.explanation = explanation;
@@ -76,6 +78,14 @@ public class Result {
 
         public void setQuestionText(String questionText) {
             this.questionText = questionText;
+        }
+
+        public String getQuestionImageUrl() {
+            return questionImageUrl;
+        }
+
+        public void setQuestionImageUrl(String questionImageUrl) {
+            this.questionImageUrl = questionImageUrl;
         }
 
         public String getUserAnswer() {
