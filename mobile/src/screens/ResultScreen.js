@@ -10,6 +10,8 @@ import {
     Image,
     ScrollView,
     Alert,
+    Modal,
+    TextInput
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { resultService } from '../services/result';

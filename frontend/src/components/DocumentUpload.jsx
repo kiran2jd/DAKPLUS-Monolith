@@ -48,10 +48,30 @@ export default function DocumentUpload({ onQuestionsExtracted, topicId, subtopic
                 setProgress(prev => ({ ...prev, current: i + 1 }));
                 const file = files[i];
                 
-                const questions = await testService.extractQuestions(file, topicId, subtopicId);
-                if (questions && questions.length > 0) {
-                    allExtracted = [...allExtracted, ...questions];
-                    totalDups += questions.filter(q => q.isDuplicate).length;
+                let attempt = 0;
+                let processed = false;
+                
+                while (attempt < 2 && !processed) {
+                    try {
+                        const questions = await testService.extractQuestions(file, topicId, subtopicId);
+                        if (questions && questions.length > 0) {
+                            allExtracted = [...allExtracted, ...questions];
+                            totalDups += questions.filter(q => q.isDuplicate).length;
+                        }
+                        processed = true;
+                    } catch (err) {
+                        const isRateLimit = err.response && err.response.status === 429;
+                        if (isRateLimit && attempt === 0) {
+                            const waitTime = err.response.data?.waitTimeSeconds || 5;
+                            console.warn(`Rate limit reached, waiting ${waitTime}s before retry...`);
+                            // Wait the required time plus a 1-second buffer
+                            await new Promise(r => setTimeout(r, (waitTime + 1) * 1000));
+                            attempt++;
+                        } else {
+                            console.error(`Failed to process ${file.name}:`, err);
+                            break; // Skip this file and move to the next
+                        }
+                    }
                 }
             }
             
