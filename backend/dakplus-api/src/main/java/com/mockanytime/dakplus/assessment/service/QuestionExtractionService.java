@@ -307,11 +307,11 @@ public class QuestionExtractionService {
                             userMessage = new org.springframework.ai.chat.messages.UserMessage(
                                 "Extract all questions from this image. \n\n" +
                                 "IMPORTANT RULES for this Image:\n" +
-                                "1. Extract text and options into JSON.\n" +
-                                "2. Return `diagram_bbox`: [ymin, xmin, ymax, xmax] for the figure itself.\n" +
-                                "3. Return `text_bboxes`: [[ymin, xmin, ymax, xmax], ...] - a list of boxes for ALL text areas (question, options, headers) that should be removed.\n" +
-                                "4. Use placeholder `" + placeholder + "` in the 'imageUrl' field.\n" +
-                                "5. The goal is to isolate the diagram. Be generous with `text_bboxes` to ensure no words remain.",
+                                "1. Extract the question text, options, and correctAnswer into the JSON `questions` array.\n" +
+                                "2. Use placeholder `" + placeholder + "` in the 'imageUrl' field for each extracted question.\n" +
+                                "3. Inside EACH question object in the array, if there is a distinct figure/diagram, return `diagram_bbox`: [ymin, xmin, ymax, xmax] AND `text_bboxes`: [[ymin, xmin, ymax, xmax], ...] for all text that should be removed from the image to isolate the diagram.\n" +
+                                "4. Ensure that the text and options are successfully extracted. Do not return an empty questions array unless there are no questions.\n" +
+                                "5. Output strictly JSON.",
                                 java.util.List.of(media)
                             );
                         } else {
@@ -500,27 +500,41 @@ public class QuestionExtractionService {
         // 2. Recovery for truncated JSON
         response = response.trim();
         if (!response.endsWith("}") && !response.endsWith("]")) {
-            System.out.println("Applying truncated JSON recovery logic...");
-            
-            // Check for unclosed quote
-            long quoteCount = response.chars().filter(ch -> ch == '\"').count();
-            if (quoteCount % 2 != 0) {
+            System.out.println("Applying stack-based truncated JSON recovery...");
+            java.util.Stack<Character> stack = new java.util.Stack<>();
+            boolean inString = false;
+            boolean escape = false;
+            for (int i = 0; i < response.length(); i++) {
+                char c = response.charAt(i);
+                if (escape) {
+                    escape = false;
+                    continue;
+                }
+                if (c == '\\') {
+                    escape = true;
+                    continue;
+                }
+                if (c == '"') {
+                    inString = !inString;
+                    continue;
+                }
+                if (!inString) {
+                    if (c == '{' || c == '[') {
+                        stack.push(c);
+                    } else if (c == '}') {
+                        if (!stack.isEmpty() && stack.peek() == '{') stack.pop();
+                    } else if (c == ']') {
+                        if (!stack.isEmpty() && stack.peek() == '[') stack.pop();
+                    }
+                }
+            }
+            if (inString) {
                 response += "\"";
             }
-            
-            // Close any open braces/brackets
-            long openBraceCount = response.chars().filter(ch -> ch == '{').count();
-            long closeBraceCount = response.chars().filter(ch -> ch == '}').count();
-            while (closeBraceCount < openBraceCount) {
-                response += "}";
-                closeBraceCount++;
-            }
-            
-            long openBracketCount = response.chars().filter(ch -> ch == '[').count();
-            long closeBracketCount = response.chars().filter(ch -> ch == ']').count();
-            while (closeBracketCount < openBracketCount) {
-                response += "]";
-                closeBracketCount++;
+            while (!stack.isEmpty()) {
+                char c = stack.pop();
+                if (c == '{') response += "}";
+                else if (c == '[') response += "]";
             }
         }
 
