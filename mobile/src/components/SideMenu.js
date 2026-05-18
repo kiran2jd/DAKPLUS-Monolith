@@ -65,7 +65,6 @@ const SideMenu = (props) => {
             { label: 'Topic Matrix', icon: 'apps-outline', route: 'TopicManagement' },
             { label: 'Bulk Upload', icon: 'cloud-upload-outline', route: 'BulkUpload' }
         ] : []),
-        { label: 'My Purchases', icon: 'card-outline', route: 'MyPurchases' },
         { label: 'Support Center', icon: 'help-circle-outline', route: 'Help' },
     ];
 

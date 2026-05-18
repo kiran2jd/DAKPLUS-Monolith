@@ -190,21 +190,6 @@ export default function StudentDashboard() {
             </div>
 
             <div className="max-w-7xl mx-auto px-6 py-8 md:px-8">
-                {/* Premium Banner */}
-                {!isPro && (
-                    <div className="mb-6 rounded-2xl overflow-hidden shadow-lg bg-gradient-to-r from-amber-500 to-red-600 p-6 flex flex-col md:flex-row justify-between items-center gap-4">
-                        <div className="text-center md:text-left">
-                            <h3 className="text-white text-xl font-bold mb-1">Unlock All Benefits</h3>
-                            <p className="text-white/90 text-sm">Unlimited tests, detailed analysis & PRO badge</p>
-                        </div>
-                        <button
-                            onClick={() => navigate('/payment')}
-                            className="bg-white text-red-600 font-bold px-8 py-2 rounded-xl hover:bg-gray-100 transition shadow-lg w-full md:w-auto"
-                        >
-                            Upgrade Now
-                        </button>
-                    </div>
-                )}
 
                 {/* Vertical Hierarchical Navigation */}
                 <div className="mb-10 space-y-4">

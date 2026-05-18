@@ -12,7 +12,6 @@ import StudentDashboard from './pages/StudentDashboard';
 import CreateTestPage from './pages/CreateTestPage';
 import TakeTestPage from './pages/TakeTestPage';
 import ResultPage from './pages/ResultPage';
-import PaymentPage from './pages/PaymentPage';
 import SyllabusPage from './pages/SyllabusPage';
 import TopicManagementPage from './pages/TopicManagementPage';
 import ProtectedRoute from './components/ProtectedRoute';
@@ -65,12 +64,6 @@ function App() {
           <Route path="edit-test/:testId" element={<EditTestPage />} />
           <Route path="profile" element={<ProfilePage />} />
         </Route>
-
-        <Route path="/payment" element={
-          <ProtectedRoute>
-            <PaymentPage />
-          </ProtectedRoute>
-        } />
 
         <Route path="/dashboard/take-test/:testId" element={
           <ProtectedRoute allowedRoles={['student', 'teacher', 'admin', 'TEACHER', 'STUDENT']}>

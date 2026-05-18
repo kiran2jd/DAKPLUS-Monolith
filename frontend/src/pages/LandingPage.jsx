@@ -17,7 +17,6 @@ export default function LandingPage() {
                     <div className="hidden md:flex space-x-8 text-gray-600 dark:text-gray-300 font-medium">
                         <a href="#features" className="hover:text-red-600 dark:hover:text-red-400 transition">Features</a>
                         <a href="#testimonials" className="hover:text-red-600 dark:hover:text-red-400 transition">Stories</a>
-                        <a href="#pricing" className="hover:text-red-600 dark:hover:text-red-400 transition">Pricing</a>
                     </div>
                     <div className="flex space-x-4">
                         <Link to="/login" className="px-5 py-2 text-red-600 dark:text-red-400 font-semibold hover:bg-red-50 dark:hover:bg-red-900/20 rounded-full transition">
@@ -60,25 +59,6 @@ export default function LandingPage() {
                         </Link>
                     </div>
 
-                    {/* Stats */}
-                    <div className="mt-16 grid grid-cols-2 md:grid-cols-4 gap-8 max-w-4xl mx-auto border-t border-gray-100 dark:border-gray-800 pt-8">
-                        <div>
-                            <div className="text-3xl font-bold text-gray-900 dark:text-white">50k+</div>
-                            <div className="text-sm text-gray-500 dark:text-gray-400 font-medium">Active Students</div>
-                        </div>
-                        <div>
-                            <div className="text-3xl font-bold text-gray-900 dark:text-white">1.2M</div>
-                            <div className="text-sm text-gray-500 dark:text-gray-400 font-medium">Tests Taken</div>
-                        </div>
-                        <div>
-                            <div className="text-3xl font-bold text-gray-900 dark:text-white">98%</div>
-                            <div className="text-sm text-gray-500 dark:text-gray-400 font-medium">Pass Rate</div>
-                        </div>
-                        <div>
-                            <div className="text-3xl font-bold text-gray-900 dark:text-white">24/7</div>
-                            <div className="text-sm text-gray-500 dark:text-gray-400 font-medium">AI Support</div>
-                        </div>
-                    </div>
                 </div>
             </div>
 
@@ -154,49 +134,7 @@ export default function LandingPage() {
                 </div>
             </div>
 
-            {/* Exam Categories: Free vs Premium */}
-            <div className="py-24 bg-gray-50 dark:bg-gray-900 transition-colors" id="pricing">
-                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                    <div className="text-center mb-16">
-                        <h2 className="text-4xl font-extrabold text-gray-900 dark:text-white">Choose Your Path to Success</h2>
-                        <p className="mt-4 text-xl text-gray-600 dark:text-gray-400">Start for free, upgrade for the ultimate edge.</p>
-                    </div>
 
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-5xl mx-auto">
-                        {/* Free Tier */}
-                        <div className="bg-white dark:bg-gray-800 rounded-3xl shadow-xl overflow-hidden border-2 border-transparent hover:border-gray-200 dark:hover:border-gray-700 transition relative">
-                            <div className="p-10">
-                                <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">Free Starter</h3>
-                                <p className="text-gray-500 dark:text-gray-400 mb-6">Perfect for testing the waters.</p>
-                                <div className="text-5xl font-extrabold text-gray-900 dark:text-white mb-8">$0<span className="text-xl text-gray-500 dark:text-gray-400 font-medium">/mo</span></div>
-                                <ul className="space-y-4 mb-8">
-                                    <li className="flex items-center text-gray-600 dark:text-gray-300"><CheckCircle className="h-5 w-5 text-green-500 mr-3" /> 5 Mock Tests per Month</li>
-                                    <li className="flex items-center text-gray-600 dark:text-gray-300"><CheckCircle className="h-5 w-5 text-green-500 mr-3" /> Basic Score Analysis</li>
-                                    <li className="flex items-center text-gray-600 dark:text-gray-300"><CheckCircle className="h-5 w-5 text-green-500 mr-3" /> Community Forum Access</li>
-                                </ul>
-                                <Link to="/signup" className="block w-full py-4 bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-white font-bold rounded-xl text-center hover:bg-gray-200 dark:hover:bg-gray-600 transition">Get Started Free</Link>
-                            </div>
-                        </div>
-
-                        {/* Premium Tier */}
-                        <div className="bg-gray-900 dark:bg-black rounded-3xl shadow-2xl overflow-hidden border-2 border-red-500 relative transform md:-translate-y-4 transition-transform">
-                            <div className="absolute top-0 right-0 bg-red-500 text-white text-xs font-bold px-3 py-1 uppercase tracking-wide rounded-bl-xl">Recommended</div>
-                            <div className="p-10">
-                                <h3 className="text-2xl font-bold text-white mb-2">Premium Pro</h3>
-                                <p className="text-gray-400 mb-6">For serious aspirants.</p>
-                                <div className="text-5xl font-extrabold text-white mb-8">$29<span className="text-xl text-gray-400 font-medium">/mo</span></div>
-                                <ul className="space-y-4 mb-8">
-                                    <li className="flex items-center text-gray-300"><CheckCircle className="h-5 w-5 text-indigo-400 mr-3" /> Unlimited Premium Mock Tests</li>
-                                    <li className="flex items-center text-gray-300"><CheckCircle className="h-5 w-5 text-indigo-400 mr-3" /> AI-Driven Weakness Analysis</li>
-                                    <li className="flex items-center text-gray-300"><CheckCircle className="h-5 w-5 text-indigo-400 mr-3" /> 1-on-1 Expert Mentorship Call</li>
-                                    <li className="flex items-center text-gray-300"><CheckCircle className="h-5 w-5 text-indigo-400 mr-3" /> Guaranteed Pass or Refund</li>
-                                </ul>
-                                <Link to="/payment" className="block w-full py-4 bg-indigo-600 text-white font-bold rounded-xl text-center hover:bg-indigo-700 transition shadow-lg shadow-indigo-500/30">Unlock Premium</Link>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
 
             {/* Special Guidance & Content */}
             <div className="py-24 bg-white dark:bg-gray-900 transition-colors">
