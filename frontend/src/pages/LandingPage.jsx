@@ -1,6 +1,7 @@
 import { Link } from 'react-router-dom';
 import logo from '../assets/logo.png';
-import { ArrowRight, CheckCircle, Smartphone, Globe, Shield, Star, Users, Zap } from 'lucide-react';
+import appMockup from '../assets/app-mockup.png';
+import { ArrowRight, CheckCircle, Smartphone, Globe, Shield, Star, Users, Zap, BookOpen } from 'lucide-react';
 
 export default function LandingPage() {
     return (
@@ -47,7 +48,7 @@ export default function LandingPage() {
                         </span>
                     </h1>
                     <p className="text-lg md:text-xl text-gray-600 dark:text-gray-300 max-w-2xl mx-auto mb-8 md:mb-10 leading-relaxed px-4">
-                        Join 50,000+ students acing their tests. Experience real-time simulations, detailed analytics, and a user interface designed for success.
+                        Join thousands of postal aspirants preparing for their promotion exams. Experience real-time simulations, detailed analytics, and a user interface designed for success.
                     </p>
                     <div className="flex flex-col sm:flex-row justify-center space-y-4 sm:space-y-0 sm:space-x-6">
                         <Link to="/signup" className="group px-8 py-4 bg-gray-900 dark:bg-white dark:text-gray-900 text-white text-lg font-bold rounded-xl shadow-xl hover:bg-gray-800 dark:hover:bg-gray-100 transition flex items-center justify-center">
@@ -107,18 +108,38 @@ export default function LandingPage() {
                 </div>
             </div>
 
+            {/* Exams We Cover Section */}
+            <div className="py-16 bg-white dark:bg-gray-900 border-b border-gray-100 dark:border-gray-800 transition-colors">
+                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+                    <h2 className="text-3xl font-extrabold text-gray-900 dark:text-white mb-10">Departmental Exams We Cover</h2>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+                        {[
+                            { title: "GDS to MTS", target: "Multi Tasking Staff" },
+                            { title: "GDS/MTS to Postman", target: "Postman & Mail Guard" },
+                            { title: "MTS/Postman to PA/SA", target: "Postal & Sorting Assistant" },
+                            { title: "Inspector of Posts", target: "Inspector (IP)" }
+                        ].map((exam, i) => (
+                            <div key={i} className="bg-gray-50 dark:bg-gray-800/50 rounded-2xl p-6 border border-gray-100 dark:border-gray-700 hover:border-red-500 dark:hover:border-red-500 transition-all group">
+                                <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2 group-hover:text-red-600 dark:group-hover:text-red-400 transition-colors">{exam.title}</h3>
+                                <p className="text-sm text-gray-500 dark:text-gray-400 font-medium">For promotion to {exam.target}</p>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            </div>
+
             {/* Features Grid */}
             <div className="bg-gray-50 dark:bg-gray-900/50 py-24 transition-colors" id="features">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                     <div className="text-center mb-16">
-                        <h2 className="text-indigo-600 dark:text-indigo-400 font-semibold tracking-wide uppercase text-sm">Features</h2>
-                        <h2 className="mt-2 text-4xl font-extrabold text-gray-900 dark:text-white">Everything you need to excel</h2>
+                        <h2 className="text-red-600 dark:text-red-400 font-semibold tracking-wide uppercase text-sm">Why DAK Plus?</h2>
+                        <h2 className="mt-2 text-4xl font-extrabold text-gray-900 dark:text-white">Built exclusively for Postal Employees</h2>
                     </div>
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-12">
                         {[
-                            { icon: <Globe className="h-6 w-6 text-white" />, color: "bg-blue-500", title: "Assessment Analytics", desc: "Get detailed insights into your performance with our advanced AI scoring engine." },
-                            { icon: <Smartphone className="h-6 w-6 text-white" />, color: "bg-green-500", title: "Mobile Friendly", desc: "Take tests on any device with our fully responsive design. Learn on the go." },
-                            { icon: <Shield className="h-6 w-6 text-white" />, color: "bg-purple-500", title: "Secure Testing", desc: "Advanced proctoring features to ensure integrity during exams." }
+                            { icon: <BookOpen className="h-6 w-6 text-white" />, color: "bg-blue-500", title: "Up-to-Date Syllabus", desc: "Constantly updated with the latest PO Guide Part 1 & 2, Postal Manuals, and IT Modernization Project 2.0." },
+                            { icon: <Smartphone className="h-6 w-6 text-white" />, color: "bg-green-500", title: "Learn During Shifts", desc: "Working long hours at the branch? Our mobile-first design lets you practice 10-minute quizzes during your commute or breaks." },
+                            { icon: <Globe className="h-6 w-6 text-white" />, color: "bg-purple-500", title: "Bilingual Support", desc: "Practice mock tests and review detailed explanations in both English and your regional language." }
                         ].map((feature, i) => (
                             <div key={i} className="bg-white dark:bg-gray-800 p-8 rounded-2xl shadow-sm hover:shadow-xl transition-all duration-300 border border-gray-100 dark:border-gray-700 group">
                                 <div className={`w-14 h-14 ${feature.color} rounded-xl flex items-center justify-center mb-6 shadow-lg transform group-hover:scale-110 transition-transform`}>
@@ -130,6 +151,37 @@ export default function LandingPage() {
                                 </p>
                             </div>
                         ))}
+                    </div>
+                </div>
+            </div>
+
+            {/* Career Progression Roadmap */}
+            <div className="py-24 bg-white dark:bg-gray-900 transition-colors border-t border-gray-100 dark:border-gray-800">
+                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                    <div className="text-center mb-16">
+                        <h2 className="text-3xl font-extrabold text-gray-900 dark:text-white">Your Path to Success in India Post</h2>
+                        <p className="mt-4 text-xl text-gray-600 dark:text-gray-400">DAK Plus supports your entire career journey.</p>
+                    </div>
+                    <div className="relative max-w-4xl mx-auto">
+                        {/* Connecting Line */}
+                        <div className="hidden md:block absolute top-1/2 left-0 w-full h-1 bg-red-100 dark:bg-red-900/30 -translate-y-1/2 z-0"></div>
+                        
+                        <div className="grid grid-cols-1 md:grid-cols-4 gap-8 relative z-10">
+                            {[
+                                { step: "1", role: "GDS", text: "Start your journey", active: false },
+                                { step: "2", role: "MTS", text: "First promotion", active: false },
+                                { step: "3", role: "Postman", text: "Field operations", active: false },
+                                { step: "4", role: "PA / SA", text: "Clerical mastery", active: true }
+                            ].map((item, i) => (
+                                <div key={i} className="flex flex-col items-center text-center">
+                                    <div className={`w-16 h-16 rounded-full flex items-center justify-center text-xl font-bold mb-4 shadow-lg transition-transform hover:scale-110 ${item.active ? 'bg-red-600 text-white border-4 border-white dark:border-gray-900' : 'bg-white dark:bg-gray-800 text-gray-500 dark:text-gray-400 border-4 border-gray-100 dark:border-gray-700'}`}>
+                                        {item.step}
+                                    </div>
+                                    <h4 className={`text-lg font-bold ${item.active ? 'text-red-600 dark:text-red-400' : 'text-gray-900 dark:text-white'}`}>{item.role}</h4>
+                                    <p className="text-sm text-gray-500 dark:text-gray-400 mt-2">{item.text}</p>
+                                </div>
+                            ))}
+                        </div>
                     </div>
                 </div>
             </div>
@@ -171,14 +223,8 @@ export default function LandingPage() {
                                 </div>
                             </div>
                         </div>
-                        <div className="relative h-96 bg-gray-100 dark:bg-gray-800 rounded-3xl overflow-hidden shadow-lg border border-gray-200 dark:border-gray-700 transition-colors">
-                            {/* Decorative placeholder for a UI screenshot or illustration */}
-                            <div className="absolute inset-0 flex items-center justify-center text-gray-400 dark:text-gray-500 transition-colors">
-                                <div className="text-center">
-                                    <Shield className="h-20 w-20 mx-auto mb-4 opacity-50" />
-                                    <span className="font-semibold">Interactive Mentorship Dashboard</span>
-                                </div>
-                            </div>
+                        <div className="relative h-96 rounded-3xl overflow-hidden shadow-2xl border-4 border-gray-100 dark:border-gray-800 transition-colors transform hover:scale-105 duration-500">
+                            <img src={appMockup} alt="DAK Plus App Dashboard" className="w-full h-full object-cover" />
                         </div>
                     </div>
                 </div>
