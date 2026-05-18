@@ -194,12 +194,12 @@ export default function LandingPage() {
                             <div className="flex text-yellow-400 mb-4 space-x-1">
                                 {[1, 2, 3, 4, 5].map(i => <Star key={i} className="h-5 w-5 fill-current" />)}
                             </div>
-                            <p className="text-xl italic text-gray-300 mb-6">"DAK Plus helped me crack my AWS certification. The analytics are a game changer! I knew exactly where to focus."</p>
+                            <p className="text-xl italic text-gray-300 mb-6">"DAK Plus helped me crack the Inspector of Posts exam. The detailed analytics showed me exactly which topics I was weak in so I could focus my study time efficiently."</p>
                             <div className="flex items-center justify-center space-x-4">
-                                <div className="h-12 w-12 bg-indigo-500 rounded-full flex items-center justify-center font-bold text-xl">S</div>
+                                <div className="h-12 w-12 bg-indigo-500 rounded-full flex items-center justify-center font-bold text-xl">R</div>
                                 <div className="text-left">
-                                    <div className="font-bold">Sarah Jenkins</div>
-                                    <div className="text-sm text-gray-400">Computer Science Student</div>
+                                    <div className="font-bold">Rahul Sharma</div>
+                                    <div className="text-sm text-gray-400">Postal Assistant</div>
                                 </div>
                             </div>
                         </div>
@@ -207,12 +207,12 @@ export default function LandingPage() {
                             <div className="flex text-yellow-400 mb-4 space-x-1">
                                 {[1, 2, 3, 4, 5].map(i => <Star key={i} className="h-5 w-5 fill-current" />)}
                             </div>
-                            <p className="text-xl italic text-gray-300 mb-6">"The interface is so smooth and easy to use. I love the dark mode options and the real-time feedback."</p>
+                            <p className="text-xl italic text-gray-300 mb-6">"The interface is so smooth and easy to use on my phone. Practicing the GDS to MTS mock tests on the go was exactly what I needed to clear the exam!"</p>
                             <div className="flex items-center justify-center space-x-4">
-                                <div className="h-12 w-12 bg-purple-500 rounded-full flex items-center justify-center font-bold text-xl">M</div>
+                                <div className="h-12 w-12 bg-purple-500 rounded-full flex items-center justify-center font-bold text-xl">P</div>
                                 <div className="text-left">
-                                    <div className="font-bold">Mike Thompson</div>
-                                    <div className="text-sm text-gray-400">Software Engineer</div>
+                                    <div className="font-bold">Priya Patel</div>
+                                    <div className="text-sm text-gray-400">GDS Postmaster</div>
                                 </div>
                             </div>
                         </div>
