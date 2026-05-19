@@ -5,6 +5,7 @@ import LandingPage from './pages/LandingPage';
 import LoginPage from './pages/LoginPage';
 import SignupPage from './pages/SignupPage';
 import ProfilePage from './pages/ProfilePage';
+import PrivacyPolicyPage from './pages/PrivacyPolicyPage';
 
 import DashboardLayout from './components/DashboardLayout';
 import TeacherDashboard from './pages/TeacherDashboard';
@@ -45,6 +46,7 @@ function App() {
         <Route path="/" element={<LandingPage />} />
         <Route path="/login" element={<><Navbar /><LoginPage /></>} />
         <Route path="/signup" element={<><Navbar /><SignupPage /></>} />
+        <Route path="/privacy-policy" element={<><Navbar /><PrivacyPolicyPage /></>} />
 
         <Route path="/dashboard" element={
           <ProtectedRoute>

@@ -43,7 +43,7 @@ export default function Footer() {
                         <ul className="space-y-2">
                             <li><a href="mailto:support@dakplus.in" className="text-gray-500 dark:text-gray-400 hover:text-primary transition text-sm">Help Center</a></li>
                             <li><Link to="#" className="text-gray-500 dark:text-gray-400 hover:text-primary transition text-sm">Terms of Service</Link></li>
-                            <li><Link to="#" className="text-gray-500 dark:text-gray-400 hover:text-primary transition text-sm">Privacy Policy</Link></li>
+                            <li><Link to="/privacy-policy" className="text-gray-500 dark:text-gray-400 hover:text-primary transition text-sm">Privacy Policy</Link></li>
                             <li><Link to="#" className="text-gray-500 dark:text-gray-400 hover:text-primary transition text-sm">Refund Policy</Link></li>
                         </ul>
                     </div>
