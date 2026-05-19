@@ -24,7 +24,7 @@
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#ffffff"
       },
-      "package": "com.kiran2jd.dakplus"
+      "package": "com.dakplus"
     },
     "web": {
       "favicon": "./assets/favicon.png"
