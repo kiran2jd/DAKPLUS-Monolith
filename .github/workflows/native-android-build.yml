@@ -36,11 +36,21 @@ jobs:
         working-directory: mobile/android
         run: ./gradlew assembleRelease
 
+      - name: 📦 Build App Bundle (AAB)
+        working-directory: mobile/android
+        run: ./gradlew bundleRelease
+
       - name: 📤 Upload APK to GitHub Artifacts
         uses: actions/upload-artifact@v4
         with:
           name: dakplus-stable-apk
           path: mobile/android/app/build/outputs/apk/release/*.apk
+
+      - name: 📤 Upload AAB to GitHub Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: dakplus-playstore-aab
+          path: mobile/android/app/build/outputs/bundle/release/*.aab
 
       - name: 🔗 Generate Public Share Link
         run: |
