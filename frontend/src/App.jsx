@@ -6,6 +6,7 @@ import LoginPage from './pages/LoginPage';
 import SignupPage from './pages/SignupPage';
 import ProfilePage from './pages/ProfilePage';
 import PrivacyPolicyPage from './pages/PrivacyPolicyPage';
+import PaymentPage from './pages/PaymentPage';
 
 import DashboardLayout from './components/DashboardLayout';
 import TeacherDashboard from './pages/TeacherDashboard';
@@ -47,6 +48,7 @@ function App() {
         <Route path="/login" element={<><Navbar /><LoginPage /></>} />
         <Route path="/signup" element={<><Navbar /><SignupPage /></>} />
         <Route path="/privacy-policy" element={<><Navbar /><PrivacyPolicyPage /></>} />
+        <Route path="/payment" element={<PaymentPage />} />
 
         <Route path="/dashboard" element={
           <ProtectedRoute>
