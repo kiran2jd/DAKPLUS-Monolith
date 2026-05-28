@@ -34,10 +34,14 @@ jobs:
 
       - name: 🚀 Build APK
         working-directory: mobile/android
+        env:
+          GRADLE_OPTS: -Dorg.gradle.jvmargs="-Xmx3g -XX:MaxMetaspaceSize=1g"
         run: ./gradlew assembleRelease
 
       - name: 📦 Build App Bundle (AAB)
         working-directory: mobile/android
+        env:
+          GRADLE_OPTS: -Dorg.gradle.jvmargs="-Xmx3g -XX:MaxMetaspaceSize=1g"
         run: ./gradlew bundleRelease
 
       - name: 📤 Upload APK to GitHub Artifacts
