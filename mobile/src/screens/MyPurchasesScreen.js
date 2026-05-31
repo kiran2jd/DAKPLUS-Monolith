@@ -8,6 +8,7 @@ import {
     TouchableOpacity,
     SafeAreaView,
     Dimensions,
+    Platform,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -32,8 +33,8 @@ export default function MyPurchasesScreen({ navigation }) {
             const user = await authService.getUser();
             const userId = user?.id || user?._id;
             if (userId) {
-                const data = await api.get(`/payments/user-purchases?userId=${userId}`);
-                setPurchases(data || []);
+                const response = await api.get(`/payments/user-purchases?userId=${userId}`);
+                setPurchases(response.data || []);
             }
         } catch (error) {
             console.error("Failed to load purchases", error);

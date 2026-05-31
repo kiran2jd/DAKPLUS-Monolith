@@ -55,13 +55,14 @@ export default function PaymentScreen({ navigation, route }) {
 
     const loadProfile = async () => {
         try {
-            const data = await api.get('/auth/profile');
-            if (data.user) {
-                setUser(data.user);
+            const response = await api.get('/auth/profile');
+            const userData = response.data?.user || response.data;
+            if (userData) {
+                setUser(userData);
                 // Also update the stored user in SecureStore so other screens see the change
-                await SecureStore.setItemAsync('user', JSON.stringify(data.user));
+                await SecureStore.setItemAsync('user', JSON.stringify(userData));
                 
-                if (data.user.subscriptionTier === 'PREMIUM' && !success) {
+                if (userData.subscriptionTier === 'PREMIUM' && !success) {
                     setSuccess(true);
                 }
             }
