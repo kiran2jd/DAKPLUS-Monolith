@@ -1,5 +1,9 @@
-name: Native Android Build
+name: Native Android Build (APK + AAB)
 on:
+  push:
+    branches: [ main ]
+    paths:
+      - 'mobile/**'
   workflow_dispatch:
 
 jobs:
@@ -18,7 +22,7 @@ jobs:
       - name: ⚙️ Setup Node
         uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 22
           cache: 'npm'
           cache-dependency-path: mobile/package.json
 
@@ -28,70 +32,72 @@ jobs:
           npm install --legacy-peer-deps
           npx expo install --check
 
-      - name: 🛠 Prebuild
+      - name: 🛠 Prebuild (Generate Android folder)
         working-directory: mobile
         run: npx expo prebuild --platform android --non-interactive
 
-      - name: 🚀 Build APK
+      - name: 🚀 Build Release APK
         working-directory: mobile/android
         env:
-          GRADLE_OPTS: -Dorg.gradle.jvmargs="-Xmx3g -XX:MaxMetaspaceSize=1g"
-        run: ./gradlew assembleRelease
+          GRADLE_OPTS: -Dorg.gradle.jvmargs="-Xmx4g -XX:MaxMetaspaceSize=1g"
+        run: |
+          chmod +x gradlew
+          ./gradlew assembleRelease
 
-      - name: 📦 Build App Bundle (AAB)
+      - name: 📦 Build Release AAB (Play Store)
         working-directory: mobile/android
         env:
-          GRADLE_OPTS: -Dorg.gradle.jvmargs="-Xmx3g -XX:MaxMetaspaceSize=1g"
+          GRADLE_OPTS: -Dorg.gradle.jvmargs="-Xmx4g -XX:MaxMetaspaceSize=1g"
         run: ./gradlew bundleRelease
 
-      - name: 📤 Upload APK to GitHub Artifacts
+      - name: 📤 Upload APK Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: dakplus-stable-apk
+          name: dakplus-release-apk
           path: mobile/android/app/build/outputs/apk/release/*.apk
+          retention-days: 30
 
-      - name: 📤 Upload AAB to GitHub Artifacts
+      - name: 📤 Upload AAB Artifact (Play Store)
         uses: actions/upload-artifact@v4
         with:
           name: dakplus-playstore-aab
           path: mobile/android/app/build/outputs/bundle/release/*.aab
+          retention-days: 30
 
-      - name: 🔗 Generate Public Share Link
+      - name: 🔗 Generate Public Download Link for APK
         run: |
-          # Disable exit on error temporarily
           set +e
-          
           APK_PATH=$(find mobile/android/app/build/outputs/apk/release/ -name "*.apk" | head -n 1)
-          echo "Uploading $APK_PATH..."
-          
+
           if [ -z "$APK_PATH" ]; then
-            echo "No APK found to upload!"
+            echo "❌ No APK found!"
             exit 0
           fi
-          
-          # Try bashupload first as it's more reliable for CI runners
-          echo "Trying bashupload.com..."
-          BASH_URL=$(curl -s -T "$APK_PATH" https://bashupload.com/dakplus-app.apk | grep -o 'https://bashupload.com/[a-zA-Z0-9_-]*')
-          
+
+          echo "✅ APK found: $APK_PATH"
+          FILE_SIZE=$(du -sh "$APK_PATH" | cut -f1)
+          echo "📦 APK Size: $FILE_SIZE"
+
+          echo "Uploading to bashupload.com..."
+          BASH_URL=$(curl -s --max-time 60 -T "$APK_PATH" https://bashupload.com/dakplus-app.apk | grep -oP 'https://bashupload\.com/[^\s]+')
+
           if [ -n "$BASH_URL" ]; then
-            echo "----------------------------------------------------------------"
-            echo "PUBLIC DOWNLOAD LINK: $BASH_URL"
-            echo "----------------------------------------------------------------"
+            echo "================================================================"
+            echo "✅ APK PUBLIC DOWNLOAD LINK:"
+            echo "   $BASH_URL"
+            echo "================================================================"
           else
             echo "bashupload failed, trying file.io..."
-            RESPONSE=$(curl -s -F "file=@$APK_PATH" https://file.io)
-            # Safely parse JSON
-            DOWNLOAD_URL=$(echo "$RESPONSE" | jq -r '.link // empty' 2>/dev/null)
-            
+            RESPONSE=$(curl -s --max-time 60 -F "file=@$APK_PATH" https://file.io)
+            DOWNLOAD_URL=$(echo "$RESPONSE" | python3 -c "import sys,json; d=json.load(sys.stdin); print(d.get('link',''))" 2>/dev/null)
+
             if [ -n "$DOWNLOAD_URL" ]; then
-              echo "----------------------------------------------------------------"
-              echo "PUBLIC DOWNLOAD LINK: $DOWNLOAD_URL"
-              echo "Note: This link works for ONE download only for security."
-              echo "----------------------------------------------------------------"
+              echo "================================================================"
+              echo "✅ APK PUBLIC DOWNLOAD LINK (single use):"
+              echo "   $DOWNLOAD_URL"
+              echo "================================================================"
             else
-              echo "Failed to generate public share link from both providers."
+              echo "⚠️  Could not generate public link. Download from GitHub Artifacts above."
             fi
           fi
-          
-          # Re-enable exit on error
           set -e
