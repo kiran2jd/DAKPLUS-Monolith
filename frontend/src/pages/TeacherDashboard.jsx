@@ -5,6 +5,25 @@ import api from '../services/api';
 import { Link } from 'react-router-dom';
 import { PlusCircle, Layout, Users, TrendingUp, ExternalLink, Trash2, Edit, Search, X, Loader2 } from 'lucide-react';
 
+const escapeRegExp = (string) => {
+    return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+};
+
+const Highlight = ({ text, query }) => {
+    if (!text) return null;
+    if (!query || !query.trim()) return <span>{text}</span>;
+    const parts = text.split(new RegExp(`(${escapeRegExp(query.trim())})`, 'gi'));
+    return (
+        <span>
+            {parts.map((part, i) => 
+                part.toLowerCase() === query.trim().toLowerCase()
+                    ? <mark key={i} className="bg-yellow-200 dark:bg-yellow-500/40 text-gray-900 dark:text-white rounded px-0.5 font-semibold">{part}</mark>
+                    : part
+            )}
+        </span>
+    );
+};
+
 export default function TeacherDashboard() {
     const [tests, setTests] = useState([]);
     const [displayedTests, setDisplayedTests] = useState([]);
@@ -211,56 +230,111 @@ export default function TeacherDashboard() {
                 ) : (
                     <div className="divide-y divide-gray-100 dark:divide-gray-700">
                         {displayedTests.map(test => (
-                            <div key={test.id} className="p-6 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition flex flex-col sm:flex-row sm:items-center justify-between group">
-                                <div className="flex-1 min-w-0 pr-4">
-                                    <h4 className="text-lg font-bold text-gray-900 dark:text-white mb-1 truncate">{test.title}</h4>
-                                    <div className="flex items-center text-sm text-gray-500 dark:text-gray-400 space-x-4">
-                                        <span>{test.category || 'General'}</span>
-                                        <span>•</span>
-                                        <span>{test.durationMinutes || test.duration_minutes} mins</span>
-                                        <span>•</span>
-                                        <span>{new Date(test.createdAt || Date.now()).toLocaleDateString()}</span>
-                                        {test.questionCount > 0 && (
-                                            <>
-                                                <span>•</span>
-                                                <span className={`font-bold ${test.enrichedCount === test.questionCount ? 'text-green-600' : 'text-amber-600'}`}>
-                                                    {test.enrichedCount}/{test.questionCount} AI
-                                                </span>
-                                            </>
+                            <div key={test.id} className="p-6 hover:bg-gray-50/50 dark:hover:bg-gray-700/30 transition flex flex-col divide-y divide-gray-100/50 dark:divide-gray-700/30">
+                                {/* Main details row */}
+                                <div className="flex flex-col sm:flex-row sm:items-center justify-between group pb-4 last:pb-0">
+                                    <div className="flex-1 min-w-0 pr-4">
+                                        <h4 className="text-lg font-bold text-gray-900 dark:text-white mb-1">
+                                            <Highlight text={test.title} query={searchQuery} />
+                                        </h4>
+                                        <div className="flex items-center text-sm text-gray-500 dark:text-gray-400 space-x-4">
+                                            <span>{test.category || 'General'}</span>
+                                            <span>•</span>
+                                            <span>{test.durationMinutes || test.duration_minutes} mins</span>
+                                            <span>•</span>
+                                            <span>{new Date(test.createdAt || Date.now()).toLocaleDateString()}</span>
+                                            {test.questionCount > 0 && (
+                                                <>
+                                                    <span>•</span>
+                                                    <span className={`font-bold ${test.enrichedCount === test.questionCount ? 'text-green-600' : 'text-amber-600'}`}>
+                                                        {test.enrichedCount}/{test.questionCount} AI
+                                                    </span>
+                                                </>
+                                            )}
+                                        </div>
+                                    </div>
+                                    <div className="flex items-center space-x-3 mt-4 sm:mt-0 opacity-0 group-hover:opacity-100 transition-opacity">
+                                        <Link to={`/dashboard/edit-test/${test.id}`} className="px-3 py-1.5 border border-gray-300 dark:border-gray-600 rounded-md text-sm font-medium hover:bg-white dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 flex items-center transition-colors">
+                                            <Edit className="h-3.5 w-3.5 mr-1" /> Edit
+                                        </Link>
+
+                                        {(!test.isAiEnriched || (test.questionCount > 0 && test.enrichedCount < test.questionCount)) && (
+                                            <button
+                                                onClick={async () => {
+                                                    try {
+                                                        await testService.retryEnrichment(test.id);
+                                                        alert("AI Enrichment started in background. Refresh in a few minutes.");
+                                                    } catch (e) {
+                                                        alert("Failed to start enrichment: " + e.message);
+                                                    }
+                                                }}
+                                                className="px-3 py-1.5 bg-amber-50 dark:bg-amber-900/20 text-amber-700 dark:text-amber-400 border border-amber-200 dark:border-amber-800 rounded-md text-sm font-bold flex items-center transition-colors hover:bg-amber-100"
+                                            >
+                                                <TrendingUp className="h-3.5 w-3.5 mr-1" /> Complete AI
+                                            </button>
                                         )}
+
+                                        <button
+                                            onClick={() => handleDelete(test.id)}
+                                            className="px-3 py-1.5 border border-red-200 dark:border-red-900/50 rounded-md text-sm font-medium hover:bg-red-50 dark:hover:bg-red-900/30 text-red-600 dark:text-red-400 flex items-center transition-colors"
+                                        >
+                                            <Trash2 className="h-3.5 w-3.5 mr-1" /> Delete
+                                        </button>
+                                        <Link to={`/dashboard/take-test/${test.id}`} className="px-3 py-1.5 bg-indigo-50 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-300 rounded-md text-sm font-medium hover:bg-indigo-100 dark:hover:bg-indigo-900/50 flex items-center transition-colors">
+                                            Preview <ExternalLink className="ml-1.5 h-3 w-3" />
+                                        </Link>
                                     </div>
                                 </div>
-                                <div className="flex items-center space-x-3 mt-4 sm:mt-0 opacity-0 group-hover:opacity-100 transition-opacity">
-                                    <Link to={`/dashboard/edit-test/${test.id}`} className="px-3 py-1.5 border border-gray-300 dark:border-gray-600 rounded-md text-sm font-medium hover:bg-white dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 flex items-center transition-colors">
-                                        <Edit className="h-3.5 w-3.5 mr-1" /> Edit
-                                    </Link>
 
-                                    {(!test.isAiEnriched || (test.questionCount > 0 && test.enrichedCount < test.questionCount)) && (
-                                        <button
-                                            onClick={async () => {
-                                                try {
-                                                    await testService.retryEnrichment(test.id);
-                                                    alert("AI Enrichment started in background. Refresh in a few minutes.");
-                                                } catch (e) {
-                                                    alert("Failed to start enrichment: " + e.message);
-                                                }
-                                            }}
-                                            className="px-3 py-1.5 bg-amber-50 dark:bg-amber-900/20 text-amber-700 dark:text-amber-400 border border-amber-200 dark:border-amber-800 rounded-md text-sm font-bold flex items-center transition-colors hover:bg-amber-100"
-                                        >
-                                            <TrendingUp className="h-3.5 w-3.5 mr-1" /> Complete AI
-                                        </button>
-                                    )}
-
-                                    <button
-                                        onClick={() => handleDelete(test.id)}
-                                        className="px-3 py-1.5 border border-red-200 dark:border-red-900/50 rounded-md text-sm font-medium hover:bg-red-50 dark:hover:bg-red-900/30 text-red-600 dark:text-red-400 flex items-center transition-colors"
-                                    >
-                                        <Trash2 className="h-3.5 w-3.5 mr-1" /> Delete
-                                    </button>
-                                    <Link to={`/dashboard/take-test/${test.id}`} className="px-3 py-1.5 bg-indigo-50 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-300 rounded-md text-sm font-medium hover:bg-indigo-100 dark:hover:bg-indigo-900/50 flex items-center transition-colors">
-                                        Preview <ExternalLink className="ml-1.5 h-3 w-3" />
-                                    </Link>
-                                </div>
+                                {/* Matching Questions Sub-list */}
+                                {isSearchMode && test.questions && test.questions.some(q => {
+                                    const qStr = (q.text || '') + ' ' + (q.textHi || '') + ' ' + (q.explanation || '') + ' ' + (q.explanationHi || '');
+                                    return qStr.toLowerCase().includes(searchQuery.toLowerCase());
+                                }) && (
+                                    <div className="pt-4 mt-2 space-y-3">
+                                        <h5 className="text-xs font-black uppercase tracking-wider text-indigo-600 dark:text-indigo-400">
+                                            Matching Questions
+                                        </h5>
+                                        <div className="space-y-3">
+                                            {test.questions
+                                                .filter(q => {
+                                                    const qStr = (q.text || '') + ' ' + (q.textHi || '') + ' ' + (q.explanation || '') + ' ' + (q.explanationHi || '');
+                                                    return qStr.toLowerCase().includes(searchQuery.toLowerCase());
+                                                })
+                                                .map((q, idx) => (
+                                                    <div key={q.id || q._id || idx} className="p-4 bg-gray-50/50 dark:bg-gray-800/30 rounded-2xl border border-gray-100 dark:border-gray-700/50 text-sm">
+                                                        <div className="font-extrabold text-indigo-600 dark:text-indigo-400 mb-1">
+                                                            Question {idx + 1}
+                                                        </div>
+                                                        <div className="text-gray-900 dark:text-white font-bold mb-1">
+                                                            <Highlight text={q.text} query={searchQuery} />
+                                                        </div>
+                                                        {q.textHi && (
+                                                            <div className="text-gray-500 dark:text-gray-400 font-semibold text-xs mb-1">
+                                                                <Highlight text={q.textHi} query={searchQuery} />
+                                                            </div>
+                                                        )}
+                                                        {(q.explanation || q.explanationHi) && (
+                                                            <div className="mt-2 text-xs border-t border-dashed border-gray-200 dark:border-gray-700/50 pt-2 text-gray-500 dark:text-gray-400">
+                                                                <span className="font-black text-gray-700 dark:text-gray-300">Explanation: </span>
+                                                                {q.explanation && (
+                                                                    <span>
+                                                                        <Highlight text={q.explanation} query={searchQuery} />
+                                                                    </span>
+                                                                )}
+                                                                {q.explanationHi && (
+                                                                    <span className="block mt-1 font-semibold text-gray-400">
+                                                                        <Highlight text={q.explanationHi} query={searchQuery} />
+                                                                    </span>
+                                                                )}
+                                                            </div>
+                                                        )}
+                                                    </div>
+                                                ))
+                                            }
+                                        </div>
+                                    </div>
+                                )}
                             </div>
                         ))}
                     </div>

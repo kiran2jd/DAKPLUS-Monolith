@@ -15,6 +15,25 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import { testService } from '../services/test';
 
+const escapeRegExp = (string) => {
+    return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+};
+
+function HighlightText({ text, query, style = {}, highlightStyle = {} }) {
+    if (!text) return null;
+    if (!query || !query.trim()) return <Text style={style}>{text}</Text>;
+    const parts = text.split(new RegExp(`(${escapeRegExp(query.trim())})`, 'gi'));
+    return (
+        <Text style={style}>
+            {parts.map((part, i) => (
+                part.toLowerCase() === query.trim().toLowerCase()
+                    ? <Text key={i} style={[styles.highlight, highlightStyle]}>{part}</Text>
+                    : <Text key={i}>{part}</Text>
+            ))}
+        </Text>
+    );
+}
+
 export default function ManageTestsScreen({ navigation }) {
     const insets = useSafeAreaInsets();
     const [tests, setTests] = useState([]);
@@ -85,37 +104,91 @@ export default function ManageTestsScreen({ navigation }) {
         );
     };
 
-    const renderTestItem = ({ item }) => (
-        <View style={styles.testCard}>
-            <View style={styles.testInfo}>
-                <Text style={styles.testTitle}>{item.title}</Text>
-                <Text style={styles.testSub} numberOfLines={1}>{item.description || 'No description'}</Text>
-                <View style={styles.metaRow}>
-                    <View style={styles.tag}>
-                        <Text style={styles.tagText}>{item.category || 'General'}</Text>
+    const renderTestItem = ({ item }) => {
+        const lowerQuery = searchQuery.trim().toLowerCase();
+        const matchingQuestions = searchQuery && item.questions 
+            ? item.questions.filter(q => {
+                const qStr = (q.text || '') + ' ' + (q.textHi || '') + ' ' + (q.explanation || '') + ' ' + (q.explanationHi || '');
+                return qStr.toLowerCase().includes(lowerQuery);
+            })
+            : [];
+
+        return (
+            <View style={styles.testCardContainer}>
+                <View style={styles.testCardMainRow}>
+                    <View style={styles.testInfo}>
+                        <HighlightText text={item.title} query={searchQuery} style={styles.testTitle} />
+                        <Text style={styles.testSub} numberOfLines={1}>{item.description || 'No description'}</Text>
+                        <View style={styles.metaRow}>
+                            <View style={styles.tag}>
+                                <Text style={styles.tagText}>{item.category || 'General'}</Text>
+                            </View>
+                            <Text style={styles.metaText}>{item.questionsCount || (item.questions ? item.questions.length : 0)} Qs</Text>
+                            <Text style={styles.metaText}>{item.durationMinutes} min</Text>
+                        </View>
                     </View>
-                    <Text style={styles.metaText}>{item.questionsCount || (item.questions ? item.questions.length : 0)} Qs</Text>
-                    <Text style={styles.metaText}>{item.durationMinutes} min</Text>
+                    <View style={styles.actions}>
+                        <TouchableOpacity
+                            style={[styles.actionBtn, styles.editBtn]}
+                            onPress={() => navigation.navigate('EditTest', { testId: item.id })}
+                            activeOpacity={0.7}
+                        >
+                            <Ionicons name="create-outline" size={20} color="#60a5fa" />
+                        </TouchableOpacity>
+                        <TouchableOpacity
+                            style={[styles.actionBtn, styles.deleteBtn]}
+                            onPress={() => handleDelete(item.id)}
+                            activeOpacity={0.7}
+                        >
+                            <Ionicons name="trash-outline" size={20} color="#f87171" />
+                        </TouchableOpacity>
+                    </View>
                 </View>
+
+                {searchQuery.length > 0 && matchingQuestions.length > 0 && (
+                    <View style={styles.matchingQuestionsContainer}>
+                        <Text style={styles.matchingHeader}>MATCHING QUESTIONS</Text>
+                        {matchingQuestions.map((q, idx) => (
+                            <View key={q.id || q._id || idx.toString()} style={styles.matchingQuestionCard}>
+                                <Text style={styles.matchingQuestionNum}>Question {idx + 1}</Text>
+                                <HighlightText 
+                                    text={q.text} 
+                                    query={searchQuery} 
+                                    style={styles.matchingQuestionText} 
+                                />
+                                {q.textHi ? (
+                                    <HighlightText 
+                                        text={q.textHi} 
+                                        query={searchQuery} 
+                                        style={styles.matchingQuestionTextHi} 
+                                    />
+                                ) : null}
+                                {q.explanation || q.explanationHi ? (
+                                    <View style={styles.matchingExplanationBox}>
+                                        <Text style={styles.matchingExplanationTitle}>Explanation:</Text>
+                                        {q.explanation ? (
+                                            <HighlightText 
+                                                text={q.explanation} 
+                                                query={searchQuery} 
+                                                style={styles.matchingExplanationText} 
+                                            />
+                                        ) : null}
+                                        {q.explanationHi ? (
+                                            <HighlightText 
+                                                text={q.explanationHi} 
+                                                query={searchQuery} 
+                                                style={styles.matchingExplanationTextHi} 
+                                            />
+                                        ) : null}
+                                    </View>
+                                ) : null}
+                            </View>
+                        ))}
+                    </View>
+                )}
             </View>
-            <View style={styles.actions}>
-                <TouchableOpacity
-                    style={[styles.actionBtn, styles.editBtn]}
-                    onPress={() => navigation.navigate('EditTest', { testId: item.id })}
-                    activeOpacity={0.7}
-                >
-                    <Ionicons name="create-outline" size={20} color="#60a5fa" />
-                </TouchableOpacity>
-                <TouchableOpacity
-                    style={[styles.actionBtn, styles.deleteBtn]}
-                    onPress={() => handleDelete(item.id)}
-                    activeOpacity={0.7}
-                >
-                    <Ionicons name="trash-outline" size={20} color="#f87171" />
-                </TouchableOpacity>
-            </View>
-        </View>
-    );
+        );
+    };
 
     if (loading) {
         return (
@@ -280,6 +353,8 @@ const styles = StyleSheet.create({
         fontWeight: '900',
     },
     listContent: { padding: 20, paddingBottom: 100, flexGrow: 1 },
+    testCardContainer: { backgroundColor: '#ffffff', borderRadius: 24, padding: 20, marginBottom: 16, borderWidth: 1, borderColor: '#e2e8f0', shadowColor: '#000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.05, shadowRadius: 10, elevation: 3 },
+    testCardMainRow: { flexDirection: 'row', alignItems: 'center' },
     testCard: { backgroundColor: '#ffffff', borderRadius: 24, padding: 20, marginBottom: 16, flexDirection: 'row', alignItems: 'center', borderWidth: 1, borderColor: '#e2e8f0', shadowColor: '#000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.05, shadowRadius: 10, elevation: 3 },
     testInfo: { flex: 1 },
     testTitle: { fontSize: 16, fontWeight: '900', color: '#1e293b', marginBottom: 4 },
@@ -330,4 +405,69 @@ const styles = StyleSheet.create({
         fontWeight: '600',
         padding: 0
     },
+    matchingQuestionsContainer: {
+        marginTop: 15,
+        borderTopWidth: 1,
+        borderTopColor: '#f1f5f9',
+        paddingTop: 12,
+    },
+    matchingHeader: {
+        fontSize: 10,
+        fontWeight: '900',
+        color: '#4f46e5',
+        letterSpacing: 1,
+        marginBottom: 8,
+    },
+    matchingQuestionCard: {
+        backgroundColor: '#f8fafc',
+        borderRadius: 12,
+        padding: 10,
+        marginBottom: 8,
+        borderWidth: 1,
+        borderColor: '#e2e8f0',
+    },
+    matchingQuestionNum: {
+        fontSize: 11,
+        fontWeight: '800',
+        color: '#64748b',
+        marginBottom: 2,
+    },
+    matchingQuestionText: {
+        fontSize: 13,
+        fontWeight: '600',
+        color: '#1e293b',
+    },
+    matchingQuestionTextHi: {
+        fontSize: 12,
+        fontWeight: '500',
+        color: '#64748b',
+        marginTop: 2,
+    },
+    matchingExplanationBox: {
+        marginTop: 6,
+        borderTopWidth: 1,
+        borderTopColor: '#e2e8f0',
+        borderStyle: 'dashed',
+        paddingTop: 6,
+    },
+    matchingExplanationTitle: {
+        fontSize: 10,
+        fontWeight: '800',
+        color: '#475569',
+        marginBottom: 2,
+    },
+    matchingExplanationText: {
+        fontSize: 11,
+        color: '#475569',
+    },
+    matchingExplanationTextHi: {
+        fontSize: 11,
+        color: '#64748b',
+        marginTop: 1,
+    },
+    highlight: {
+        backgroundColor: '#fef08a',
+        color: '#1e293b',
+        fontWeight: 'bold',
+    }
 });
