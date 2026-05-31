@@ -6,6 +6,7 @@ import {
     ActivityIndicator,
     Alert,
     RefreshControl,
+    TextInput,
 } from 'react-native';
 import { ScrollView, FlatList, TouchableOpacity } from 'react-native-gesture-handler';
 import { useFocusEffect, DrawerActions } from '@react-navigation/native';
@@ -19,6 +20,26 @@ export default function ManageTestsScreen({ navigation }) {
     const [tests, setTests] = useState([]);
     const [loading, setLoading] = useState(true);
     const [refreshing, setRefreshing] = useState(false);
+    const [searchQuery, setSearchQuery] = useState('');
+    const [searching, setSearching] = useState(false);
+
+    const handleSearch = async (text) => {
+        setSearchQuery(text);
+        if (text.trim().length === 0) {
+            loadMyTests();
+            return;
+        }
+
+        setSearching(true);
+        try {
+            const results = await testService.searchTestsByQuestionText(text);
+            setTests(results || []);
+        } catch (err) {
+            console.error("Search failed:", err);
+        } finally {
+            setSearching(false);
+        }
+    };
 
     useEffect(() => {
         loadMyTests();
@@ -144,6 +165,27 @@ export default function ManageTestsScreen({ navigation }) {
                 </View>
             </LinearGradient>
 
+            {/* Premium Search Bar */}
+            <View style={styles.searchBarWrapper}>
+                <View style={styles.searchBarContainer}>
+                    <Ionicons name="search" size={20} color="#64748b" style={{ marginRight: 8 }} />
+                    <TextInput
+                        style={styles.searchInput}
+                        placeholder="Search word in entire exams..."
+                        placeholderTextColor="#94a3b8"
+                        value={searchQuery}
+                        onChangeText={handleSearch}
+                        autoCapitalize="none"
+                        autoCorrect={false}
+                    />
+                    {searchQuery.length > 0 && (
+                        <TouchableOpacity onPress={() => handleSearch('')} activeOpacity={0.7}>
+                            <Ionicons name="close-circle" size={18} color="#94a3b8" />
+                        </TouchableOpacity>
+                    )}
+                </View>
+            </View>
+
             <FlatList
                 data={tests}
                 keyExtractor={(item) => item.id}
@@ -260,4 +302,32 @@ const styles = StyleSheet.create({
     createBtnText: { color: '#fff', fontWeight: '900', letterSpacing: 0.5 },
     fab: { position: 'absolute', bottom: 30, right: 24, borderRadius: 30, elevation: 8, shadowColor: '#dc2626', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 12, overflow: 'hidden' },
     fabGradient: { width: 56, height: 56, justifyContent: 'center', alignItems: 'center' },
+    searchBarWrapper: {
+        paddingHorizontal: 20,
+        paddingTop: 15,
+        paddingBottom: 5,
+        backgroundColor: '#fcf9f2'
+    },
+    searchBarContainer: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        backgroundColor: '#ffffff',
+        borderRadius: 16,
+        paddingHorizontal: 12,
+        paddingVertical: 10,
+        borderWidth: 1,
+        borderColor: '#e2e8f0',
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.05,
+        shadowRadius: 5,
+        elevation: 2
+    },
+    searchInput: {
+        flex: 1,
+        fontSize: 14,
+        color: '#1e293b',
+        fontWeight: '600',
+        padding: 0
+    },
 });

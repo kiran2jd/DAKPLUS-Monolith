@@ -157,6 +157,17 @@ export default function TakeTestScreen({ navigation, route }) {
         }
     };
 
+    const confirmSubmit = () => {
+        Alert.alert(
+            "Submit Exam?",
+            "Are you sure you want to submit your exam now?",
+            [
+                { text: "Cancel", style: "cancel" },
+                { text: "Submit", onPress: () => handleSubmit() }
+            ]
+        );
+    };
+
     const submitReport = async () => {
         if (!reportComment.trim()) {
             Alert.alert("Required", "Please add a brief comment.");
@@ -180,6 +191,8 @@ export default function TakeTestScreen({ navigation, route }) {
         } catch (err) {
             console.error("Report failed:", err);
             Alert.alert("Error", "Failed to submit report. Please try again.");
+            setReportModalVisible(false);
+            setReportComment('');
         } finally {
             setIsReporting(false);
         }
@@ -342,7 +355,7 @@ export default function TakeTestScreen({ navigation, route }) {
                     <View style={styles.timerContainer}>
                         <Text style={styles.timerText}>{formatTime(timeLeft)}</Text>
                     </View>
-                    <TouchableOpacity onPress={handleSubmit} disabled={isSubmitting} activeOpacity={0.7}>
+                    <TouchableOpacity onPress={confirmSubmit} disabled={isSubmitting} activeOpacity={0.7}>
                         <Text style={styles.submitText}>{isSubmitting ? '...' : 'Submit'}</Text>
                     </TouchableOpacity>
                 </View>
@@ -432,7 +445,7 @@ export default function TakeTestScreen({ navigation, route }) {
 
                 <TouchableOpacity
                     style={[styles.navButton, styles.nextButton]}
-                    onPress={currentQuestion === test.questions.length - 1 ? handleSubmit : handleNext}
+                    onPress={currentQuestion === test.questions.length - 1 ? confirmSubmit : handleNext}
                     activeOpacity={0.7}
                 >
                     <LinearGradient

@@ -131,7 +131,7 @@ export default function DashboardScreen({ navigation }) {
     // Removed full screen loading back block to allow Progressive UI Rendering component lifecycle
 
     const accuracy = results.length > 0 
-        ? (Math.round(results.reduce((acc, r) => acc + (r.totalQuestions > 0 ? (r.score / r.totalQuestions) * 100 : 0), 0) / results.length) || 0)
+        ? (Math.round(results.reduce((acc, r) => acc + (r.accuracy || 0), 0) / results.length) || 0)
         : 0;
 
     return (
@@ -340,21 +340,22 @@ const styles = StyleSheet.create({
     logoCenter: { flex: 1, alignItems: 'center' },
     logoContainer: { 
         backgroundColor: '#fff', 
-        borderRadius: 20, 
-        paddingHorizontal: 20, 
-        paddingVertical: 6, 
+        borderRadius: 14, 
+        paddingHorizontal: 6, 
+        paddingVertical: 2, 
         shadowColor: '#000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.1, shadowRadius: 8, 
         elevation: 5, 
         borderWidth: 1.5, borderColor: '#e2e8f0',
         alignItems: 'center',
         justifyContent: 'center',
-        height: 60,
-        minWidth: 160,
-        alignSelf: 'center'
+        height: 70,       // Larger height
+        width: 180,       // Larger width to fill full box
+        alignSelf: 'center',
+        overflow: 'hidden' // Ensure it cuts off beautifully at the border radius
     },
     logoMini: { 
-        width: 140, 
-        height: 45,
+        width: '100%', 
+        height: '100%',
     },
     headerWrapperPadding: { paddingHorizontal: 20 },
     welcomeTextSection: { marginBottom: 24 },

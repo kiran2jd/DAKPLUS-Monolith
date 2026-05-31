@@ -40,10 +40,12 @@ public class Result {
     public static class AnswerDetail {
         private String questionId;
         private String questionText;
+        private String questionTextHi; // Hindi translation support
         private String questionImageUrl; // Add image support for review
         private String userAnswer;
         private String correctAnswer;
         private String explanation;
+        private String explanationHi; // Hindi translation support
         private boolean isCorrect;
         private int points;
 
@@ -63,6 +65,21 @@ public class Result {
             this.points = points;
         }
 
+        public AnswerDetail(String questionId, String questionText, String questionTextHi, String questionImageUrl, String userAnswer, String correctAnswer, String explanation, String explanationHi,
+                boolean isCorrect,
+                int points) {
+            this.questionId = questionId;
+            this.questionText = questionText;
+            this.questionTextHi = questionTextHi;
+            this.questionImageUrl = questionImageUrl;
+            this.userAnswer = userAnswer;
+            this.correctAnswer = correctAnswer;
+            this.explanation = explanation;
+            this.explanationHi = explanationHi;
+            this.isCorrect = isCorrect;
+            this.points = points;
+        }
+
         // Getters and setters
         public String getQuestionId() {
             return questionId;
@@ -78,6 +95,14 @@ public class Result {
 
         public void setQuestionText(String questionText) {
             this.questionText = questionText;
+        }
+
+        public String getQuestionTextHi() {
+            return questionTextHi;
+        }
+
+        public void setQuestionTextHi(String questionTextHi) {
+            this.questionTextHi = questionTextHi;
         }
 
         public String getQuestionImageUrl() {
@@ -110,6 +135,14 @@ public class Result {
 
         public void setExplanation(String explanation) {
             this.explanation = explanation;
+        }
+
+        public String getExplanationHi() {
+            return explanationHi;
+        }
+
+        public void setExplanationHi(String explanationHi) {
+            this.explanationHi = explanationHi;
         }
 
         public boolean isCorrect() {

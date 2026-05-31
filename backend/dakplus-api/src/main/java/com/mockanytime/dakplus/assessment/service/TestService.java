@@ -100,4 +100,32 @@ public class TestService {
                     return existingText.trim().toLowerCase().replaceAll("\\s+", " ").equals(normalizedText);
                 });
     }
+
+    /**
+     * Searches all tests created by a specific teacher where any question text, Hindi translation,
+     * explanations, or test title/description matches the query string.
+     */
+    public List<Test> searchTestsByQuestionText(String createdBy, String queryText) {
+        List<Test> allTeacherTests = testRepository.findByCreatedBy(createdBy);
+        if (queryText == null || queryText.trim().isEmpty()) {
+            return allTeacherTests;
+        }
+        
+        String lowerQuery = queryText.trim().toLowerCase();
+        return allTeacherTests.stream()
+                .filter(test -> {
+                    if (test.getTitle() != null && test.getTitle().toLowerCase().contains(lowerQuery)) return true;
+                    if (test.getDescription() != null && test.getDescription().toLowerCase().contains(lowerQuery)) return true;
+                    if (test.getQuestions() != null) {
+                        return test.getQuestions().stream().anyMatch(q -> 
+                            (q.getText() != null && q.getText().toLowerCase().contains(lowerQuery)) ||
+                            (q.getTextHi() != null && q.getTextHi().toLowerCase().contains(lowerQuery)) ||
+                            (q.getExplanation() != null && q.getExplanation().toLowerCase().contains(lowerQuery)) ||
+                            (q.getExplanationHi() != null && q.getExplanationHi().toLowerCase().contains(lowerQuery))
+                        );
+                    }
+                    return false;
+                })
+                .collect(java.util.stream.Collectors.toList());
+    }
 }

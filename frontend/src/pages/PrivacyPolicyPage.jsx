@@ -20,7 +20,7 @@ export default function PrivacyPolicyPage() {
                     <section>
                         <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">1. Introduction</h2>
                         <p className="leading-relaxed">
-                            Welcome to DAK Plus ("we", "our", or "us"). We are committed to protecting your personal information and your right to privacy. If you have any questions or concerns about this privacy notice, or our practices with regards to your personal information, please contact us at support@dakplus.in.
+                            Welcome to DAK Plus ("we", "our", or "us"). We are committed to protecting your personal information and your right to privacy. If you have any questions or concerns about this privacy notice, or our practices with regards to your personal information, please contact us at dakplus.in@gmail.com.
                         </p>
                     </section>
 
@@ -59,7 +59,7 @@ export default function PrivacyPolicyPage() {
                         <p className="leading-relaxed">
                             We will only keep your personal information for as long as it is necessary for the purposes set out in this privacy notice, unless a longer retention period is required or permitted by law.
                             <br/><br/>
-                            <strong>Data Deletion Request:</strong> If you would like to request the deletion of your personal data, you can do so by contacting us at support@dakplus.in or navigating to the Account Settings section within the App and selecting "Delete Account". Upon receiving your request, we will delete or anonymize your information.
+                            <strong>Data Deletion Request:</strong> If you would like to request the deletion of your personal data, you can do so by contacting us at dakplus.in@gmail.com or navigating to the Account Settings section within the App and selecting "Delete Account". Upon receiving your request, we will delete or anonymize your information.
                         </p>
                     </section>
 
@@ -80,7 +80,7 @@ export default function PrivacyPolicyPage() {
                     <section>
                         <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">8. Contact Us</h2>
                         <p className="leading-relaxed">
-                            If you have questions or comments about this notice, you may email us at support@dakplus.in or by post to:
+                            If you have questions or comments about this notice, you may email us at dakplus.in@gmail.com or by post to:
                             <br/><br/>
                             <strong>DAK Plus</strong><br/>
                             Hyderabad, Telangana<br/>

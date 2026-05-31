@@ -108,5 +108,10 @@ export const testService = {
             timeout: 300000 // 5 minutes for bulk upload
         });
         return response.data;
+    },
+
+    searchTestsByQuestionText: async (query) => {
+        const response = await api.get(`tests/search-questions?query=${encodeURIComponent(query)}`);
+        return response.data;
     }
 };

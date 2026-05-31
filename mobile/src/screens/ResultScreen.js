@@ -330,16 +330,18 @@ export default function ResultScreen({ navigation, route }) {
                             <View style={styles.answerRow}>
                                 {detail?.userAnswer && detail.userAnswer.startsWith('data:image/') ? (
                                     <View style={{ flex: 1 }}>
-                                        <Text style={[styles.answerText, { color: detail?.correct ? '#059669' : '#dc2626', marginBottom: 4 }]}>Your Answer:</Text>
+                                        <Text style={[styles.answerText, { color: detail?.correct ? '#059669' : '#dc2626', marginBottom: 4 }]}>
+                                            {language === 'hi' ? 'आपका उत्तर:' : 'Your Answer:'}
+                                        </Text>
                                         <Image source={{ uri: detail.userAnswer }} style={{ width: 100, height: 60, borderRadius: 8, backgroundColor: '#f8fafc' }} resizeMode="contain" />
                                     </View>
                                 ) : (
                                     <Text style={[styles.answerText, { color: detail?.correct ? '#059669' : '#dc2626' }]}>
-                                        Your Answer: {detail?.userAnswer}
+                                        {language === 'hi' ? 'आपका उत्तर:' : 'Your Answer:'} {detail?.userAnswer}
                                     </Text>
                                 )}
                                 {detail?.correct ? (
-                                    <Text style={styles.correctBadge}>✓ Correct</Text>
+                                    <Text style={styles.correctBadge}>{language === 'hi' ? '✓ सही' : '✓ Correct'}</Text>
                                 ) : (
                                     <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
                                         <TouchableOpacity 
@@ -347,20 +349,20 @@ export default function ResultScreen({ navigation, route }) {
                                             style={styles.flagBtnSmall}
                                         >
                                             <Ionicons name="flag-outline" size={14} color="#dc2626" />
-                                            <Text style={styles.flagBtnTextSmall}>Report</Text>
+                                            <Text style={styles.flagBtnTextSmall}>{language === 'hi' ? 'रिपोर्ट' : 'Report'}</Text>
                                         </TouchableOpacity>
-                                        <Text style={styles.wrongBadge}>✗ Incorrect</Text>
+                                        <Text style={styles.wrongBadge}>{language === 'hi' ? '✗ गलत' : '✗ Incorrect'}</Text>
                                     </View>
                                 )}
                             </View>
                             {!detail?.correct && (
                                 detail?.correctAnswer && detail.correctAnswer.startsWith('data:image/') ? (
                                     <View style={{ marginTop: 8 }}>
-                                        <Text style={styles.correctAnswerText}>Correct Answer:</Text>
+                                        <Text style={styles.correctAnswerText}>{language === 'hi' ? 'सही उत्तर:' : 'Correct Answer:'}</Text>
                                         <Image source={{ uri: detail.correctAnswer }} style={{ width: 100, height: 60, borderRadius: 8, backgroundColor: '#f8fafc' }} resizeMode="contain" />
                                     </View>
                                 ) : (
-                                    <Text style={styles.correctAnswerText}>Correct Answer: {detail?.correctAnswer}</Text>
+                                    <Text style={styles.correctAnswerText}>{language === 'hi' ? 'सही उत्तर:' : 'Correct Answer:'} {detail?.correctAnswer}</Text>
                                 )
                             )}
                             {/* Check multiple possible field names for explanations */}

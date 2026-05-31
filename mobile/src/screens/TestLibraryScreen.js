@@ -34,7 +34,7 @@ export default function TestLibraryScreen({ navigation, route }) {
 
     const COURSE_BANNERS = [
         { id: 'MTS', title: "MTS Exam", subtitle: "TARGET 2026 BATCH", colors: ['#dc2626', '#b91c1c'], icon: 'mail-outline' },
-        { id: 'PMMG', title: "Postman & GM", subtitle: "COMPLETE PAPER 1 & 2", colors: ['#1e3a8a', '#1d4ed8'], icon: 'cube-outline' },
+        { id: 'PMMG', title: "Postman & Mail Guard", subtitle: "COMPLETE PAPER 1 & 2", colors: ['#1e3a8a', '#1d4ed8'], icon: 'cube-outline' },
         { id: 'PASA', title: "PA/SA Classes", subtitle: "TARGET 2026 BATCH", colors: ['#7c3aed', '#5b21b6'], icon: 'school-outline' },
         { id: 'COMBINED', title: "Combined", subtitle: "PA/SA, PM/MG, MTS", colors: ['#059669', '#047857'], icon: 'library-outline' }
     ];

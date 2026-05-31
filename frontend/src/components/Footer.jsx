@@ -41,7 +41,7 @@ export default function Footer() {
                     <div>
                         <h3 className="text-sm font-semibold text-gray-900 dark:text-white uppercase tracking-wider mb-4">Support</h3>
                         <ul className="space-y-2">
-                            <li><a href="mailto:support@dakplus.in" className="text-gray-500 dark:text-gray-400 hover:text-primary transition text-sm">Help Center</a></li>
+                            <li><a href="mailto:dakplus.in@gmail.com" className="text-gray-500 dark:text-gray-400 hover:text-primary transition text-sm">Help Center</a></li>
                             <li><Link to="#" className="text-gray-500 dark:text-gray-400 hover:text-primary transition text-sm">Terms of Service</Link></li>
                             <li><Link to="/privacy-policy" className="text-gray-500 dark:text-gray-400 hover:text-primary transition text-sm">Privacy Policy</Link></li>
                             <li><Link to="#" className="text-gray-500 dark:text-gray-400 hover:text-primary transition text-sm">Refund Policy</Link></li>
@@ -54,7 +54,7 @@ export default function Footer() {
                         <ul className="space-y-3">
                             <li className="flex items-center space-x-3">
                                 <Mail className="w-4 h-4 text-primary" />
-                                <span className="text-gray-500 dark:text-gray-400 text-sm">support@dakplus.in</span>
+                                <span className="text-gray-500 dark:text-gray-400 text-sm">dakplus.in@gmail.com</span>
                             </li>
                             <li className="flex items-center space-x-3">
                                 <Phone className="w-4 h-4 text-primary" />

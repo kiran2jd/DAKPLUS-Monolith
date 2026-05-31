@@ -8,12 +8,12 @@ export default function HelpButton() {
 
     const openWhatsApp = () => {
         // Replace with your actual WhatsApp number
-        window.open('https://wa.me/9291546714', '_blank');
+        window.open('https://wa.me/919908990419', '_blank');
     };
 
     const openEmail = () => {
         // Replace with your actual support email
-        window.location.href = 'mailto:support@dakplus.in';
+        window.location.href = 'mailto:dakplus.in@gmail.com';
     };
 
     return (

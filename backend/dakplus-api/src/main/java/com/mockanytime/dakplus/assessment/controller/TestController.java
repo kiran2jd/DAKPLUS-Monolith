@@ -267,4 +267,14 @@ public class TestController {
             "testsFound", unenrichedTests.size()
         ));
     }
+
+    @GetMapping("/search-questions")
+    public ResponseEntity<List<Test>> searchTestsByQuestionText(
+            @RequestParam("query") String query,
+            @RequestHeader(value = "X-User-Id", required = false) String userId) {
+        if (userId == null) {
+            return ResponseEntity.ok(List.of());
+        }
+        return ResponseEntity.ok(testService.searchTestsByQuestionText(userId, query));
+    }
 }

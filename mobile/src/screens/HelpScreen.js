@@ -12,8 +12,8 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 
 export default function HelpScreen({ navigation }) {
-    const supportPhone = "+919291546714";
-    const supportEmail = "support@dakplus.in";
+    const supportPhone = "+919908990419";
+    const supportEmail = "dakplus.in@gmail.com";
 
     const openWhatsApp = () => {
         Linking.openURL(`whatsapp://send?phone=${supportPhone}&text=Hello DAK Plus Support, I need help with...`);

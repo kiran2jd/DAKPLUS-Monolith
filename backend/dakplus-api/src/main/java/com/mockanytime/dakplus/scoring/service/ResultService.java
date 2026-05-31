@@ -69,14 +69,16 @@ public class ResultService {
                 wrongCount++;
             }
 
-            // Build detailed answer for review
+            // Build detailed answer for review (supporting both EN and HI translation fields)
             Result.AnswerDetail detail = new Result.AnswerDetail(
                     q.getId(),
                     q.getText(),
+                    q.getTextHi(),
                     q.getImageUrl(),
                     userAnswer != null ? userAnswer : "Not Answered",
                     correctAnswer,
                     q.getExplanation(),
+                    q.getExplanationHi(),
                     isCorrect,
                     isCorrect ? q.getPoints() : 0);
             detailedAnswers.put(String.valueOf(i), detail);
