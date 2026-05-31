@@ -117,6 +117,19 @@ export default function TakeTestPage() {
         }
     };
 
+    const confirmSubmit = () => {
+        if (!test || !test.questions) return;
+        const totalQuestions = test.questions.length;
+        const answeredCount = Object.keys(answersRef.current).length;
+        const unanswered = totalQuestions - answeredCount;
+        const msg = unanswered > 0
+            ? `You have ${unanswered} unanswered question(s) out of ${totalQuestions}. Are you sure you want to submit?`
+            : 'Are you sure you want to submit your exam?';
+        if (window.confirm(msg)) {
+            handleSubmit();
+        }
+    };
+
     const handleRetake = async () => {
         if (!window.confirm("Are you sure you want to retake this test? Your previous result will be deleted.")) {
             return;
@@ -254,7 +267,7 @@ export default function TakeTestPage() {
                         </div>
                     </div>
                     <button
-                        onClick={handleSubmit}
+                        onClick={confirmSubmit}
                         className="text-white font-bold bg-green-600/30 hover:bg-green-600/50 px-4 py-2 rounded-lg transition"
                         disabled={isSubmitting}
                     >
@@ -361,7 +374,7 @@ export default function TakeTestPage() {
                                 if (currentQuestion < test.questions.length - 1) {
                                     setCurrentQuestion(currentQuestion + 1);
                                 } else {
-                                    handleSubmit();
+                                    confirmSubmit();
                                 }
                             }}
                             className="flex items-center px-8 py-4 bg-gradient-to-r from-red-600 to-red-700 text-white rounded-2xl hover:from-red-700 hover:to-red-800 font-black uppercase tracking-widest text-xs shadow-lg hover:shadow-red-500/30 transition active:scale-95"
