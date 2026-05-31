@@ -110,5 +110,10 @@ export const testService = {
     retryEnrichment: async (testId) => {
         const response = await api.post(`/tests/${testId}/retry-enrichment`);
         return response.data;
+    },
+
+    searchTestsByQuestionText: async (query) => {
+        const response = await api.get(`/tests/search-questions?query=${encodeURIComponent(query)}`);
+        return Array.isArray(response.data) ? response.data : [];
     }
 };
