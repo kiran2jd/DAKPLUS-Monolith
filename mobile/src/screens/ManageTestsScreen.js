@@ -7,8 +7,10 @@ import {
     Alert,
     RefreshControl,
     TextInput,
+    ScrollView,
+    FlatList,
+    TouchableOpacity,
 } from 'react-native';
-import { ScrollView, FlatList, TouchableOpacity } from 'react-native-gesture-handler';
 import { useFocusEffect, DrawerActions } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';

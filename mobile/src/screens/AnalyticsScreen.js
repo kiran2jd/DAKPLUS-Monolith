@@ -6,8 +6,10 @@ import {
     Dimensions,
     ActivityIndicator,
     Alert,
+    ScrollView,
+    Pressable,
+    TouchableOpacity,
 } from 'react-native';
-import { ScrollView, Pressable, TouchableOpacity } from 'react-native-gesture-handler';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import { resultService } from '../services/result';
