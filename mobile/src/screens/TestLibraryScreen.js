@@ -87,8 +87,13 @@ export default function TestLibraryScreen({ navigation, route }) {
             }
 
             try {
-                const response = await api.get(`/payments/user-purchases?userId=${userData.id || userData._id}`);
-                setPurchases(response.data || []);
+                const userId = userData?.id || userData?._id;
+                if (userId) {
+                    const response = await api.get(`/payments/user-purchases?userId=${userId}`);
+                    setPurchases(response.data || []);
+                } else {
+                    setPurchases([]);
+                }
             } catch (pErr) {
                 console.log("No purchases found or error:", pErr);
             }

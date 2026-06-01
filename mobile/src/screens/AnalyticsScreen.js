@@ -47,7 +47,7 @@ export default function AnalyticsScreen({ navigation }) {
             const results = await resultService.getMyResults();
             if (results && results.length > 0) {
                 const total = results.length;
-                const avg = results.reduce((acc, curr) => acc + (curr.percentage || 0), 0) / total;
+                const avg = total > 0 ? (results.reduce((acc, curr) => acc + (curr && typeof curr.percentage === 'number' ? curr.percentage : 0), 0) / total) : 0;
 
                 // Real weekly distribution
                 const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
@@ -58,21 +58,25 @@ export default function AnalyticsScreen({ navigation }) {
                 sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
 
                 results.forEach(res => {
-                    const date = new Date(res.createdAt);
-                    if (date >= sevenDaysAgo) {
-                        const dayName = days[date.getDay()];
-                        const match = weekData.find(d => d.day === dayName);
-                        if (match) {
-                            // Take the highest score for that day to show progress
-                            match.score = Math.max(match.score, res.percentage || 0);
+                    if (res && res.createdAt) {
+                        const date = new Date(res.createdAt);
+                        if (date >= sevenDaysAgo) {
+                            const dayName = days[date.getDay()];
+                            const match = weekData.find(d => d.day === dayName);
+                            if (match) {
+                                // Take the highest score for that day to show progress
+                                match.score = Math.max(match.score, res.percentage || 0);
+                            }
                         }
                     }
                 });
 
                 const categories = {};
                 results.forEach(r => {
-                    const cat = r.category || 'General';
-                    categories[cat] = (categories[cat] || 0) + (r.percentage || 0);
+                    if (r) {
+                        const cat = r.category || 'General';
+                        categories[cat] = (categories[cat] || 0) + (r.percentage || 0);
+                    }
                 });
                 let best = 'General';
                 let maxAvg = 0;

@@ -68,7 +68,7 @@ export default function SyllabusScreen({ navigation, route }) {
             const userStr = await SecureStore.getItemAsync('user');
             if (userStr) {
                 const user = JSON.parse(userStr);
-                setIsStaff(user.role === 'STAFF' || user.role === 'ADMIN');
+                setIsStaff(user?.role === 'STAFF' || user?.role === 'ADMIN');
             }
         } catch (e) {
             console.error("Auth check failed", e);

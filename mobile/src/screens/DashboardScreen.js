@@ -130,8 +130,8 @@ export default function DashboardScreen({ navigation }) {
 
     // Removed full screen loading back block to allow Progressive UI Rendering component lifecycle
 
-    const accuracy = results.length > 0 
-        ? (Math.round(results.reduce((acc, r) => acc + (r.accuracy || 0), 0) / results.length) || 0)
+    const accuracy = (results && Array.isArray(results) && results.length > 0)
+        ? (Math.round(results.reduce((acc, r) => acc + (r && typeof r.accuracy === 'number' ? r.accuracy : 0), 0) / results.length) || 0)
         : 0;
 
     return (
