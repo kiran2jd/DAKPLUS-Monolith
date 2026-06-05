@@ -95,11 +95,11 @@ public class QuestionExtractionService {
 
         try {
             OpenAiChatOptions options = OpenAiChatOptions.builder()
-                    .withModel("gemini-2.5-flash")
+                    .withModel("llama-3.3-70b-versatile")
                     .withMaxTokens(1000)
                     .build();
 
-            String response = chatClient.call(new org.springframework.ai.chat.prompt.Prompt(finalPrompt, options))
+            String response = groqChatClient.call(new org.springframework.ai.chat.prompt.Prompt(finalPrompt, options))
                     .getResult().getOutput().getContent();
 
             String cleanJson = sanitizeAndParseJson(response, false);
@@ -203,8 +203,8 @@ public class QuestionExtractionService {
         for (int i = 0; i < chunks.size(); i++) {
             System.out.println("SMART-ANCHOR: Processing chunk " + (i + 1) + "/" + chunks.size() + "...");
             
-            // Start with the primary model (Gemini) - it will fallback to Groq if needed
-            List<Question> chunkQs = extractQuestionsWithModel(chunks.get(i), topicId, subtopicId, "gemini-2.5-flash", imageMap);
+            // Start with the primary model (Groq) - it will fallback to Gemini if needed
+            List<Question> chunkQs = extractQuestionsWithModel(chunks.get(i), topicId, subtopicId, "llama-3.3-70b-versatile", imageMap);
             
             if (chunkQs != null) {
                 allQuestions.addAll(chunkQs);
@@ -261,7 +261,7 @@ public class QuestionExtractionService {
     }
 
     private List<Question> extractQuestionsFromSingleChunk(String text, String topicId, String subtopicId, java.util.Map<String, String> imageMap) {
-        return extractQuestionsWithModel(text, topicId, subtopicId, "gemini-2.5-flash", imageMap);
+        return extractQuestionsWithModel(text, topicId, subtopicId, "llama-3.3-70b-versatile", imageMap);
     }
 
     private List<Question> extractQuestionsWithModel(String text, String topicId, String subtopicId, String startModel, java.util.Map<String, String> imageMap) {
@@ -276,8 +276,15 @@ public class QuestionExtractionService {
         while (attempt < maxRetries) {
             try {
                 attempt++;
+                ChatModel activeClient = groqChatClient;
+                String targetModel = currentModel;
+                if (currentModel.equals("gemini-fallback")) {
+                    activeClient = chatClient;
+                    targetModel = "gemini-2.5-flash";
+                }
+                
                 OpenAiChatOptions options = OpenAiChatOptions.builder()
-                        .withModel(currentModel.equals("groq-fallback") ? "llama-3.3-70b-versatile" : currentModel)
+                        .withModel(targetModel)
                         .withMaxTokens(8192)
                         .build();
 
@@ -327,8 +334,8 @@ public class QuestionExtractionService {
                 org.springframework.ai.chat.messages.SystemMessage sysMsg = new org.springframework.ai.chat.messages.SystemMessage(systemPrompt);
                 org.springframework.ai.chat.prompt.Prompt prompt = new org.springframework.ai.chat.prompt.Prompt(java.util.List.of(sysMsg, userMessage), options);
 
-                System.out.println("Extraction (" + startModel + "): Using model " + currentModel + " (Attempt " + attempt + ")");
-                response = chatClient.call(prompt).getResult().getOutput().getContent();
+                System.out.println("Extraction (" + startModel + "): Using model " + targetModel + " (Attempt " + attempt + ")");
+                response = activeClient.call(prompt).getResult().getOutput().getContent();
                 break;
             } catch (Exception e) {
                 String fullError = e.toString().toLowerCase();
@@ -338,11 +345,11 @@ public class QuestionExtractionService {
                 // Fallback Sequence
                 boolean isGatewayError = fullError.contains("text/html") || fullError.contains("content type [text/html]") || fullError.contains("502");
                 boolean isRateLimit = fullError.contains("rate_limit_exceeded") || fullError.contains("429") || fullError.contains("overloaded");
-                boolean isHighDemand = fullError.contains("503") || fullError.contains("high demand") || fullError.contains("unavailable") || fullError.contains("transientai");
+                boolean isHighDemand = fullError.contains("503") || fullError.contains("high demand") || fullError.contains("unavailable") || fullError.contains("transientai") || fullError.contains("403") || fullError.contains("dunning");
                 
                 if (isGatewayError || isRateLimit || isHighDemand) {
-                    if (currentModel.equals("gemini-2.5-flash") && groqChatClient != null) {
-                        currentModel = "groq-fallback";
+                    if (currentModel.equals("llama-3.3-70b-versatile") && chatClient != null) {
+                        currentModel = "gemini-fallback";
                         attempt = 0;
                         continue;
                     }
@@ -808,18 +815,18 @@ public class QuestionExtractionService {
         int maxRetries = 5;
         int attempt = 0;
         String response = null;
-        String currentModel = "gemini-2.5-flash"; 
+        String currentModel = "llama-3.3-70b-versatile"; 
 
         while (attempt < maxRetries) {
             try {
                 attempt++;
                 org.springframework.ai.chat.prompt.ChatOptions options;
                 
-                ChatModel activeClient = chatClient;
-                if (currentModel.equals("groq-fallback") && groqChatClient != null) {
-                    activeClient = groqChatClient;
-                    options = OpenAiChatOptions.builder().withMaxTokens(batch.size() * 1200).build();
-                    System.out.println("Enrichment: Using Groq Fallback (Attempt " + attempt + ")");
+                ChatModel activeClient = groqChatClient;
+                if (currentModel.equals("gemini-fallback") && chatClient != null) {
+                    activeClient = chatClient;
+                    options = OpenAiChatOptions.builder().withModel("gemini-2.5-flash").withMaxTokens(batch.size() * 1200).build();
+                    System.out.println("Enrichment: Using Gemini Fallback (Attempt " + attempt + ")");
                 } else {
                     options = OpenAiChatOptions.builder().withModel(currentModel).withMaxTokens(batch.size() * 1200).build();
                     System.out.println("Enrichment: Using Primary Model " + currentModel + " (Attempt " + attempt + ")");
@@ -836,11 +843,11 @@ public class QuestionExtractionService {
                 // Detection for gateway errors (text/html) or rate limits (429)
                 boolean isGatewayError = fullError.contains("text/html") || fullError.contains("content type [text/html]");
                 boolean isRateLimit = fullError.contains("rate_limit_exceeded") || fullError.contains("429");
-                boolean isHighDemand = fullError.contains("503") || fullError.contains("high demand") || fullError.contains("unavailable") || fullError.contains("transientai");
+                boolean isHighDemand = fullError.contains("503") || fullError.contains("high demand") || fullError.contains("unavailable") || fullError.contains("transientai") || fullError.contains("403") || fullError.contains("dunning");
                 
-                if ((isGatewayError || isRateLimit || isHighDemand) && groqChatClient != null && !currentModel.equals("groq-fallback")) {
-                    System.out.println("ALERT: Provider returned HTML/RateLimit/503. Switching to Groq Fallback...");
-                    currentModel = "groq-fallback";
+                if ((isGatewayError || isRateLimit || isHighDemand) && chatClient != null && !currentModel.equals("gemini-fallback")) {
+                    System.out.println("ALERT: Provider returned HTML/RateLimit/503/403. Switching to Gemini Fallback...");
+                    currentModel = "gemini-fallback";
                     attempt = 0; // Reset attempts for the new model
                     continue;
                 }
@@ -920,7 +927,7 @@ public class QuestionExtractionService {
         String response = null;
         
         // Use a lightweight model for enrichment to save 70B tokens
-        String enrichmentModel = "gemini-2.5-flash";
+        String enrichmentModel = "llama-3.1-8b-instant";
         String currentModel = enrichmentModel; // Fallback tracker
 
         while (attempt < maxRetries) {
@@ -928,11 +935,11 @@ public class QuestionExtractionService {
                 attempt++;
                 org.springframework.ai.chat.prompt.ChatOptions options;
                 
-                ChatModel activeClient = chatClient;
-                if (currentModel.equals("groq-fallback") && groqChatClient != null) {
-                    activeClient = groqChatClient;
-                    options = OpenAiChatOptions.builder().withMaxTokens(1500).build();
-                    System.out.println("Using Groq for enrichment fallback...");
+                ChatModel activeClient = groqChatClient;
+                if (currentModel.equals("gemini-fallback") && chatClient != null) {
+                    activeClient = chatClient;
+                    options = OpenAiChatOptions.builder().withModel("gemini-2.5-flash").withMaxTokens(1500).build();
+                    System.out.println("Using Gemini for enrichment fallback...");
                 } else {
                     options = OpenAiChatOptions.builder().withModel(currentModel).withMaxTokens(1500).build();
                 }
@@ -952,7 +959,7 @@ public class QuestionExtractionService {
 
                 long waitTime = 20000; // Default substantial wait for enrichment
                 boolean isRateLimit = fullError.contains("rate_limit_exceeded") || fullError.contains("429");
-                boolean isHighDemand = fullError.contains("503") || fullError.contains("high demand") || fullError.contains("unavailable") || fullError.contains("transientai");
+                boolean isHighDemand = fullError.contains("503") || fullError.contains("high demand") || fullError.contains("unavailable") || fullError.contains("transientai") || fullError.contains("403") || fullError.contains("dunning");
                 
                 if (isRateLimit || isHighDemand) {
                     java.util.regex.Matcher m = java.util.regex.Pattern.compile("again in ([\\d\\.]+)s").matcher(errorMsg);
@@ -961,9 +968,9 @@ public class QuestionExtractionService {
                     }
                     System.out.println("Rate limit or High Demand detected during enrichment. Backing off for " + waitTime + "ms...");
                     
-                    if (groqChatClient != null && (currentModel == null || !currentModel.equals("groq-fallback"))) {
-                        System.out.println("Switching Enrichment to Groq to bypass rate limit/high demand.");
-                        currentModel = "groq-fallback";
+                    if (chatClient != null && (currentModel == null || !currentModel.equals("gemini-fallback"))) {
+                        System.out.println("Switching Enrichment to Gemini to bypass rate limit/high demand.");
+                        currentModel = "gemini-fallback";
                         waitTime = 1000;
                     }
                 }

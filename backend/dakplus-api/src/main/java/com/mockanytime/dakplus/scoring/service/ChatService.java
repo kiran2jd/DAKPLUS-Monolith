@@ -3,14 +3,17 @@ package com.mockanytime.dakplus.scoring.service;
 import org.springframework.ai.chat.model.ChatModel;
 import org.springframework.ai.chat.prompt.Prompt;
 import org.springframework.ai.openai.OpenAiChatOptions;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
-import lombok.RequiredArgsConstructor;
 
 @Service
-@RequiredArgsConstructor
 public class ChatService {
 
     private final ChatModel chatClient;
+
+    public ChatService(@Qualifier("groqChatClient") ChatModel chatClient) {
+        this.chatClient = chatClient;
+    }
 
     public String getChatResponse(String message) {
         String systemPersona = "You are the DAK Plus AI Assistant, a professional expert on Indian Postal Department Exams (MTS, Postman/Mail Guard, and PA/SA). "
@@ -29,7 +32,7 @@ public class ChatService {
 
         try {
             return chatClient.call(new Prompt(systemPersona + "\n\nUser Question: " + message,
-                    OpenAiChatOptions.builder().withModel("gemini-2.5-flash").withMaxTokens(512).build()))
+                    OpenAiChatOptions.builder().withModel("llama-3.1-8b-instant").withMaxTokens(512).build()))
                     .getResult().getOutput().getContent();
         } catch (Exception e) {
             System.err.println("ChatService AI call failed: " + e.getMessage());
