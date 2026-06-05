@@ -73,25 +73,25 @@ export default function PaymentScreen({ navigation, route }) {
 
     const pricing = {
         'MTS': {
-            price: 10,
+            price: 399,
             title: 'MTS Exam',
             subtitle: 'TARGET 2026 BATCH',
             features: ['✓ Complete Paper 1 Syllabus', '✓ Detailed AI Training Access', '✓ Unlimited Practice Tests', '✓ One-time Payment']
         },
         'PMMG': {
-            price: 30,
+            price: 599,
             title: 'Postman & Mail Guard',
             subtitle: 'COMPLETE PAPER 1 & 2',
             features: ['✓ Complete Paper 1 & 2 Syllabus', '✓ Detailed AI Training Access', '✓ Unlimited Practice Tests', '✓ One-time Payment']
         },
         'PASA': {
-            price: 30,
+            price: 799,
             title: 'PA/SA Special Classes',
             subtitle: 'TARGET 2026 BATCH',
             features: ['✓ Complete Paper 1 & 2 Syllabus', '✓ Detailed AI Training Access', '✓ Unlimited Practice Tests', '✓ One-time Payment']
         },
         'COMBINED': {
-            price: 70,
+            price: 999,
             title: 'Combined Course',
             subtitle: 'PA/SA, PM/MG, MTS',
             features: ['✓ Access to EVERYTHING', '✓ Detailed AI Training Access', '✓ Unlimited Practice Tests', '✓ Best Value Package']

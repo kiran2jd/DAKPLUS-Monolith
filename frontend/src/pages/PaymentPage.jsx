@@ -75,23 +75,23 @@ export default function PaymentPage() {
 
     // 2. Map pricing based on user's exam choice
     const pricing = {
-        'MTS': { amount: 10, id: 'MTS', label: 'MTS Exam Prep' },
-        'PMMG': { amount: 30, id: 'PMMG', label: 'Postman/MG Prep' },
-        'PASA': { amount: 30, id: 'PASA', label: 'PA/SA Exam Prep' },
-        'COMBINED': { amount: 70, id: 'COMBINED', label: 'Combined Course' },
-        'GDS to MTS': { amount: 10, id: 'MTS', label: 'MTS Exam Prep' },
-        'GDS to Postman': { amount: 30, id: 'PMMG', label: 'Postman/MG Prep' },
-        'MTS to Postman': { amount: 30, id: 'PMMG', label: 'Postman/MG Prep' },
-        'PM MG Exam': { amount: 30, id: 'PMMG', label: 'Postman/MG Prep' },
-        'GDS/MTS/Postman to PA/SA': { amount: 30, id: 'PASA', label: 'PA/SA Exam Prep' },
-        'PA SA Exam': { amount: 30, id: 'PASA', label: 'PA/SA Exam Prep' },
+        'MTS': { amount: 399, id: 'MTS', label: 'MTS Exam Prep' },
+        'PMMG': { amount: 599, id: 'PMMG', label: 'Postman/MG Prep' },
+        'PASA': { amount: 799, id: 'PASA', label: 'PA/SA Exam Prep' },
+        'COMBINED': { amount: 999, id: 'COMBINED', label: 'Combined Course' },
+        'GDS to MTS': { amount: 399, id: 'MTS', label: 'MTS Exam Prep' },
+        'GDS to Postman': { amount: 599, id: 'PMMG', label: 'Postman/MG Prep' },
+        'MTS to Postman': { amount: 599, id: 'PMMG', label: 'Postman/MG Prep' },
+        'PM MG Exam': { amount: 599, id: 'PMMG', label: 'Postman/MG Prep' },
+        'GDS/MTS/Postman to PA/SA': { amount: 799, id: 'PASA', label: 'PA/SA Exam Prep' },
+        'PA SA Exam': { amount: 799, id: 'PASA', label: 'PA/SA Exam Prep' },
         'IP Exam': { amount: 999, id: 'IP_EXAM', label: 'IP Exam Prep' }
     };
 
     // Use itemId from URL if provided (preferred for mobile)
     const urlItemId = searchParams.get('itemId');
     const userExam = user?.examType || 'Others';
-    const selectedPlan = pricing[urlItemId] || pricing[userExam] || { amount: 70, id: 'COMBINED', label: 'DAK Plus Pro' };
+    const selectedPlan = pricing[urlItemId] || pricing[userExam] || { amount: 999, id: 'COMBINED', label: 'DAK Plus Pro' };
 
     const handlePayment = async () => {
         setProcessing(true);
