@@ -114,7 +114,7 @@ export default function PaymentPage() {
             // Fix: DAKPlus grants PREMIUM for its main course purchases.
             // Segregate course payments: Only COMBINED results in global PREMIUM status.
             // Individual courses (MTS, PMMG, PASA) use EXAM type for specific unlocking.
-            const isSubscription = itemId === 'COMBINED' || (selectedPlan.label && selectedPlan.label.includes('Prep'));
+            const isSubscription = itemId === 'COMBINED';
             const itemType = testId ? 'TEST' : (isSubscription ? 'SUBSCRIPTION' : 'EXAM');
             
             // Extract explicitly passed userId from URL if available
@@ -140,6 +140,15 @@ export default function PaymentPage() {
                         if (verificationResult.status === 'success') {
                             if (itemType === 'SUBSCRIPTION') {
                                 const updatedUser = { ...user, subscriptionTier: 'PREMIUM' };
+                                localStorage.setItem('user', JSON.stringify(updatedUser));
+                            } else if (itemType === 'EXAM') {
+                                const updatedUser = { ...user };
+                                if (!Array.isArray(updatedUser.unlockedExams)) {
+                                    updatedUser.unlockedExams = [];
+                                }
+                                if (!updatedUser.unlockedExams.includes(itemId)) {
+                                    updatedUser.unlockedExams.push(itemId);
+                                }
                                 localStorage.setItem('user', JSON.stringify(updatedUser));
                             }
                             setSuccess(true);
@@ -191,6 +200,15 @@ export default function PaymentPage() {
                             // Update local user state if subscription
                             if (itemType === 'SUBSCRIPTION') {
                                 const updatedUser = { ...user, subscriptionTier: 'PREMIUM' };
+                                localStorage.setItem('user', JSON.stringify(updatedUser));
+                            } else if (itemType === 'EXAM') {
+                                const updatedUser = { ...user };
+                                if (!Array.isArray(updatedUser.unlockedExams)) {
+                                    updatedUser.unlockedExams = [];
+                                }
+                                if (!updatedUser.unlockedExams.includes(itemId)) {
+                                    updatedUser.unlockedExams.push(itemId);
+                                }
                                 localStorage.setItem('user', JSON.stringify(updatedUser));
                             }
 

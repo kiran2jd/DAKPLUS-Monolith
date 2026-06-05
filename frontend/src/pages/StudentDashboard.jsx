@@ -41,6 +41,36 @@ export default function StudentDashboard() {
 
     const isPro = user?.subscriptionTier === 'PREMIUM';
 
+    const getTestAccess = (testItem) => {
+        const isPremium = !!(testItem.premium || testItem.isPremium);
+        const testCourseIds = Array.isArray(testItem.courseIds) ? testItem.courseIds : [];
+        const unlockedList = Array.isArray(user?.unlockedExams) ? user.unlockedExams : [];
+        const purchasedIdsList = Array.isArray(purchasedIds) ? purchasedIds : [];
+
+        const isUnlocked = isPro || 
+                           unlockedList.some(u => u && typeof u === 'string' && u.toUpperCase() === 'COMBINED') || 
+                           testCourseIds.some(cid => cid && typeof cid === 'string' && unlockedList.some(ul => ul && typeof ul === 'string' && ul.toUpperCase() === cid.toUpperCase())) ||
+                           purchasedIdsList.includes(testItem.id);
+
+        // Find if this is a sample test (first 2 tests in any of its courses)
+        const isSample = testCourseIds.some(cid => {
+            const courseTests = (tests || []).filter(t => 
+                Array.isArray(t.courseIds) && t.courseIds.some(c => c && c.toUpperCase() === cid.toUpperCase())
+            );
+            const sorted = [...courseTests].sort((a, b) => {
+                const dateA = new Date(a.createdAt || 0);
+                const dateB = new Date(b.createdAt || 0);
+                return dateA - dateB; // Oldest first
+            });
+            const index = sorted.findIndex(t => t.id === testItem.id);
+            return index >= 0 && index < 2; // Unlocked as sample
+        });
+
+        const isLocked = isPremium && !isUnlocked && !isSample;
+
+        return { isPremium, isUnlocked, isSample, isLocked };
+    };
+
     useEffect(() => {
         const loadInitialData = async () => {
             try {
@@ -238,25 +268,32 @@ export default function StudentDashboard() {
                                                 {tests
                                                     .filter(t => t.topicId === topic.id && (!t.subtopicId || t.subtopicId === "null" || t.subtopicId === ""))
                                                     .map(test => {
-                                                        const isPremium = test.premium || test.isPremium;
-                                                        const testCourseIds = test.courseIds || [];
-                                                        const unlockedList = user?.unlockedExams || [];
-                                                        const hasAccess = isPro || 
-                                                                         purchasedIds.includes(test.id) || 
-                                                                         testCourseIds.some(cid => unlockedList.some(ul => ul.toUpperCase() === cid.toUpperCase())) ||
-                                                                         unlockedList.some(ul => ul.toUpperCase() === 'COMBINED');
+                                                        const { isPremium, isUnlocked, isSample, isLocked } = getTestAccess(test);
 
                                                         return (
                                                             <div key={test.id} className="flex items-center justify-between p-3 bg-red-50/30 dark:bg-red-900/10 rounded-lg border border-red-100 dark:border-red-900/30">
                                                                 <div className="flex-1 min-w-0">
                                                                     <p className="text-sm font-bold text-gray-900 dark:text-white truncate">{test.title}</p>
-                                                                    <span className="text-[8px] font-black text-red-600 dark:text-red-400 uppercase tracking-widest leading-none">General Exam</span>
+                                                                    <div className="flex flex-wrap items-center gap-2 mt-1">
+                                                                        <span className="text-[8px] font-black text-red-600 dark:text-red-400 uppercase tracking-widest leading-none">General Exam</span>
+                                                                        {isLocked && <span className="text-[8px] font-black bg-amber-100 text-amber-700 px-1 rounded">PRO</span>}
+                                                                        {isPremium && !isUnlocked && isSample && <span className="text-[8px] font-black bg-emerald-100 text-emerald-700 px-1 rounded">FREE SAMPLE</span>}
+                                                                    </div>
                                                                 </div>
                                                                 <button
-                                                                    onClick={() => navigate(isPremium && !hasAccess ? `/payment?testId=${test.id}` : `/dashboard/take-test/${test.id}`)}
-                                                                    className="ml-3 px-3 py-1 bg-red-600 text-white rounded-md text-[10px] font-black uppercase"
+                                                                    onClick={() => {
+                                                                        if (isLocked) {
+                                                                            const courseId = test.courseIds?.[0] || 'COMBINED';
+                                                                            navigate(`/payment?itemId=${courseId}`);
+                                                                        } else {
+                                                                            navigate(`/dashboard/take-test/${test.id}`);
+                                                                        }
+                                                                    }}
+                                                                    className={`ml-3 px-3 py-1 rounded-md text-[10px] font-black uppercase transition-all ${
+                                                                        isLocked ? 'bg-amber-500 text-white' : 'bg-red-600 text-white'
+                                                                    }`}
                                                                 >
-                                                                    Start
+                                                                    {isLocked ? 'Unlock' : 'Start'}
                                                                 </button>
                                                             </div>
                                                         );
@@ -285,40 +322,37 @@ export default function StudentDashboard() {
                                                                 .filter(t => t.subtopicId === sub.id)
                                                                 .filter(t => {
                                                                     if (activeTab === 'purchased') {
-                                                                        const testCourseIds = t.courseIds || [];
-                                                                        const unlockedList = user?.unlockedExams || [];
-                                                                        return isPro || 
-                                                                               purchasedIds.includes(t.id) || 
-                                                                               testCourseIds.some(cid => unlockedList.some(ul => ul.toUpperCase() === cid.toUpperCase())) ||
-                                                                               unlockedList.some(ul => ul.toUpperCase() === 'COMBINED');
+                                                                        const { isUnlocked } = getTestAccess(t);
+                                                                        return isUnlocked;
                                                                     }
                                                                     return true;
                                                                 })
                                                                 .map(test => {
-                                                                    const isPremium = test.premium || test.isPremium;
-                                                                    const testCourseIds = test.courseIds || [];
-                                                                    const unlockedList = user?.unlockedExams || [];
-                                                                    const hasAccess = isPro || 
-                                                                                     purchasedIds.includes(test.id) || 
-                                                                                     testCourseIds.some(cid => unlockedList.some(ul => ul.toUpperCase() === cid.toUpperCase())) ||
-                                                                                     unlockedList.some(ul => ul.toUpperCase() === 'COMBINED');
+                                                                    const { isPremium, isUnlocked, isSample, isLocked } = getTestAccess(test);
 
                                                                     return (
                                                                         <div key={test.id} className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg hover:bg-white dark:hover:bg-gray-700 shadow-sm transition-all border border-transparent hover:border-red-100">
                                                                             <div className="flex-1 min-w-0">
                                                                                 <p className="text-sm font-bold text-gray-900 dark:text-white truncate">{test.title}</p>
                                                                                 <div className="flex gap-2 mt-1">
-                                                                                    {isPremium && <span className="text-[8px] font-black bg-amber-100 text-amber-700 px-1 rounded">PRO</span>}
-                                                                                    {hasAccess && isPremium && <span className="text-[8px] font-black bg-green-100 text-green-700 px-1 rounded">UNLOCKED</span>}
+                                                                                    {isLocked && <span className="text-[8px] font-black bg-amber-100 text-amber-700 px-1 rounded">PRO</span>}
+                                                                                    {isPremium && !isUnlocked && isSample && <span className="text-[8px] font-black bg-emerald-100 text-emerald-700 px-1 rounded">FREE SAMPLE</span>}
                                                                                 </div>
                                                                             </div>
                                                                             <button
-                                                                                onClick={() => navigate(isPremium && !hasAccess ? `/payment?testId=${test.id}` : `/dashboard/take-test/${test.id}`)}
+                                                                                onClick={() => {
+                                                                                    if (isLocked) {
+                                                                                        const courseId = test.courseIds?.[0] || 'COMBINED';
+                                                                                        navigate(`/payment?itemId=${courseId}`);
+                                                                                    } else {
+                                                                                        navigate(`/dashboard/take-test/${test.id}`);
+                                                                                    }
+                                                                                }}
                                                                                 className={`ml-3 px-3 py-1 rounded-md text-[10px] font-black uppercase transition-all ${
-                                                                                    isPremium && !hasAccess ? 'bg-amber-500 text-white' : 'bg-red-600 text-white'
+                                                                                    isLocked ? 'bg-amber-500 text-white' : 'bg-red-600 text-white'
                                                                                 }`}
                                                                             >
-                                                                                {isPremium && !hasAccess ? 'Unlock' : 'Start'}
+                                                                                {isLocked ? 'Unlock' : 'Start'}
                                                                             </button>
                                                                         </div>
                                                                     );

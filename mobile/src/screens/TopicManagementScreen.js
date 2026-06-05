@@ -40,12 +40,16 @@ export default function TopicManagementScreen({ navigation }) {
     const loadTopics = async () => {
         try {
             const data = await topicService.getAllTopics();
-            setTopics(data);
-            for (const topic of data) {
-                fetchSubtopics(topic.id);
+            const topicsList = Array.isArray(data) ? data : [];
+            setTopics(topicsList);
+            for (const topic of topicsList) {
+                if (topic && topic.id) {
+                    fetchSubtopics(topic.id);
+                }
             }
         } catch (err) {
             Alert.alert('Error', 'Failed to load topics');
+            setTopics([]);
         } finally {
             setLoading(false);
         }
@@ -54,9 +58,10 @@ export default function TopicManagementScreen({ navigation }) {
     const fetchSubtopics = async (topicId) => {
         try {
             const data = await topicService.getSubtopics(topicId);
-            setSubtopics(prev => ({ ...prev, [topicId]: data }));
+            setSubtopics(prev => ({ ...prev, [topicId]: Array.isArray(data) ? data : [] }));
         } catch (err) {
             console.error("Failed to fetch subtopics for " + topicId, err);
+            setSubtopics(prev => ({ ...prev, [topicId]: [] }));
         }
     };
 
@@ -184,7 +189,7 @@ export default function TopicManagementScreen({ navigation }) {
             </View>
 
             <View style={styles.subtopicsContainer}>
-                {(subtopics[item.id] || []).map(sub => (
+                {Array.isArray(subtopics[item.id]) && subtopics[item.id].map(sub => (
                     <TouchableOpacity 
                         key={sub.id} 
                         style={styles.subtopicBadge}
@@ -198,7 +203,7 @@ export default function TopicManagementScreen({ navigation }) {
                         <Ionicons name="pencil" size={8} color="#94a3b8" style={{ marginLeft: 4 }} />
                     </TouchableOpacity>
                 ))}
-                {(!subtopics[item.id] || subtopics[item.id].length === 0) && (
+                {(!subtopics[item.id] || !Array.isArray(subtopics[item.id]) || subtopics[item.id].length === 0) && (
                     <Text style={styles.noSubtopics}>No subtopics yet</Text>
                 )}
             </View>

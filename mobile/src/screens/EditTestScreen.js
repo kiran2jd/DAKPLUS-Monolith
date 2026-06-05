@@ -20,7 +20,7 @@ import { testService } from '../services/test';
 import { topicService } from '../services/topic';
 
 export default function EditTestScreen({ navigation, route }) {
-    const { testId } = route.params;
+    const { testId } = route.params || {};
     const [title, setTitle] = useState('');
     const [description, setDescription] = useState('');
     const [duration, setDuration] = useState('60');
@@ -38,19 +38,27 @@ export default function EditTestScreen({ navigation, route }) {
 
     const loadTest = async () => {
         try {
+            if (!testId) {
+                Alert.alert('Error', 'Invalid Test ID');
+                navigation.goBack();
+                return;
+            }
             const test = await testService.getTestById(testId);
-            setTitle(test.title);
-            setDescription(test.description);
-            setDuration(String(test.durationMinutes));
+            if (!test) {
+                throw new Error("Test not found");
+            }
+            setTitle(test.title || '');
+            setDescription(test.description || '');
+            setDuration(String(test.durationMinutes || 60));
             setCategory(test.category || 'General');
             setDifficulty(test.difficulty || 'Medium');
             setIsPremium(test.premium || test.isPremium || false);
-            setCourseIds(test.courseIds || []);
-            if (test.questions && test.questions.length > 0) {
+            setCourseIds(Array.isArray(test.courseIds) ? test.courseIds : []);
+            if (Array.isArray(test.questions) && test.questions.length > 0) {
                 setQuestions(test.questions.map(q => ({
-                    text: q.text,
-                    options: q.options || ['', '', '', ''],
-                    correctAnswer: q.correctAnswer,
+                    text: q.text || '',
+                    options: Array.isArray(q.options) ? q.options : ['', '', '', ''],
+                    correctAnswer: q.correctAnswer || '',
                     explanation: q.explanation || '',
                     points: q.points || 1,
                     imageUrl: q.imageUrl || '',

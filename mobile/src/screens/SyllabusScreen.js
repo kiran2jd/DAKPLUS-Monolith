@@ -68,7 +68,8 @@ export default function SyllabusScreen({ navigation, route }) {
             const userStr = await SecureStore.getItemAsync('user');
             if (userStr) {
                 const user = JSON.parse(userStr);
-                setIsStaff(user?.role === 'STAFF' || user?.role === 'ADMIN');
+                const role = user?.role?.toUpperCase() || 'STUDENT';
+                setIsStaff(role === 'TEACHER' || role === 'ADMIN');
             }
         } catch (e) {
             console.error("Auth check failed", e);
@@ -80,12 +81,12 @@ export default function SyllabusScreen({ navigation, route }) {
         try {
             const rawTopics = await topicService.getAllTopics(courseId);
             // Only show syllabus-specific categories
-            const topicsData = (rawTopics || []).filter(t => t.syllabusOnly === true);
+            const topicsData = (Array.isArray(rawTopics) ? rawTopics : []).filter(t => t && t.syllabusOnly === true);
             
             const syllabus = await Promise.all(topicsData.map(async (topic) => {
                 try {
                     const subtopics = await topicService.getSubtopics(topic.id);
-                    return { ...topic, subtopics };
+                    return { ...topic, subtopics: Array.isArray(subtopics) ? subtopics : [] };
                 } catch (e) {
                     return { ...topic, subtopics: [] };
                 }
@@ -93,6 +94,7 @@ export default function SyllabusScreen({ navigation, route }) {
             setTopics(syllabus);
         } catch (err) {
             console.error("Failed to load syllabus", err);
+            setTopics([]);
         } finally {
             setLoading(false);
         }

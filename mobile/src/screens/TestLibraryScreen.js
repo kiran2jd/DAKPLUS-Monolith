@@ -69,20 +69,22 @@ export default function TestLibraryScreen({ navigation, route }) {
                 testService.getAvailableTests(courseIdFilter)
             ]);
 
-            setTopics((topicsData || []).filter(t => !t.syllabusOnly));
-            setTests(testsData);
+            const topicsList = Array.isArray(topicsData) ? topicsData : [];
+            setTopics(topicsList.filter(t => t && !t.syllabusOnly));
+            setTests(Array.isArray(testsData) ? testsData : []);
 
-            if (topicsData && topicsData.length > 0) {
-                const firstTopic = topicsData[0];
+            if (topicsList.length > 0) {
+                const firstTopic = topicsList[0];
                 setSelectedTopic(firstTopic.id);
                 try {
                     const subData = await topicService.getSubtopics(firstTopic.id);
-                    setSubtopics(subData);
+                    setSubtopics(Array.isArray(subData) ? subData : []);
                     // Crucial Fix: We do NOT auto-select the first subtopic.
                     // Doing so hides tests that belong to the Topic but don't belong strictly to the first subtopic.
                     setSelectedSubtopic(null); 
                 } catch (subErr) {
                     console.error("Auto load subtopics failed", subErr);
+                    setSubtopics([]);
                 }
             }
 
@@ -90,15 +92,18 @@ export default function TestLibraryScreen({ navigation, route }) {
                 const userId = userData?.id || userData?._id;
                 if (userId) {
                     const response = await api.get(`/payments/user-purchases?userId=${userId}`);
-                    setPurchases(response.data || []);
+                    setPurchases(Array.isArray(response.data) ? response.data : []);
                 } else {
                     setPurchases([]);
                 }
             } catch (pErr) {
                 console.log("No purchases found or error:", pErr);
+                setPurchases([]);
             }
         } catch (err) {
             console.error("Load Library error:", err);
+            setTopics([]);
+            setTests([]);
         } finally {
             setLoading(false);
         }
@@ -111,28 +116,47 @@ export default function TestLibraryScreen({ navigation, route }) {
             setSelectedSubtopic(null);
         } else {
             setSelectedTopic(topicId);
-            const sub = await topicService.getSubtopics(topicId);
-            setSubtopics(sub);
+            try {
+                const sub = await topicService.getSubtopics(topicId);
+                setSubtopics(Array.isArray(sub) ? sub : []);
+            } catch (err) {
+                console.error("Failed to fetch subtopics on topic select", err);
+                setSubtopics([]);
+            }
             // Crucial Fix: Always default to 'All Subtopics' when changing Topics
             setSelectedSubtopic(null);
         }
     };
 
     const isPro = user?.subscriptionTier === 'PREMIUM' || user?.role === 'ADMIN' || user?.role === 'TEACHER';
-    const unlockedExams = user?.unlockedExams || [];
+    const unlockedExams = Array.isArray(user?.unlockedExams) ? user.unlockedExams : [];
 
     const renderTestItem = ({ item }) => {
         const isPremium = item.premium || item.isPremium;
-        const purchasedIds = purchases.map(p => p.itemId);
+        const purchasedIds = Array.isArray(purchases) ? purchases.map(p => p.itemId) : [];
         
         // Course-based locking logic (Shared Content Support)
-        const itemCourseIds = item.courseIds || [];
+        const itemCourseIds = Array.isArray(item.courseIds) ? item.courseIds : [];
         const isUnlocked = isPro || 
-                          unlockedExams.some(u => u.toUpperCase() === 'COMBINED') || 
-                          itemCourseIds.some(cid => unlockedExams.some(u => u.toUpperCase() === cid.toUpperCase())) ||
+                          unlockedExams.some(u => u && typeof u === 'string' && u.toUpperCase() === 'COMBINED') || 
+                          itemCourseIds.some(cid => cid && typeof cid === 'string' && unlockedExams.some(u => u && typeof u === 'string' && u.toUpperCase() === cid.toUpperCase())) ||
                           purchasedIds.includes(item.id);
 
-        const isLocked = isPremium && !isUnlocked;
+        // Find if this is a sample test (first 2 tests in any of its courses)
+        const isSample = itemCourseIds.some(cid => {
+            const courseTests = (tests || []).filter(t => 
+                Array.isArray(t.courseIds) && t.courseIds.some(c => c && c.toUpperCase() === cid.toUpperCase())
+            );
+            const sorted = [...courseTests].sort((a, b) => {
+                const dateA = new Date(a.createdAt || 0);
+                const dateB = new Date(b.createdAt || 0);
+                return dateA - dateB; // Oldest first
+            });
+            const index = sorted.findIndex(t => t.id === item.id);
+            return index >= 0 && index < 2; // Unlocked as sample
+        });
+
+        const isLocked = isPremium && !isUnlocked && !isSample;
 
         return (
             <Pressable
@@ -156,7 +180,8 @@ export default function TestLibraryScreen({ navigation, route }) {
                 </View>
 
                 <Text style={styles.testTitle}>
-                    {isPremium && <Text style={{ color: '#f97316' }}>[PRO] </Text>}
+                    {isPremium && !isUnlocked && isSample && <Text style={{ color: '#10b981' }}>[FREE SAMPLE] </Text>}
+                    {isLocked && <Text style={{ color: '#f97316' }}>[PRO] </Text>}
                     {item.title}
                 </Text>
 
@@ -166,13 +191,13 @@ export default function TestLibraryScreen({ navigation, route }) {
                     <Text style={styles.categoryText}>{item.category || 'General'}</Text>
                     <View style={[styles.startButton, isLocked ? styles.lockedBtn : styles.unlockedBtn]}>
                         <LinearGradient
-                            colors={isLocked ? ['#475569', '#334155'] : (isUnlocked ? ['#22c55e', '#16a34a'] : ['#dc2626', '#f97316'])}
+                            colors={isLocked ? ['#475569', '#334155'] : ['#dc2626', '#f97316']}
                             start={{ x: 0, y: 0 }}
                             end={{ x: 1, y: 0 }}
                             style={styles.btnGradient}
                         >
                             <Text style={styles.startButtonText}>
-                                {isLocked ? 'Unlock PRO' : (isUnlocked ? 'Unlocked' : 'Start Test')}
+                                {isLocked ? 'Unlock PRO' : 'Start Test'}
                             </Text>
                         </LinearGradient>
                     </View>
@@ -183,18 +208,18 @@ export default function TestLibraryScreen({ navigation, route }) {
 
     // Removed full-screen loading to allow header shell to mount instantly
 
-    const purchasedIds = purchases.map(p => p.itemId);
+    const purchasedIds = Array.isArray(purchases) ? purchases.map(p => p.itemId) : [];
 
-    const filteredTests = tests.filter(test => {
+    const filteredTests = (Array.isArray(tests) ? tests : []).filter(test => {
         const matchesTopic = !selectedTopic || test.topicId === selectedTopic;
         const matchesSubtopic = !selectedSubtopic || test.subtopicId === selectedSubtopic;
 
         if (activeTab === 'purchased') {
-            const unlockedList = user?.unlockedExams || [];
+            const unlockedList = Array.isArray(user?.unlockedExams) ? user.unlockedExams : [];
             const hasAccess = isPro || 
                              purchasedIds.includes(test.id) || 
-                             (test.courseIds || []).some(cid => unlockedList.some(ul => ul.toUpperCase() === cid.toUpperCase())) ||
-                             unlockedList.some(ul => ul.toUpperCase() === 'COMBINED');
+                             (Array.isArray(test.courseIds) ? test.courseIds : []).some(cid => cid && typeof cid === 'string' && unlockedList.some(ul => ul && typeof ul === 'string' && ul.toUpperCase() === cid.toUpperCase())) ||
+                             unlockedList.some(ul => ul && typeof ul === 'string' && ul.toUpperCase() === 'COMBINED');
             return hasAccess && matchesTopic && matchesSubtopic;
         }
 

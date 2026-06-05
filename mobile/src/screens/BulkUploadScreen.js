@@ -35,9 +35,10 @@ export default function BulkUploadScreen({ navigation }) {
     const fetchTopics = async () => {
         try {
             const data = await topicService.getAllTopics();
-            setTopics(data);
+            setTopics(Array.isArray(data) ? data : []);
         } catch (err) {
             console.error("Failed to fetch topics", err);
+            setTopics([]);
         }
     };
 
@@ -47,9 +48,10 @@ export default function BulkUploadScreen({ navigation }) {
         if (topicId) {
             try {
                 const data = await topicService.getSubtopics(topicId);
-                setSubtopics(data);
+                setSubtopics(Array.isArray(data) ? data : []);
             } catch (err) {
                 console.error("Failed to fetch subtopics", err);
+                setSubtopics([]);
             }
         } else {
             setSubtopics([]);
@@ -205,7 +207,7 @@ export default function BulkUploadScreen({ navigation }) {
                                         >
                                             <Text style={[styles.chipText, !selectedTopic ? styles.chipTextSelected : null]}>None</Text>
                                         </TouchableOpacity>
-                                        {topics.map(t => (
+                                        {Array.isArray(topics) && topics.map(t => (
                                             <TouchableOpacity
                                                 key={t.id}
                                                 style={[styles.chip, selectedTopic === t.id ? styles.chipSelected : null]}
@@ -229,7 +231,7 @@ export default function BulkUploadScreen({ navigation }) {
                                             >
                                                 <Text style={[styles.chipText, !selectedSubtopic ? styles.chipTextSelected : null]}>None</Text>
                                             </TouchableOpacity>
-                                            {subtopics.map(s => (
+                                            {Array.isArray(subtopics) && subtopics.map(s => (
                                                 <TouchableOpacity
                                                     key={s.id}
                                                     style={[styles.chip, selectedSubtopic === s.id ? styles.chipSelected : null]}

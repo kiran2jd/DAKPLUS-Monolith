@@ -34,10 +34,11 @@ export default function MyPurchasesScreen({ navigation }) {
             const userId = user?.id || user?._id;
             if (userId) {
                 const response = await api.get(`/payments/user-purchases?userId=${userId}`);
-                setPurchases(response.data || []);
+                setPurchases(Array.isArray(response.data) ? response.data : []);
             }
         } catch (error) {
             console.error("Failed to load purchases", error);
+            setPurchases([]);
         } finally {
             setLoading(false);
         }
@@ -61,7 +62,7 @@ export default function MyPurchasesScreen({ navigation }) {
             </LinearGradient>
 
             <ScrollView contentContainerStyle={styles.scrollContent}>
-                {purchases.length > 0 ? (
+                {Array.isArray(purchases) && purchases.length > 0 ? (
                     purchases.map((txn, idx) => (
                         <View key={idx} style={styles.txnCard}>
                             <View style={styles.txnHeader}>

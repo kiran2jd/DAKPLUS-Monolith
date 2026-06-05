@@ -24,7 +24,7 @@ import ConfettiCannon from 'react-native-confetti-cannon';
 const { width } = Dimensions.get('window');
 
 export default function ResultScreen({ navigation, route }) {
-    const { resultId } = route.params;
+    const { resultId } = route.params || {};
     const [user, setUser] = useState(null);
     const [result, setResult] = useState(null);
     const [loading, setLoading] = useState(true);

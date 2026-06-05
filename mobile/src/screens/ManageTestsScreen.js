@@ -54,9 +54,10 @@ export default function ManageTestsScreen({ navigation }) {
         setSearching(true);
         try {
             const results = await testService.searchTestsByQuestionText(text);
-            setTests(results || []);
+            setTests(Array.isArray(results) ? results : []);
         } catch (err) {
             console.error("Search failed:", err);
+            setTests([]);
         } finally {
             setSearching(false);
         }
@@ -69,9 +70,10 @@ export default function ManageTestsScreen({ navigation }) {
     const loadMyTests = async () => {
         try {
             const data = await testService.getMyTests();
-            setTests(data);
+            setTests(Array.isArray(data) ? data : []);
         } catch (err) {
             Alert.alert('Error', 'Failed to load your tests');
+            setTests([]);
         } finally {
             setLoading(false);
             setRefreshing(false);
@@ -108,7 +110,7 @@ export default function ManageTestsScreen({ navigation }) {
 
     const renderTestItem = ({ item }) => {
         const lowerQuery = searchQuery.trim().toLowerCase();
-        const matchingQuestions = searchQuery && item.questions 
+        const matchingQuestions = searchQuery && Array.isArray(item.questions)
             ? item.questions.filter(q => {
                 const qStr = (q.text || '') + ' ' + (q.textHi || '') + ' ' + (q.explanation || '') + ' ' + (q.explanationHi || '');
                 return qStr.toLowerCase().includes(lowerQuery);

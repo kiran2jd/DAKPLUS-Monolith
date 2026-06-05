@@ -27,7 +27,7 @@ import { reportService } from '../services/report';
 
 export default function TakeTestScreen({ navigation, route }) {
 
-    const { testId } = route.params;
+    const { testId } = route.params || {};
     const [test, setTest] = useState(null);
     const [currentQuestion, setCurrentQuestion] = useState(0);
     const [answers, setAnswers] = useState({});
@@ -393,7 +393,7 @@ export default function TakeTestScreen({ navigation, route }) {
                 )}
 
                 <View style={styles.optionsList}>
-                    {question.options.map((option, index) => {
+                    {Array.isArray(question.options) && question.options.map((option, index) => {
                         const displayOptionText = (language === 'hi' && question.optionsHi && question.optionsHi[index])
                             ? question.optionsHi[index]
                             : option;
