@@ -62,7 +62,9 @@ export default function PaymentScreen({ navigation, route }) {
                 // Also update the stored user in SecureStore so other screens see the change
                 await SecureStore.setItemAsync('user', JSON.stringify(userData));
                 
-                if (userData.subscriptionTier === 'PREMIUM' && !success) {
+                const isUserUnlocked = userData.subscriptionTier === 'PREMIUM' || 
+                                       (Array.isArray(userData.unlockedExams) && userData.unlockedExams.length > 0);
+                if (isUserUnlocked && !success) {
                     setSuccess(true);
                 }
             }
@@ -73,28 +75,81 @@ export default function PaymentScreen({ navigation, route }) {
 
     const pricing = {
         'MTS': {
+            id: 'MTS',
             price: 399,
             title: 'MTS Exam',
             subtitle: 'TARGET 2026 BATCH',
             features: ['✓ Complete Paper 1 Syllabus', '✓ Detailed AI Training Access', '✓ Unlimited Practice Tests', '✓ One-time Payment']
         },
         'PMMG': {
+            id: 'PMMG',
             price: 599,
             title: 'Postman & Mail Guard',
             subtitle: 'COMPLETE PAPER 1 & 2',
             features: ['✓ Complete Paper 1 & 2 Syllabus', '✓ Detailed AI Training Access', '✓ Unlimited Practice Tests', '✓ One-time Payment']
         },
         'PASA': {
+            id: 'PASA',
             price: 799,
             title: 'PA/SA Special Classes',
             subtitle: 'TARGET 2026 BATCH',
             features: ['✓ Complete Paper 1 & 2 Syllabus', '✓ Detailed AI Training Access', '✓ Unlimited Practice Tests', '✓ One-time Payment']
         },
         'COMBINED': {
+            id: 'COMBINED',
             price: 999,
             title: 'Combined Course',
             subtitle: 'PA/SA, PM/MG, MTS',
             features: ['✓ Access to EVERYTHING', '✓ Detailed AI Training Access', '✓ Unlimited Practice Tests', '✓ Best Value Package']
+        },
+        'GDS to MTS': {
+            id: 'MTS',
+            price: 399,
+            title: 'MTS Exam',
+            subtitle: 'TARGET 2026 BATCH',
+            features: ['✓ Complete Paper 1 Syllabus', '✓ Detailed AI Training Access', '✓ Unlimited Practice Tests', '✓ One-time Payment']
+        },
+        'GDS to Postman': {
+            id: 'PMMG',
+            price: 599,
+            title: 'Postman & Mail Guard',
+            subtitle: 'COMPLETE PAPER 1 & 2',
+            features: ['✓ Complete Paper 1 & 2 Syllabus', '✓ Detailed AI Training Access', '✓ Unlimited Practice Tests', '✓ One-time Payment']
+        },
+        'MTS to Postman': {
+            id: 'PMMG',
+            price: 599,
+            title: 'Postman & Mail Guard',
+            subtitle: 'COMPLETE PAPER 1 & 2',
+            features: ['✓ Complete Paper 1 & 2 Syllabus', '✓ Detailed AI Training Access', '✓ Unlimited Practice Tests', '✓ One-time Payment']
+        },
+        'PM MG Exam': {
+            id: 'PMMG',
+            price: 599,
+            title: 'Postman & Mail Guard',
+            subtitle: 'COMPLETE PAPER 1 & 2',
+            features: ['✓ Complete Paper 1 & 2 Syllabus', '✓ Detailed AI Training Access', '✓ Unlimited Practice Tests', '✓ One-time Payment']
+        },
+        'GDS/MTS/Postman to PA/SA': {
+            id: 'PASA',
+            price: 799,
+            title: 'PA/SA Special Classes',
+            subtitle: 'TARGET 2026 BATCH',
+            features: ['✓ Complete Paper 1 & 2 Syllabus', '✓ Detailed AI Training Access', '✓ Unlimited Practice Tests', '✓ One-time Payment']
+        },
+        'PA SA Exam': {
+            id: 'PASA',
+            price: 799,
+            title: 'PA/SA Special Classes',
+            subtitle: 'TARGET 2026 BATCH',
+            features: ['✓ Complete Paper 1 & 2 Syllabus', '✓ Detailed AI Training Access', '✓ Unlimited Practice Tests', '✓ One-time Payment']
+        },
+        'IP Exam': {
+            id: 'IP_EXAM',
+            price: 999,
+            title: 'IP Exam Prep',
+            subtitle: 'TARGET 2026 BATCH',
+            features: ['✓ Complete IP Exam Syllabus', '✓ Detailed AI Training Access', '✓ Unlimited Practice Tests', '✓ One-time Payment']
         }
     };
 
@@ -103,6 +158,12 @@ export default function PaymentScreen({ navigation, route }) {
     
     const details = pricing[selectedCourseId] || pricing[user?.examType] || pricing['COMBINED'];
     const currentPrice = details.price;
+
+    const unlockedList = user?.unlockedExams || [];
+    const isUnlocked = user?.subscriptionTier === 'PREMIUM' || 
+                       unlockedList.some(ul => ul && ul.toUpperCase() === 'COMBINED') ||
+                       unlockedList.some(ul => ul && ul.toUpperCase() === selectedCourseId.toUpperCase()) ||
+                       (details.id && unlockedList.some(ul => ul && ul.toUpperCase() === details.id.toUpperCase()));
 
     const handlePayment = async () => {
         setProcessing(true); // Ensure user doesn't double-tap
@@ -205,7 +266,7 @@ export default function PaymentScreen({ navigation, route }) {
 
                 <View style={styles.content}>
                     <View style={styles.planCard}>
-                        {user?.subscriptionTier === 'PREMIUM' && (
+                        {isUnlocked && (
                             <View style={styles.proBadgeContainer}>
                                 <Text style={styles.proBadgeText}>ACTIVE PRO</Text>
                             </View>
@@ -222,7 +283,7 @@ export default function PaymentScreen({ navigation, route }) {
                         </View>
                     </View>
 
-                    {user?.subscriptionTier !== 'PREMIUM' && (
+                    {!isUnlocked && (
                         <>
                             <Text style={styles.sectionTitle}>Secure Payment Portal</Text>
                             <View style={styles.infoBox}>
@@ -239,7 +300,7 @@ export default function PaymentScreen({ navigation, route }) {
                         </>
                     )}
 
-                    {user?.subscriptionTier === 'PREMIUM' && (
+                    {isUnlocked && (
                         <TouchableOpacity
                             style={styles.doneBtn}
                             onPress={() => navigation.navigate('Home')}

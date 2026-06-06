@@ -148,7 +148,7 @@ export default function DashboardScreen({ navigation }) {
                         <Text style={styles.nameHeader}>{user ? user.fullName || 'Dakplus Aspirant' : 'Loading Profile...'}</Text>
                         <View style={styles.roleRow}>
                             <Text style={styles.roleBadge}>{user ? role : '...'}</Text>
-                            {user?.subscriptionTier === 'PREMIUM' && <Text style={styles.proBadge}>PRO</Text>}
+                            {((user?.subscriptionTier === 'PREMIUM') || (Array.isArray(user?.unlockedExams) && user?.unlockedExams?.length > 0)) && <Text style={styles.proBadge}>PRO</Text>}
                         </View>
                     </View>
 

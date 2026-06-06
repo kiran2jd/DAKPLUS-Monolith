@@ -50,7 +50,7 @@ export default function SyllabusScreen({ navigation, route }) {
 
     const COURSE_BANNERS = [
         { id: 'MTS', title: 'MTS Exam', sub: 'Target 2026', color: '#dc2626', icon: 'document-text' },
-        { id: 'PMMG', title: 'Postman / MG', sub: 'Paper 1 & 2', color: '#3b82f6', icon: 'mail' },
+        { id: 'PMMG', title: 'Postman & Mail Guard', sub: 'Paper 1 & 2', color: '#3b82f6', icon: 'mail' },
         { id: 'PASA', title: 'PA / SA Special', sub: 'Target 2026', color: '#8b5cf6', icon: 'business' },
         { id: 'COMBINED', title: 'Combined Pro', sub: 'All-in-One', color: '#10b981', icon: 'shield-checkmark' }
     ];

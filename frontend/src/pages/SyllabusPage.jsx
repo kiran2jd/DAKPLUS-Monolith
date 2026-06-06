@@ -14,7 +14,7 @@ export default function SyllabusPage() {
 
     const COURSE_BANNERS = [
         { id: 'MTS', title: 'GDS to MTS', sub: 'Multi Tasking Staff', color: 'indigo' },
-        { id: 'PMMG', title: 'PM / MG', sub: 'Postman & Mail Guard', color: 'cyan' },
+        { id: 'PMMG', title: 'Postman & Mail Guard', sub: 'Postman & Mail Guard', color: 'cyan' },
         { id: 'PASA', title: 'PA / SA', sub: 'Postal & Sorting Assistant', color: 'red' },
     ];
 
