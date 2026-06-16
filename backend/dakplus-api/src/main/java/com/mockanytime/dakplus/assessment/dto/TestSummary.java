@@ -20,4 +20,6 @@ public interface TestSummary {
     boolean isAiEnriched();
     int getQuestionCount();
     int getEnrichedCount();
+    java.util.List<String> getCourseIds();
 }
+
