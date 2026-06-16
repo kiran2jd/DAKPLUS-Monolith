@@ -106,6 +106,19 @@ export default function SyllabusScreen({ navigation, route }) {
         return unlockedExams.some(u => u && (u.toUpperCase() === 'COMBINED' || u.toUpperCase() === normalized));
     };
 
+    const isTopicUnlocked = (topic) => {
+        if (isPro) return true;
+        if (isCourseUnlocked(selectedCourseId)) return true;
+        
+        const topicCourseIds = Array.isArray(topic?.courseIds) ? topic.courseIds : [];
+        if (unlockedExams.some(u => u && u.toUpperCase() === 'COMBINED')) return true;
+        
+        return topicCourseIds.some(cid => 
+            cid && typeof cid === 'string' && 
+            unlockedExams.some(u => u && typeof u === 'string' && u.toUpperCase() === cid.toUpperCase())
+        );
+    };
+
     const fetchSyllabus = async (courseId) => {
         setLoading(true);
         try {
@@ -261,7 +274,7 @@ export default function SyllabusScreen({ navigation, route }) {
                                             <TouchableOpacity 
                                                 style={styles.pdfBadge}
                                                 onPress={() => {
-                                                    if (isCourseUnlocked(selectedCourseId)) {
+                                                    if (isTopicUnlocked(topic)) {
                                                         WebBrowser.openBrowserAsync(getFullPdfUrl(sub.pdfUrl));
                                                     } else {
                                                         Alert.alert(
@@ -276,12 +289,12 @@ export default function SyllabusScreen({ navigation, route }) {
                                                 }}
                                             >
                                                 <LinearGradient 
-                                                    colors={isCourseUnlocked(selectedCourseId) ? ['#2563eb', '#1d4ed8'] : ['#475569', '#334155']} 
+                                                    colors={isTopicUnlocked(topic) ? ['#2563eb', '#1d4ed8'] : ['#475569', '#334155']} 
                                                     style={styles.pdfButtonSub}
                                                 >
-                                                    <Ionicons name={isCourseUnlocked(selectedCourseId) ? "download-outline" : "lock-closed-outline"} size={14} color="#fff" />
+                                                    <Ionicons name={isTopicUnlocked(topic) ? "download-outline" : "lock-closed-outline"} size={14} color="#fff" />
                                                     <Text style={styles.pdfButtonText}>
-                                                        {isCourseUnlocked(selectedCourseId) ? "View Syllabus PDF" : "Unlock with PRO"}
+                                                        {isTopicUnlocked(topic) ? "View Syllabus PDF" : "Unlock with PRO"}
                                                     </Text>
                                                 </LinearGradient>
                                             </TouchableOpacity>

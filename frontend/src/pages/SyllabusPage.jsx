@@ -26,11 +26,25 @@ export default function SyllabusPage() {
         return unlockedExams.some(u => u && (u.toUpperCase() === 'COMBINED' || u.toUpperCase() === normalized));
     };
 
-    const handlePdfClick = (e, courseId) => {
-        if (!isCourseUnlocked(courseId)) {
+    const isTopicUnlocked = (topic) => {
+        if (isPro) return true;
+        if (selectedCourseId && isCourseUnlocked(selectedCourseId)) return true;
+        
+        const topicCourseIds = Array.isArray(topic?.courseIds) ? topic.courseIds : [];
+        if (unlockedExams.some(u => u && u.toUpperCase() === 'COMBINED')) return true;
+        
+        return topicCourseIds.some(cid => 
+            cid && typeof cid === 'string' && 
+            unlockedExams.some(u => u && typeof u === 'string' && u.toUpperCase() === cid.toUpperCase())
+        );
+    };
+
+    const handlePdfClick = (e, topic) => {
+        if (!isTopicUnlocked(topic)) {
             e.preventDefault();
+            const targetCourseId = selectedCourseId || (Array.isArray(topic.courseIds) && topic.courseIds[0]) || 'COMBINED';
             if (window.confirm("Syllabus PDFs are only available for PRO members. Would you like to unlock this course?")) {
-                navigate(`/payment?itemId=${courseId}`);
+                navigate(`/payment?itemId=${targetCourseId}`);
             }
         }
     };
@@ -268,15 +282,15 @@ export default function SyllabusPage() {
                                                         href={getFullPdfUrl(sub.pdfUrl)}
                                                         target="_blank"
                                                         rel="noopener noreferrer"
-                                                        onClick={(e) => handlePdfClick(e, selectedCourseId)}
+                                                        onClick={(e) => handlePdfClick(e, topic)}
                                                         className={`p-2 rounded-lg transition-colors ${
-                                                            isCourseUnlocked(selectedCourseId) 
+                                                            isTopicUnlocked(topic) 
                                                                 ? 'bg-blue-100 text-blue-700 hover:bg-blue-200' 
                                                                 : 'bg-gray-100 text-gray-400 hover:bg-gray-200'
                                                         }`}
-                                                        title={isCourseUnlocked(selectedCourseId) ? "View PDF" : "Unlock with PRO"}
+                                                        title={isTopicUnlocked(topic) ? "View PDF" : "Unlock with PRO"}
                                                     >
-                                                        {isCourseUnlocked(selectedCourseId) ? <BookOpen className="h-3.5 w-3.5" /> : <Lock className="h-3.5 w-3.5 text-gray-400" />}
+                                                        {isTopicUnlocked(topic) ? <BookOpen className="h-3.5 w-3.5" /> : <Lock className="h-3.5 w-3.5 text-gray-400" />}
                                                     </a>
                                                 )}
                                                 {isStaff && (

@@ -62,8 +62,15 @@ export default function PaymentScreen({ navigation, route }) {
                 // Also update the stored user in SecureStore so other screens see the change
                 await SecureStore.setItemAsync('user', JSON.stringify(userData));
                 
+                const unlockedList = Array.isArray(userData.unlockedExams) ? userData.unlockedExams : [];
+                const targetCourseId = selectedCourseId || 'COMBINED';
+                const targetDetails = pricing[targetCourseId] || pricing[userData.examType] || pricing['COMBINED'];
+                
                 const isUserUnlocked = userData.subscriptionTier === 'PREMIUM' || 
-                                       (Array.isArray(userData.unlockedExams) && userData.unlockedExams.length > 0);
+                                       unlockedList.some(ul => ul && ul.toUpperCase() === 'COMBINED') ||
+                                       unlockedList.some(ul => ul && ul.toUpperCase() === targetCourseId.toUpperCase()) ||
+                                       (targetDetails.id && unlockedList.some(ul => ul && ul.toUpperCase() === targetDetails.id.toUpperCase()));
+                
                 if (isUserUnlocked && !success) {
                     setSuccess(true);
                 }
