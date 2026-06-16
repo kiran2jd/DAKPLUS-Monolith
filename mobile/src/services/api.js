@@ -81,57 +81,6 @@ api.interceptors.request.use(async (config) => {
 api.interceptors.response.use(
     (response) => response,
     async (error) => {
-        const originalRequest = error.config;
-
-        // Check if we haven't already retried and it's a network/server error
-        if (error.message !== 'canceled' && !originalRequest._retry &&
-            (!error.response || error.response.status >= 500 || error.code === 'ERR_NETWORK')) {
-
-            originalRequest._retry = true;
-            console.log('Primary API failed, attempting fallback to Railway...', error.message);
-
-            // Switch baseURL to backup
-            // Note: axios instance baseURL isn't automatically updated for the retry, 
-            // we must update the request url manually
-            const backupUrl = RAILWAY_BACKUP_URL;
-
-            // If the original URL was absolute and matched primary, replace it
-            if (originalRequest.url?.startsWith('http')) {
-                // It's already an absolute URL, we might need to be careful.
-                // Simply replacing the baseURL in the instance for future requests might be better logic
-                // but for this specific request, we need to correct the URL.
-            }
-
-            // Update instance defaults for future requests
-            api.defaults.baseURL = backupUrl;
-
-            // Fix the current request URL
-            // If originalRequest.url is relative, axios uses baseURL. 
-            // If we change baseURL on instance, does it apply to the retry? 
-            // Better to force the new URL on the config.
-
-            // Remove the old baseURL from the beginning if it exists, or just use the relative part
-            let relativePath = originalRequest.url;
-            if (relativePath.startsWith(API_BASE_URL)) {
-                relativePath = relativePath.substring(API_BASE_URL.length);
-            } else if (relativePath.startsWith('http')) {
-                // Try to strip domain
-                const urlObj = new URL(relativePath);
-                relativePath = urlObj.pathname + urlObj.search;
-                // Remove leading /api/ if it's doubled up (backupUrl has /api/)
-                if (relativePath.startsWith('/api/')) {
-                    relativePath = relativePath.substring(5);
-                }
-            }
-
-            // Construct new absolute URL
-            originalRequest.baseURL = backupUrl;
-            originalRequest.url = relativePath;
-
-            console.log(`Retrying request to: ${backupUrl}${relativePath}`);
-            return api(originalRequest);
-        }
-
         console.error('API Error Details:');
         if (error.response) {
             // The server responded with a status code out of the 2xx range

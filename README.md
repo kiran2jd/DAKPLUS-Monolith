@@ -8,17 +8,17 @@ DAK Plus is a comprehensive, AI-powered preparation platform designed to help as
 
 The project is structured as a monolith repository divided into three specialized components:
 
-### ⚙️ [Backend API](backend/dakplus-api) (The "Brain")
+### ⚙️ [Backend API](file:///c:/Users/PathipatiKirankumar/personal/AI%20Learn/web-app/DAKPlus/Git-Folders/Version-3/DAKPlus-Monolith/backend/dakplus-api) (The "Brain")
 Built using **Spring Boot 3.2** and **MongoDB Atlas**.
 - **Role**: Manages core business logic, user profiles, payments verification, and OTP generation.
 - **Key Services**: Integrates Msg91/Twilio SMS gateways, Razorpay API, and AI processing clients.
 
-### 💻 [Frontend Dashboard](frontend) (The "Admin Center")
+### 💻 [Frontend Dashboard](file:///c:/Users/PathipatiKirankumar/personal/AI%20Learn/web-app/DAKPlus/Git-Folders/Version-3/DAKPlus-Monolith/frontend) (The "Admin Center")
 Built using **React 18**, **Vite**, and **Tailwind CSS**.
 - **Role**: Admin console for content creators and teachers to manage courses, topics, and upload test papers.
 - **Redirection**: Serves as the landing page and the secure payment checkout page for mobile clients.
 
-### 📱 [Mobile Client](mobile) (The "Student Hub")
+### 📱 [Mobile Client](file:///c:/Users/PathipatiKirankumar/personal/AI%20Learn/web-app/DAKPlus/Git-Folders/Version-3/DAKPlus-Monolith/mobile) (The "Student Hub")
 Built using **React Native** (on **Expo SDK 52** for maximum device compatibility and crash-free launches).
 - **Role**: The main interface for students.
 - **Features**: Interactive bilingual mock tests, performance analytics graphs, syllabus materials reader, and order histories.
@@ -74,7 +74,6 @@ Both Android build outputs have been successfully generated and compiled using E
 
 ## 📖 Complete Documentation Reference
 
-For step-by-step developer setup instructions, API payload structures, database mappings, and sequence diagrams, refer to the master documentation:
-👉 **[Comprehensive Features and Operational Flows Guide](docs/FeaturesAndFlows.md)**
+👉 **[Comprehensive Features and Operational Flows Guide](file:///c:/Users/PathipatiKirankumar/personal/AI%20Learn/web-app/DAKPlus/Git-Folders/Version-3/DAKPlus-Monolith/docs/FeaturesAndFlows.md)**
 
 *Built with ❤️ for Indian Postal Service Aspirants.*
