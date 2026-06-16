@@ -144,7 +144,7 @@ const SideMenu = (props) => {
                     <Text style={styles.logoutText}>Sign Out</Text>
                 </TouchableOpacity>
 
-                <Text style={styles.versionText}>SYSTEM BUILD v5.0.0</Text>
+                <Text style={styles.versionText}>v1.0.0 (Build 6)</Text>
             </View>
         </SafeAreaView>
     );
