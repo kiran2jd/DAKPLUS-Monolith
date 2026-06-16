@@ -41,3 +41,9 @@ bundle_error*.txt
 
 # Tesseract temporary files
 ocr_chunk_*
+
+# Local testing and puppeteer files
+/package.json
+/package-lock.json
+/mobile/test.js
+
