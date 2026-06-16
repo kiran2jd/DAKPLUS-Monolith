@@ -132,7 +132,7 @@ export default function TestLibraryScreen({ navigation, route }) {
     const unlockedExams = Array.isArray(user?.unlockedExams) ? user.unlockedExams : [];
 
     const renderTestItem = ({ item }) => {
-        const isPremium = item.premium || item.isPremium;
+        const isPremium = true;
         const purchasedIds = Array.isArray(purchases) ? purchases.map(p => p.itemId) : [];
         
         // Course-based locking logic (Shared Content Support)

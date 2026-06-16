@@ -60,6 +60,7 @@ const SideMenu = (props) => {
         { label: 'Dashboard', icon: 'grid-outline', route: 'Home' },
         { label: 'My Learning', icon: 'book-open-outline', route: 'Tests' },
         { label: 'Performance', icon: 'analytics-outline', route: 'Performance' },
+        { label: 'Order History', icon: 'receipt-outline', route: 'MyPurchases' },
         ...(isStaff ? [
             { label: 'Manage Tests', icon: 'layers-outline', route: 'ManageTests' },
             { label: 'Topic Matrix', icon: 'apps-outline', route: 'TopicManagement' },

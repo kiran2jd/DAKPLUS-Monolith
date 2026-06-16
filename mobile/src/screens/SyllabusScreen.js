@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import {
     StyleSheet,
     View,
@@ -14,11 +14,12 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useFocusEffect } from '@react-navigation/native';
 import * as WebBrowser from 'expo-web-browser';
 import * as DocumentPicker from 'expo-document-picker';
 import * as SecureStore from 'expo-secure-store';
 import { topicService } from '../services/topic';
-import { API_BASE_URL } from '../services/api';
+import api, { API_BASE_URL } from '../services/api';
 
 const { width } = Dimensions.get('window');
 
@@ -28,6 +29,7 @@ const { width } = Dimensions.get('window');
  */
 export default function SyllabusScreen({ navigation, route }) {
     const insets = useSafeAreaInsets();
+    const [user, setUser] = useState(null);
     const [topics, setTopics] = useState([]);
     const [loading, setLoading] = useState(false);
     const [selectedCourseId, setSelectedCourseId] = useState(route.params?.courseId || null);
@@ -55,25 +57,53 @@ export default function SyllabusScreen({ navigation, route }) {
         { id: 'COMBINED', title: 'Combined Pro', sub: 'All-in-One', color: '#10b981', icon: 'shield-checkmark' }
     ];
 
-    useEffect(() => {
-        checkAuth();
-        if (selectedCourseId) {
-            const courseId = selectedCourseId === 'COMBINED' ? null : selectedCourseId;
-            fetchSyllabus(courseId);
-        }
-    }, [selectedCourseId]);
+    useFocusEffect(
+        useCallback(() => {
+            checkAuth();
+            if (selectedCourseId) {
+                const courseId = selectedCourseId === 'COMBINED' ? null : selectedCourseId;
+                fetchSyllabus(courseId);
+            }
+        }, [selectedCourseId])
+    );
 
     const checkAuth = async () => {
         try {
-            const userStr = await SecureStore.getItemAsync('user');
-            if (userStr) {
-                const user = JSON.parse(userStr);
-                const role = user?.role?.toUpperCase() || 'STUDENT';
+            let userData;
+            try {
+                const response = await api.get('/auth/profile');
+                userData = response.data?.user || response.data;
+                if (userData) {
+                    await SecureStore.setItemAsync('user', JSON.stringify(userData));
+                }
+            } catch (err) {
+                console.log("Failed to refresh profile in Syllabus, using cached", err);
+                const userStr = await SecureStore.getItemAsync('user');
+                if (userStr) {
+                    userData = JSON.parse(userStr);
+                }
+            }
+            if (userData) {
+                setUser(userData);
+                const role = userData?.role?.toUpperCase() || 'STUDENT';
                 setIsStaff(role === 'TEACHER' || role === 'ADMIN');
             }
         } catch (e) {
             console.error("Auth check failed", e);
         }
+    };
+
+    const isPro = user?.subscriptionTier === 'PREMIUM' || user?.role === 'ADMIN' || user?.role === 'TEACHER';
+    const unlockedExams = Array.isArray(user?.unlockedExams) ? user.unlockedExams : [];
+    
+    const isCourseUnlocked = (courseId) => {
+        if (isPro) return true;
+        if (!courseId) return true;
+        const normalized = courseId.toUpperCase();
+        if (normalized === 'COMBINED') {
+            return unlockedExams.some(u => u && u.toUpperCase() === 'COMBINED');
+        }
+        return unlockedExams.some(u => u && (u.toUpperCase() === 'COMBINED' || u.toUpperCase() === normalized));
     };
 
     const fetchSyllabus = async (courseId) => {
@@ -230,11 +260,29 @@ export default function SyllabusScreen({ navigation, route }) {
                                         {sub.pdfUrl && (
                                             <TouchableOpacity 
                                                 style={styles.pdfBadge}
-                                                onPress={() => WebBrowser.openBrowserAsync(getFullPdfUrl(sub.pdfUrl))}
+                                                onPress={() => {
+                                                    if (isCourseUnlocked(selectedCourseId)) {
+                                                        WebBrowser.openBrowserAsync(getFullPdfUrl(sub.pdfUrl));
+                                                    } else {
+                                                        Alert.alert(
+                                                            "PRO Feature",
+                                                            "Syllabus PDFs are only available for PRO members. Would you like to unlock this course?",
+                                                            [
+                                                                { text: "Cancel", style: "cancel" },
+                                                                { text: "Unlock Now", onPress: () => navigation.navigate('Payment', { courseId: selectedCourseId }) }
+                                                            ]
+                                                        );
+                                                    }
+                                                }}
                                             >
-                                                <LinearGradient colors={['#2563eb', '#1d4ed8']} style={styles.pdfButtonSub}>
-                                                    <Ionicons name="download-outline" size={14} color="#fff" />
-                                                    <Text style={styles.pdfButtonText}>View Syllabus PDF</Text>
+                                                <LinearGradient 
+                                                    colors={isCourseUnlocked(selectedCourseId) ? ['#2563eb', '#1d4ed8'] : ['#475569', '#334155']} 
+                                                    style={styles.pdfButtonSub}
+                                                >
+                                                    <Ionicons name={isCourseUnlocked(selectedCourseId) ? "download-outline" : "lock-closed-outline"} size={14} color="#fff" />
+                                                    <Text style={styles.pdfButtonText}>
+                                                        {isCourseUnlocked(selectedCourseId) ? "View Syllabus PDF" : "Unlock with PRO"}
+                                                    </Text>
                                                 </LinearGradient>
                                             </TouchableOpacity>
                                         )}
@@ -273,11 +321,26 @@ export default function SyllabusScreen({ navigation, route }) {
                         
                         {topic.pdfUrl && (
                             <TouchableOpacity 
-                                style={styles.fullSyllabusBtn}
-                                onPress={() => WebBrowser.openBrowserAsync(getFullPdfUrl(topic.pdfUrl))}
+                                style={[styles.fullSyllabusBtn, !isCourseUnlocked(selectedCourseId) && { backgroundColor: '#334155' }]}
+                                onPress={() => {
+                                    if (isCourseUnlocked(selectedCourseId)) {
+                                        WebBrowser.openBrowserAsync(getFullPdfUrl(topic.pdfUrl));
+                                    } else {
+                                        Alert.alert(
+                                            "PRO Feature",
+                                            "Full syllabus guides require course purchase. Unlock now?",
+                                            [
+                                                { text: "Cancel", style: "cancel" },
+                                                { text: "Unlock Now", onPress: () => navigation.navigate('Payment', { courseId: selectedCourseId }) }
+                                            ]
+                                        );
+                                    }
+                                }}
                             >
-                                <Ionicons name="copy" size={16} color="#fff" />
-                                <Text style={styles.fullSyllabusText}>View Full Topic Syllabus</Text>
+                                <Ionicons name={isCourseUnlocked(selectedCourseId) ? "copy" : "lock-closed"} size={16} color="#fff" />
+                                <Text style={styles.fullSyllabusText}>
+                                    {isCourseUnlocked(selectedCourseId) ? "View Full Topic Syllabus" : "Unlock Full Syllabus"}
+                                </Text>
                             </TouchableOpacity>
                         )}
                         {isStaff && (

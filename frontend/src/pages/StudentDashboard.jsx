@@ -42,7 +42,7 @@ export default function StudentDashboard() {
     const isPro = user?.subscriptionTier === 'PREMIUM';
 
     const getTestAccess = (testItem) => {
-        const isPremium = !!(testItem.premium || testItem.isPremium);
+        const isPremium = true;
         const testCourseIds = Array.isArray(testItem.courseIds) ? testItem.courseIds : [];
         const unlockedList = Array.isArray(user?.unlockedExams) ? user.unlockedExams : [];
         const purchasedIdsList = Array.isArray(purchasedIds) ? purchasedIds : [];

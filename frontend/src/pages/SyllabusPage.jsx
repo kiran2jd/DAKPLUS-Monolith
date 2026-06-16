@@ -1,6 +1,6 @@
 import { useEffect, useState, useRef } from 'react';
 import { topicService } from '../services/topic';
-import { BookOpen, ChevronRight, GraduationCap, Upload, Loader2, FileText, Trash2 } from 'lucide-react';
+import { BookOpen, ChevronRight, GraduationCap, Upload, Loader2, FileText, Trash2, Lock } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
 export default function SyllabusPage() {
@@ -11,6 +11,29 @@ export default function SyllabusPage() {
     const [selectedCourseId, setSelectedCourseId] = useState(null);
     const navigate = useNavigate();
     const fileInputRef = useRef(null);
+
+    const user = JSON.parse(localStorage.getItem('user') || '{}');
+    const isPro = user?.subscriptionTier === 'PREMIUM' || user?.role?.toUpperCase() === 'ADMIN' || user?.role?.toUpperCase() === 'STAFF';
+    const unlockedExams = Array.isArray(user?.unlockedExams) ? user.unlockedExams : [];
+
+    const isCourseUnlocked = (courseId) => {
+        if (isPro) return true;
+        if (!courseId) return true;
+        const normalized = courseId.toUpperCase();
+        if (normalized === 'COMBINED') {
+            return unlockedExams.some(u => u && u.toUpperCase() === 'COMBINED');
+        }
+        return unlockedExams.some(u => u && (u.toUpperCase() === 'COMBINED' || u.toUpperCase() === normalized));
+    };
+
+    const handlePdfClick = (e, courseId) => {
+        if (!isCourseUnlocked(courseId)) {
+            e.preventDefault();
+            if (window.confirm("Syllabus PDFs are only available for PRO members. Would you like to unlock this course?")) {
+                navigate(`/payment?itemId=${courseId}`);
+            }
+        }
+    };
 
     const COURSE_BANNERS = [
         { id: 'MTS', title: 'GDS to MTS', sub: 'Multi Tasking Staff', color: 'indigo' },
@@ -245,10 +268,15 @@ export default function SyllabusPage() {
                                                         href={getFullPdfUrl(sub.pdfUrl)}
                                                         target="_blank"
                                                         rel="noopener noreferrer"
-                                                        className="p-2 bg-blue-100 text-blue-700 rounded-lg hover:bg-blue-200 transition-colors"
-                                                        title="View PDF"
+                                                        onClick={(e) => handlePdfClick(e, selectedCourseId)}
+                                                        className={`p-2 rounded-lg transition-colors ${
+                                                            isCourseUnlocked(selectedCourseId) 
+                                                                ? 'bg-blue-100 text-blue-700 hover:bg-blue-200' 
+                                                                : 'bg-gray-100 text-gray-400 hover:bg-gray-200'
+                                                        }`}
+                                                        title={isCourseUnlocked(selectedCourseId) ? "View PDF" : "Unlock with PRO"}
                                                     >
-                                                        <BookOpen className="h-3.5 w-3.5" />
+                                                        {isCourseUnlocked(selectedCourseId) ? <BookOpen className="h-3.5 w-3.5" /> : <Lock className="h-3.5 w-3.5 text-gray-400" />}
                                                     </a>
                                                 )}
                                                 {isStaff && (
@@ -292,9 +320,15 @@ export default function SyllabusPage() {
                                 href={getFullPdfUrl(topic.pdfUrl)}
                                 target="_blank"
                                 rel="noopener noreferrer"
-                                className="mb-4 flex items-center justify-center gap-2 py-3 bg-red-50 border border-red-100 rounded-2xl text-xs font-black text-red-600 hover:bg-red-100 hover:border-red-200 transition-all transform active:scale-95"
+                                onClick={(e) => handlePdfClick(e, selectedCourseId)}
+                                className={`mb-4 flex items-center justify-center gap-2 py-3 border rounded-2xl text-xs font-black transition-all transform active:scale-95 ${
+                                    isCourseUnlocked(selectedCourseId)
+                                        ? 'bg-red-50 border-red-100 text-red-600 hover:bg-red-100 hover:border-red-200'
+                                        : 'bg-gray-100 border-gray-200 text-gray-500 hover:bg-gray-200'
+                                }`}
                             >
-                                <BookOpen className="h-4 w-4" /> DOWNLOAD FULL TOPIC SYLLABUS
+                                {isCourseUnlocked(selectedCourseId) ? <BookOpen className="h-4 w-4" /> : <Lock className="h-4 w-4" />} 
+                                {isCourseUnlocked(selectedCourseId) ? 'DOWNLOAD FULL TOPIC SYLLABUS' : 'UNLOCK FULL SYLLABUS'}
                             </a>
                         )}
 
