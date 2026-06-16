@@ -4,6 +4,7 @@ import { View, ActivityIndicator } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import * as SplashScreen from 'expo-splash-screen';
+import { usePreventScreenCapture } from 'expo-screen-capture';
 import AppNavigator from './src/navigation/AppNavigator';
 import { authService } from './src/services/auth';
 
@@ -11,6 +12,7 @@ import { authService } from './src/services/auth';
 SplashScreen.preventAutoHideAsync().catch(() => {});
 
 export default function App() {
+  usePreventScreenCapture();
   const [appIsReady, setAppIsReady] = useState(false);
 
   useEffect(() => {
