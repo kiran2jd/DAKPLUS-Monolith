@@ -1,68 +1,80 @@
 # DAK Plus - Elite Preparation for Indian Postal Exams
 
-DAK Plus is a comprehensive, AI-powered platform designed to help aspirants ace Indian Postal Department exams (MTS, Postman/Mail Guard, and PA/SA). The project combines high-performance backend systems with modern web and mobile interfaces to provide a seamless learning experience.
+DAK Plus is a comprehensive, AI-powered preparation platform designed to help aspirants ace Indian Postal Department examinations (MTS, Postman/Mail Guard, and PA/SA). The platform combines a high-performance Spring Boot backend with a React web management dashboard and a highly optimized React Native mobile application.
 
 ---
 
-## 🏗️ Project Architecture
+## 🏗️ Platform Modules
 
-Our project is a unified ecosystem divided into three specialized modules:
+The project is structured as a monolith repository divided into three specialized components:
 
-### ⚙️ [Backend](backend/dakplus-api) (The "Brain")
-The backbone of the platform, built with **Spring Boot** and **MongoDB**.
-- **Role**: Manages the database, business logic, and security.
-- **Key Task**: It acts as the secure API gateway for both the web and mobile applications.
+### ⚙️ [Backend API](backend/dakplus-api) (The "Brain")
+Built using **Spring Boot 3.2** and **MongoDB Atlas**.
+- **Role**: Manages core business logic, user profiles, payments verification, and OTP generation.
+- **Key Services**: Integrates Msg91/Twilio SMS gateways, Razorpay API, and AI processing clients.
 
-### 💻 [Frontend](frontend) (The "Admin Command Center")
-A high-speed web dashboard built with **React** and **Vite**.
-- **Role**: Designed for administrators and educators.
-- **Key Task**: Used for content management, student tracking, and uploading complex test papers.
+### 💻 [Frontend Dashboard](frontend) (The "Admin Center")
+Built using **React 18**, **Vite**, and **Tailwind CSS**.
+- **Role**: Admin console for content creators and teachers to manage courses, topics, and upload test papers.
+- **Redirection**: Serves as the landing page and the secure payment checkout page for mobile clients.
 
-### 📱 [Mobile](mobile) (The "Student Hub")
-A cross-platform mobile app built with **React Native (Expo)**.
-- **Role**: The primary interface for students.
-- **Key Task**: Taking interactive tests, reviewing results, reporting question issues, and managing subscriptions.
-
----
-
-## 🚀 Key Modern Functionalities
-
-### 🧠 **AI-Powered Question Extraction**  
-*Located in: `QuestionExtractionService.java` (Backend)*  
-Transform static documents (PDF, Word, TXT) into interactive mock tests instantly. Powered by **Groq / Llama-3**, the system sequentially processes large documents, handles OCR noise, and auto-generates bilingual (English/Hindi) question sets.
-
-### 💳 **Secure Razorpay Payments**  
-*Located in: `PaymentController.java` (Backend) & `PaymentScreen.js` (Mobile)*  
-Integrates professional-grade payment processing. Students can securely subscribe to premium courses (MTS, PMMG, PASA) using UPI, Cards, or NetBanking with real-time transaction verification.
-
-### 🔐 **Smart OTP Authentication**  
-*Located in: `AuthService.java` (Backend) & `RegisterScreen.js` (Mobile)*  
-Provides frictionless, password-less login. Optimized with **Msg91** and **Twilio**, ensuring high delivery rates for one-time passwords across India.
-
-### 🚩 **Integrative Question Reporting**  
-*Located in: `QuestionReportController.java` (Backend)*  
-A direct feedback loop between the student and the admin. Students can flag incorrect options, typos, or translation errors directly from the test or result screen.
-
-### 📊 **Performance & Analytics**  
-*Located in: `ResultService.java` (Backend) & `AnalyticsScreen.js` (Mobile)*  
-Sophisticated tracking that breaks down performance by topic, helping students identify their weak areas and focus their preparation effectively.
+### 📱 [Mobile Client](mobile) (The "Student Hub")
+Built using **React Native** (on **Expo SDK 52** for maximum device compatibility and crash-free launches).
+- **Role**: The main interface for students.
+- **Features**: Interactive bilingual mock tests, performance analytics graphs, syllabus materials reader, and order histories.
 
 ---
 
-## 🛣️ Roadmap & Project Structure
+## 🚀 Key Modern Features & Flows
 
-- **`/backend`**: Houses the Java API. Configuration is managed in `application.yml`.
-- **`/frontend`**: Houses the React web app. Optimized for desktop management.
-- **`/mobile`**: Houses the Expo app. Built for stability across Android and iOS.
-- **`/docs`**: Contains architectural diagrams and system documentation.
+### 🔑 passwordless OTP Sign-In
+Provides fast, passwordless registration and login. Optimized with **Msg91** and **Twilio** API routing to guarantee delivery of 6-digit codes across all Indian telecom circles.
+
+### 💰 Tiered Course Batches & Pricing
+Content and test papers are segmented into distinct course packages:
+- **MTS Exam**: ₹399 (Target 2026 Batch)
+- **Postman & Mail Guard (PMMG)**: ₹599 (Papers 1 & 2)
+- **PA/SA Exam**: ₹799 (Advanced Preparation)
+- **Combined Pro Course**: ₹999 (Global unlock for all courses)
+
+### 🔒 Content Security & Gating
+- **Mock Test Free Trials**: The oldest two tests in every course are automatically unlocked as `FREE SAMPLE` trials. All subsequent tests are designated as `[PRO]` and require course ownership.
+- **Syllabus PDF Gating**: Study files and subtopic manuals are gated. Non-paying users are prompted to unlock via a direct payment redirect.
+- **Copy Protection**: Fully integrates `expo-screen-capture` on mobile. Globally blocks system screenshots, screen recordings, and multitasking preview captures to safeguard premium study assets.
+
+### 💳 Web-to-Mobile Payment Redirection
+Students tap to purchase a course in the mobile app, completing checkouts securely on the web payment gateway via Razorpay. Upon successful verification, the app is opened via deep linking (`dakplus://`), optimistically syncing local storage properties to immediately unlock content.
+
+### 🔍 Search Highlighting & Question Accordions
+Both web and mobile interfaces feature interactive search highlighting (using regex matching). Searching for terms displays matching mock tests alongside a collapsible **Matching Questions** panel displaying exact questions, option matches, and explanations with highlighted terms.
+
+### 🧠 Groq-Powered AI Question Parser
+Instructors can upload PDFs, DOCX, or TXT documents. The system parses them (handling up to 100 questions per batch) and auto-generates bilingual (English/Hindi) question banks. It uses **Groq API** (`llama-3.3-70b-versatile` / `llama-3.1-8b-instant`) with automatic fallback to **Google Gemini** (`gemini-2.5-flash`) on API rate limit timeouts.
+
+### ✍️ Distraction-Free Exam Environment
+- **Focus Mode**: Hides drawer navigations, status bars, and headers during a test.
+- **Exit Guards**: Intercepts hardware and UI back gestures, prompting students to confirm exit before discarding progress.
+- **Submit Safeguard**: Warns students if they attempt to submit their exam with unanswered questions.
 
 ---
 
-## 🛠️ Quick Tech Stack
-- **Languages**: Java 17, JavaScript, HTML/CSS.
-- **Frameworks**: Spring Boot 3.2, React 18, React Native (Expo).
-- **Database**: MongoDB (Atlas).
-- **Styling**: Tailwind CSS (Frontend), StyleSheet (Mobile).
+## 📦 Production Builds & Links
+
+Both Android build outputs have been successfully generated and compiled using Expo Application Services (EAS) on Expo SDK 52:
+
+- **Testing APK (Preview Profile)**:
+  - **Purpose**: Internal testing on Android devices.
+  - **Download Link**: [Download Testing APK](https://expo.dev/artifacts/eas/dN87Qjkh2uu_KE9jp0tA2Y5UOXnbL_KQ_VqinZFNg3M.apk)
+- **Production AAB (Production Profile)**:
+  - **Purpose**: Upload directly to the Google Play Store Console (Target Package: `com.kiran2jd.dakplus`).
+  - **Download Link**: [Download Production AAB](https://expo.dev/artifacts/eas/3Ess3-0N7kNBlpTWEOonfnvh9QEhQlXO-m41IjQn4cs.aab)
+  - **Version Code**: `6`
 
 ---
-*Built with ❤️ for Indian Postal Aspirants.*
+
+## 📖 Complete Documentation Reference
+
+For step-by-step developer setup instructions, API payload structures, database mappings, and sequence diagrams, refer to the master documentation:
+👉 **[Comprehensive Features and Operational Flows Guide](docs/FeaturesAndFlows.md)**
+
+*Built with ❤️ for Indian Postal Service Aspirants.*
