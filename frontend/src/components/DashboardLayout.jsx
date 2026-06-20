@@ -4,6 +4,8 @@ import Sidebar from './Sidebar';
 import { Menu, Bell, X, Check } from 'lucide-react';
 import api from '../services/api';
 import { authService } from '../services/auth';
+import GoogleTranslate from './GoogleTranslate';
+
 
 export default function DashboardLayout() {
     const [isSidebarOpen, setIsSidebarOpen] = useState(false);
@@ -84,6 +86,7 @@ export default function DashboardLayout() {
                 </div>
 
                 <div className="flex items-center space-x-4">
+                    <GoogleTranslate />
                     <div className="relative">
                         <button
                             onClick={() => setIsNotifOpen(!isNotifOpen)}

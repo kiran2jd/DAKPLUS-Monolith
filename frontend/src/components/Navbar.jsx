@@ -1,6 +1,7 @@
 import { Link } from 'react-router-dom';
 import logo from '../assets/logo.png';
 import ThemeToggle from './ThemeToggle';
+import GoogleTranslate from './GoogleTranslate';
 
 export default function Navbar({ hide }) {
     const isMinimal = typeof window !== 'undefined' && new URLSearchParams(window.location.search).get('minimal') === 'true';
@@ -16,6 +17,7 @@ export default function Navbar({ hide }) {
                         </span>
                     </Link>
                     <div className="flex items-center space-x-4">
+                        <GoogleTranslate />
                         <ThemeToggle />
                         <Link to="/login" className="text-gray-600 dark:text-gray-300 hover:text-primary dark:hover:text-red-400 px-3 py-2 rounded-md font-medium">
                             Login
@@ -27,5 +29,6 @@ export default function Navbar({ hide }) {
                 </div>
             </div>
         </nav>
+
     );
 }
