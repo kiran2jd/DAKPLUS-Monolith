@@ -29,6 +29,7 @@ import AdminReportsPage from './pages/AdminReportsPage';
 import BulkUploadPage from './pages/BulkUploadPage';
 import HelpButton from './components/HelpButton';
 import Footer from './components/Footer';
+import GoogleTranslate from './components/GoogleTranslate';
 
 function App() {
 
@@ -43,6 +44,8 @@ function App() {
     >
       <InactivityHandler />
       <HelpButton />
+      <GoogleTranslate />
+
       <Routes>
         <Route path="/" element={<LandingPage />} />
         <Route path="/login" element={<><Navbar /><LoginPage /></>} />
