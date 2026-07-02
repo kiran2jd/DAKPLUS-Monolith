@@ -334,15 +334,15 @@ export default function SyllabusPage() {
                                 href={getFullPdfUrl(topic.pdfUrl)}
                                 target="_blank"
                                 rel="noopener noreferrer"
-                                onClick={(e) => handlePdfClick(e, selectedCourseId)}
+                                onClick={(e) => handlePdfClick(e, topic)}
                                 className={`mb-4 flex items-center justify-center gap-2 py-3 border rounded-2xl text-xs font-black transition-all transform active:scale-95 ${
-                                    isCourseUnlocked(selectedCourseId)
+                                    isTopicUnlocked(topic)
                                         ? 'bg-red-50 border-red-100 text-red-600 hover:bg-red-100 hover:border-red-200'
                                         : 'bg-gray-100 border-gray-200 text-gray-500 hover:bg-gray-200'
                                 }`}
                             >
-                                {isCourseUnlocked(selectedCourseId) ? <BookOpen className="h-4 w-4" /> : <Lock className="h-4 w-4" />} 
-                                {isCourseUnlocked(selectedCourseId) ? 'DOWNLOAD FULL TOPIC SYLLABUS' : 'UNLOCK FULL SYLLABUS'}
+                                {isTopicUnlocked(topic) ? <BookOpen className="h-4 w-4" /> : <Lock className="h-4 w-4" />} 
+                                {isTopicUnlocked(topic) ? 'DOWNLOAD FULL TOPIC SYLLABUS' : 'UNLOCK FULL SYLLABUS'}
                             </a>
                         )}
 

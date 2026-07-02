@@ -131,6 +131,16 @@ export default function TestLibraryScreen({ navigation, route }) {
     const isPro = user?.subscriptionTier === 'PREMIUM' || user?.role === 'ADMIN' || user?.role === 'TEACHER';
     const unlockedExams = Array.isArray(user?.unlockedExams) ? user.unlockedExams : [];
 
+    const isCourseUnlocked = (courseId) => {
+        if (isPro) return true;
+        if (!courseId) return true;
+        const normalized = courseId.toUpperCase();
+        if (normalized === 'COMBINED') {
+            return unlockedExams.some(u => u && u.toUpperCase() === 'COMBINED');
+        }
+        return unlockedExams.some(u => u && (u.toUpperCase() === 'COMBINED' || u.toUpperCase() === normalized));
+    };
+
     const renderTestItem = ({ item }) => {
         const isPremium = true;
         const purchasedIds = Array.isArray(purchases) ? purchases.map(p => p.itemId) : [];
@@ -273,7 +283,7 @@ export default function TestLibraryScreen({ navigation, route }) {
                     </View>
                 </LinearGradient>
 
-                {selectedCourseId !== null && (
+                {selectedCourseId !== null && !isCourseUnlocked(selectedCourseId) && (
                     <View style={styles.tabContainer}>
                         <Pressable
                             style={[styles.tabButton, activeTab === 'all' && styles.tabButtonActive]}
@@ -388,10 +398,10 @@ export default function TestLibraryScreen({ navigation, route }) {
                         )
                     }
                     ListFooterComponent={
-                        (!isPro && user?.role?.toLowerCase() === 'student') && (selectedCourseId !== null) ? (
+                        (!isPro && user?.role?.toLowerCase() === 'student') && (selectedCourseId !== null) && !isCourseUnlocked(selectedCourseId) ? (
                             <Pressable
                                 style={styles.libraryProBanner}
-                                onPress={() => navigation.navigate('Payment')}
+                                onPress={() => navigation.navigate('Payment', { courseId: selectedCourseId })}
                             >
                                 <LinearGradient
                                     colors={['#dc2626', '#f97316']}

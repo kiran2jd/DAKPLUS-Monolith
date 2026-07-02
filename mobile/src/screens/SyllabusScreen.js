@@ -334,9 +334,9 @@ export default function SyllabusScreen({ navigation, route }) {
                         
                         {topic.pdfUrl && (
                             <TouchableOpacity 
-                                style={[styles.fullSyllabusBtn, !isCourseUnlocked(selectedCourseId) && { backgroundColor: '#334155' }]}
+                                style={[styles.fullSyllabusBtn, !isTopicUnlocked(topic) && { backgroundColor: '#334155' }]}
                                 onPress={() => {
-                                    if (isCourseUnlocked(selectedCourseId)) {
+                                    if (isTopicUnlocked(topic)) {
                                         WebBrowser.openBrowserAsync(getFullPdfUrl(topic.pdfUrl));
                                     } else {
                                         Alert.alert(
@@ -350,9 +350,9 @@ export default function SyllabusScreen({ navigation, route }) {
                                     }
                                 }}
                             >
-                                <Ionicons name={isCourseUnlocked(selectedCourseId) ? "copy" : "lock-closed"} size={16} color="#fff" />
+                                <Ionicons name={isTopicUnlocked(topic) ? "copy" : "lock-closed"} size={16} color="#fff" />
                                 <Text style={styles.fullSyllabusText}>
-                                    {isCourseUnlocked(selectedCourseId) ? "View Full Topic Syllabus" : "Unlock Full Syllabus"}
+                                    {isTopicUnlocked(topic) ? "View Full Topic Syllabus" : "Unlock Full Syllabus"}
                                 </Text>
                             </TouchableOpacity>
                         )}
