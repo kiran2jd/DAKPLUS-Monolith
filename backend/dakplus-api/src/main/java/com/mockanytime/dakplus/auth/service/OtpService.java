@@ -163,18 +163,20 @@ public class OtpService {
                 mobile = "91" + mobile;
             }
 
-            String encodedAuthKey = URLEncoder.encode(msg91AuthKey, StandardCharsets.UTF_8);
-            String encodedTemplateId = URLEncoder.encode(msg91TemplateId, StandardCharsets.UTF_8);
-            String encodedMobile = URLEncoder.encode(mobile, StandardCharsets.UTF_8);
-            String encodedOtp = URLEncoder.encode(code, StandardCharsets.UTF_8);
-
-            String url = "https://control.msg91.com/api/v5/otp?template_id=" + encodedTemplateId +
-                    "&mobile=" + encodedMobile + "&authkey=" + encodedAuthKey + "&otp=" + encodedOtp;
+            String url = "https://control.msg91.com/api/v5/otp";
 
             System.out.println("Sending MSG91 OTP to: " + mobile + " using template: " + msg91TemplateId);
 
             RestTemplate restTemplate = new RestTemplate();
-            ResponseEntity<String> response = restTemplate.postForEntity(url, null, String.class);
+            org.springframework.http.HttpHeaders headers = new org.springframework.http.HttpHeaders();
+            headers.setContentType(org.springframework.http.MediaType.APPLICATION_JSON);
+            headers.set("authkey", msg91AuthKey);
+
+            String requestJson = String.format("{\"template_id\":\"%s\",\"mobile\":\"%s\",\"otp\":\"%s\"}",
+                    msg91TemplateId, mobile, code);
+
+            org.springframework.http.HttpEntity<String> entity = new org.springframework.http.HttpEntity<>(requestJson, headers);
+            ResponseEntity<String> response = restTemplate.postForEntity(url, entity, String.class);
 
             if (response.getStatusCode().is2xxSuccessful()) {
                 System.out.println("MSG91 OTP sent successfully to " + mobile + ". Response: " + response.getBody());
