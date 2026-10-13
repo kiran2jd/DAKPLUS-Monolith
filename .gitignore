@@ -10,6 +10,7 @@ backend/dakplus-api/target/
 frontend/dist/
 mobile/node_modules/
 mobile/.expo/
+mobile/dist/
 
 # Environment files (SENSITIVE)
 .env
