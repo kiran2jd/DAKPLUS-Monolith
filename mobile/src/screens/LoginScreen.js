@@ -124,6 +124,7 @@ export default function LoginScreen({ navigation }) {
     };
 
     const handleSendOtp = async (isResend = false) => {
+        const isResending = isResend === true;
         if (!phone) {
             Alert.alert('Error', 'Please enter your phone number');
             return;
@@ -139,14 +140,13 @@ export default function LoginScreen({ navigation }) {
         setLoading(true);
         try {
             await authService.sendOtp(phone);
-            if (isResend) {
-                Alert.alert('Success', 'OTP Resent successfully!');
-                setCanResend(false);
-                setResendTimer(30);
+            setCanResend(false);
+            setResendTimer(30);
+            if (isResending) {
+                Alert.alert('Success', 'OTP resent successfully!');
             } else {
                 setStep('otp-verify');
-                setCanResend(false);
-                setResendTimer(30);
+                Alert.alert('Success', `OTP sent successfully to ${phone}`);
             }
         } catch (err) {
             const errorMsg = err.response?.data?.message || err.message || 'Network Error';
@@ -214,13 +214,13 @@ export default function LoginScreen({ navigation }) {
                             <View style={styles.tabContainer}>
                                 <TouchableOpacity
                                     style={[styles.tab, loginMethod === 'password' ? styles.activeTab : null]}
-                                    onPress={() => setLoginMethod('password')}
+                                    onPress={() => { setLoginMethod('password'); setStep('input'); }}
                                 >
                                     <Text style={[styles.tabText, loginMethod === 'password' ? styles.activeTabText : null]}>Password</Text>
                                 </TouchableOpacity>
                                 <TouchableOpacity
                                     style={[styles.tab, loginMethod === 'otp' ? styles.activeTab : null]}
-                                    onPress={() => setLoginMethod('otp')}
+                                    onPress={() => { setLoginMethod('otp'); setStep('input'); }}
                                 >
                                     <Text style={[styles.tabText, loginMethod === 'otp' ? styles.activeTabText : null]}>OTP</Text>
                                 </TouchableOpacity>
@@ -277,14 +277,17 @@ export default function LoginScreen({ navigation }) {
                                 <View style={styles.form}>
                                     <TextInput
                                         style={styles.input}
-                                        placeholder="Phone Number (+1234567890)"
+                                        placeholder="Phone Number (e.g. 9876543210)"
                                         placeholderTextColor="#999"
                                         value={phone}
-                                        onChangeText={(text) => setPhone(text.replace(/[^0-9]/g, ''))}
+                                        onChangeText={(text) => {
+                                            setPhone(text.replace(/[^0-9]/g, ''));
+                                            handleInteraction();
+                                        }}
                                         keyboardType="phone-pad"
                                         maxLength={15}
                                     />
-                                    <TouchableOpacity style={styles.button} onPress={handleSendOtp} disabled={loading}>
+                                    <TouchableOpacity style={styles.button} onPress={() => handleSendOtp(false)} disabled={loading}>
                                         {loading ? <ActivityIndicator color="#fff" /> : <Text style={styles.buttonText}>Send OTP</Text>}
                                     </TouchableOpacity>
                                 </View>
@@ -297,7 +300,10 @@ export default function LoginScreen({ navigation }) {
                                     placeholder="000000"
                                     placeholderTextColor="#999"
                                     value={otp}
-                                    onChangeText={setOtp}
+                                    onChangeText={(text) => {
+                                        setOtp(text);
+                                        handleInteraction();
+                                    }}
                                     keyboardType="number-pad"
                                     maxLength={6}
                                 />
@@ -306,7 +312,7 @@ export default function LoginScreen({ navigation }) {
                                     onPress={() => setPersistent(!persistent)}
                                 >
                                     <View style={[styles.checkbox, persistent && styles.checkboxChecked]}>
-                                        {persistent && <Text style={styles.checkmark}>âœ“</Text>}
+                                        {persistent && <Text style={styles.checkmark}>✓</Text>}
                                     </View>
                                     <Text style={styles.checkboxLabel}>Keep me signed in</Text>
                                 </TouchableOpacity>
@@ -324,7 +330,7 @@ export default function LoginScreen({ navigation }) {
                                     </Text>
                                 </TouchableOpacity>
 
-                                <TouchableOpacity onPress={() => setStep('input')} style={styles.secondaryButton}>
+                                <TouchableOpacity onPress={() => { setStep('input'); setOtp(''); }} style={styles.secondaryButton}>
                                     <Text style={styles.secondaryButtonText}>Back to login</Text>
                                 </TouchableOpacity>
                             </View>
