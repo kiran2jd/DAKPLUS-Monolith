@@ -83,77 +83,77 @@ export default function PaymentScreen({ navigation, route }) {
     const pricing = {
         'MTS': {
             id: 'MTS',
-            price: 399,
+            price: 1,
             title: 'MTS Exam',
             subtitle: 'TARGET 2026 BATCH',
             features: ['✓ Complete Paper 1 Syllabus', '✓ Detailed AI Training Access', '✓ Unlimited Practice Tests', '✓ One-time Payment']
         },
         'PMMG': {
             id: 'PMMG',
-            price: 599,
+            price: 1,
             title: 'Postman & Mail Guard',
             subtitle: 'COMPLETE PAPER 1 & 2',
             features: ['✓ Complete Paper 1 & 2 Syllabus', '✓ Detailed AI Training Access', '✓ Unlimited Practice Tests', '✓ One-time Payment']
         },
         'PASA': {
             id: 'PASA',
-            price: 799,
+            price: 1,
             title: 'PA/SA Special Classes',
             subtitle: 'TARGET 2026 BATCH',
             features: ['✓ Complete Paper 1 & 2 Syllabus', '✓ Detailed AI Training Access', '✓ Unlimited Practice Tests', '✓ One-time Payment']
         },
         'COMBINED': {
             id: 'COMBINED',
-            price: 999,
+            price: 1,
             title: 'Combined Course',
             subtitle: 'PA/SA, PM/MG, MTS',
             features: ['✓ Access to EVERYTHING', '✓ Detailed AI Training Access', '✓ Unlimited Practice Tests', '✓ Best Value Package']
         },
         'GDS to MTS': {
             id: 'MTS',
-            price: 399,
+            price: 1,
             title: 'MTS Exam',
             subtitle: 'TARGET 2026 BATCH',
             features: ['✓ Complete Paper 1 Syllabus', '✓ Detailed AI Training Access', '✓ Unlimited Practice Tests', '✓ One-time Payment']
         },
         'GDS to Postman': {
             id: 'PMMG',
-            price: 599,
+            price: 1,
             title: 'Postman & Mail Guard',
             subtitle: 'COMPLETE PAPER 1 & 2',
             features: ['✓ Complete Paper 1 & 2 Syllabus', '✓ Detailed AI Training Access', '✓ Unlimited Practice Tests', '✓ One-time Payment']
         },
         'MTS to Postman': {
             id: 'PMMG',
-            price: 599,
+            price: 1,
             title: 'Postman & Mail Guard',
             subtitle: 'COMPLETE PAPER 1 & 2',
             features: ['✓ Complete Paper 1 & 2 Syllabus', '✓ Detailed AI Training Access', '✓ Unlimited Practice Tests', '✓ One-time Payment']
         },
         'PM MG Exam': {
             id: 'PMMG',
-            price: 599,
+            price: 1,
             title: 'Postman & Mail Guard',
             subtitle: 'COMPLETE PAPER 1 & 2',
             features: ['✓ Complete Paper 1 & 2 Syllabus', '✓ Detailed AI Training Access', '✓ Unlimited Practice Tests', '✓ One-time Payment']
         },
         'GDS/MTS/Postman to PA/SA': {
             id: 'PASA',
-            price: 799,
+            price: 1,
             title: 'PA/SA Special Classes',
             subtitle: 'TARGET 2026 BATCH',
             features: ['✓ Complete Paper 1 & 2 Syllabus', '✓ Detailed AI Training Access', '✓ Unlimited Practice Tests', '✓ One-time Payment']
         },
         'PA SA Exam': {
             id: 'PASA',
-            price: 799,
+            price: 1,
             title: 'PA/SA Special Classes',
             subtitle: 'TARGET 2026 BATCH',
             features: ['✓ Complete Paper 1 & 2 Syllabus', '✓ Detailed AI Training Access', '✓ Unlimited Practice Tests', '✓ One-time Payment']
         },
         'IP Exam': {
             id: 'IP_EXAM',
-            price: 999,
+            price: 1,
             title: 'IP Exam Prep',
             subtitle: 'TARGET 2026 BATCH',
             features: ['✓ Complete IP Exam Syllabus', '✓ Detailed AI Training Access', '✓ Unlimited Practice Tests', '✓ One-time Payment']

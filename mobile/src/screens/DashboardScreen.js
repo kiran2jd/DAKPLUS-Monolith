@@ -280,11 +280,7 @@ export default function DashboardScreen({ navigation }) {
                                             </View>
                                             <View style={{ flex: 1 }}>
                                                 <Text style={styles.buyBannerTitle}>Unlock {banners[currentSlide].title}</Text>
-                                                <Text style={styles.buyBannerSub}>Full Access for just ₹{
-                                                    banners[currentSlide].id === 'MTS' ? '399' : 
-                                                    banners[currentSlide].id === 'COMBINED' ? '999' : 
-                                                    banners[currentSlide].id === 'PASA' ? '799' : '599'
-                                                }</Text>
+                                                <Text style={styles.buyBannerSub}>Full Access for just ₹1 (Testing Mode)</Text>
                                             </View>
                                             <Ionicons name="chevron-forward" size={24} color="#fff" />
                                         </View>

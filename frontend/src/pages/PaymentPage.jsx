@@ -73,25 +73,25 @@ export default function PaymentPage() {
         }
     };
 
-    // 2. Map pricing based on user's exam choice
+    // 2. Map pricing based on user's exam choice (Set to 1 INR for end-to-end testing)
     const pricing = {
-        'MTS': { amount: 399, id: 'MTS', label: 'MTS Exam Prep' },
-        'PMMG': { amount: 599, id: 'PMMG', label: 'Postman/MG Prep' },
-        'PASA': { amount: 799, id: 'PASA', label: 'PA/SA Exam Prep' },
-        'COMBINED': { amount: 999, id: 'COMBINED', label: 'Combined Course' },
-        'GDS to MTS': { amount: 399, id: 'MTS', label: 'MTS Exam Prep' },
-        'GDS to Postman': { amount: 599, id: 'PMMG', label: 'Postman/MG Prep' },
-        'MTS to Postman': { amount: 599, id: 'PMMG', label: 'Postman/MG Prep' },
-        'PM MG Exam': { amount: 599, id: 'PMMG', label: 'Postman/MG Prep' },
-        'GDS/MTS/Postman to PA/SA': { amount: 799, id: 'PASA', label: 'PA/SA Exam Prep' },
-        'PA SA Exam': { amount: 799, id: 'PASA', label: 'PA/SA Exam Prep' },
-        'IP Exam': { amount: 999, id: 'IP_EXAM', label: 'IP Exam Prep' }
+        'MTS': { amount: 1, id: 'MTS', label: 'MTS Exam Prep' },
+        'PMMG': { amount: 1, id: 'PMMG', label: 'Postman/MG Prep' },
+        'PASA': { amount: 1, id: 'PASA', label: 'PA/SA Exam Prep' },
+        'COMBINED': { amount: 1, id: 'COMBINED', label: 'Combined Course' },
+        'GDS to MTS': { amount: 1, id: 'MTS', label: 'MTS Exam Prep' },
+        'GDS to Postman': { amount: 1, id: 'PMMG', label: 'Postman/MG Prep' },
+        'MTS to Postman': { amount: 1, id: 'PMMG', label: 'Postman/MG Prep' },
+        'PM MG Exam': { amount: 1, id: 'PMMG', label: 'Postman/MG Prep' },
+        'GDS/MTS/Postman to PA/SA': { amount: 1, id: 'PASA', label: 'PA/SA Exam Prep' },
+        'PA SA Exam': { amount: 1, id: 'PASA', label: 'PA/SA Exam Prep' },
+        'IP Exam': { amount: 1, id: 'IP_EXAM', label: 'IP Exam Prep' }
     };
 
     // Use itemId from URL if provided (preferred for mobile)
     const urlItemId = searchParams.get('itemId');
     const userExam = user?.examType || 'Others';
-    const selectedPlan = pricing[urlItemId] || pricing[userExam] || { amount: 999, id: 'COMBINED', label: 'DAK Plus Pro' };
+    const selectedPlan = pricing[urlItemId] || pricing[userExam] || { amount: 1, id: 'COMBINED', label: 'DAK Plus Pro' };
 
     const handlePayment = async () => {
         setProcessing(true);
@@ -107,8 +107,8 @@ export default function PaymentPage() {
         try {
             // Logic moved to component scope above
 
-            // If testId is present, it's a individual test purchase (₹49), else specific Exam or Pro Subscription
-            const amount = testId ? 49 : selectedPlan.amount;
+            // If testId is present, it's a individual test purchase (₹1 for test mode), else specific Exam or Pro Subscription
+            const amount = testId ? 1 : selectedPlan.amount;
             const itemId = testId || selectedPlan.id;
             
             // Fix: DAKPlus grants PREMIUM for its main course purchases.
